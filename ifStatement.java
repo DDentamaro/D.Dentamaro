@@ -13,14 +13,14 @@ public class ifStatement {
         Scanner scanner = new Scanner(System.in);
 
         // Get user input for the number
-        System.out.print("Enter a number: ");
+        System.out.print("inserisci un numero: ");
         int userNumber = scanner.nextInt();
 
         // Call the checkNumber function
         int result = checkNumber(userNumber);
 
         // Print the result
-        System.out.println("Result: " + result);
+        System.out.println("Risultato: " + result);
 
         scanner.close();
     }
