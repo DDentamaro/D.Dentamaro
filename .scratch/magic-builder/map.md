@@ -37,21 +37,22 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 | Canone | Concetto e regole di Mushoku Tensei, **senza canti** — si plasma per immagine |
 | Limite | Riserva di mana (tetto duro) + controllo (fallimento per degradazione) |
 | Ciclo | Poligono di tiro, bersagli inerti: costruisci → lancia → osserva → aggiusta |
-| File | Un `.html`, zero dipendenze, zero asset, zero build, tutto procedurale. **Servito via https**, non aperto da `file://` (ticket 02: su iOS un file locale non esegue JS). Uno `<script>` classico: i moduli ES non funzionano su `file://`. |
+| File | Un `.html`, zero dipendenze, zero asset, zero build, tutto procedurale. Aperto da **`file://`**, nessun host. Uno `<script>` classico: i moduli ES non funzionano su `file://`. |
 | Rendering | Micro-renderer WebGL2 scritto a mano (ticket 02). Cap sul devicePixelRatio a 2. |
 | Persistenza | `localStorage` + export/import come stringa di testo |
 | Casa | `magic-builder/` in questo repo |
 | Scena | Nessun caster a schermo |
 | Postura | Orizzontale, due mani |
 | Progressione | Nessuna: tutto sbloccato dal primo secondo |
-| Prestazioni | Telefoni di generazione corrente, WebGL2, budget GPU mobile — non desktop |
+| Piattaforma | **Solo Android**, Chrome. iOS e' fuori: Safari non esegue JS da file locale (ticket 02), ma non ci riguarda. |
+| Prestazioni | Telefoni Android di generazione corrente, WebGL2, budget GPU mobile — non desktop |
 
 ## Decisions so far
 
 <!-- una riga per ticket chiuso: gist + link. Il dettaglio vive nel ticket, non qui. -->
 
 - [01 — Il modello del mana in Mushoku Tensei, senza canti](issues/01-modello-mana-mushoku-tensei.md): il canone descrive il canto silenzioso come tre passaggi — **forma → potenza → velocita'** — quindi la pipeline ha tre stadi, non sei; attributi ridotti ai quattro d'attacco; il rango diventa scala comprata col mana, mai un cancello; la degradazione non e' canonica e va inventata.
-- [02 — Fondamenta tecniche di un file standalone](issues/02-fondamenta-tecniche-standalone.md): **micro-renderer WebGL2 a mano, niente three.js** — 4,6 KB misurati contro 515 KB tree-shaken, e il lato leggero e' gia' stato eseguito in Chromium; niente moduli ES su `file://`; su iPhone un file locale non esegue JavaScript, quindi il file (invariato, autonomo) si **serve via https**.
+- [02 — Fondamenta tecniche di un file standalone](issues/02-fondamenta-tecniche-standalone.md): **micro-renderer WebGL2 a mano, niente three.js** — 4,6 KB misurati contro 515 KB tree-shaken, e il lato leggero e' gia' stato eseguito in Chromium; niente moduli ES su `file://`; su iPhone un file locale non esegue JavaScript — ma il bersaglio e' **solo Android**, dove `file://` funziona, quindi nessun host serve.
 
 ## Not yet specified
 

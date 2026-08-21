@@ -63,3 +63,12 @@ post-processing — se il 03 lo autorizza — va scritto a mano.
    cambia solo che si **serve via https** invece di aprirlo da `file://`. "Zero rete" nasceva per
    non dipendere da CDN a runtime, e servire la pagina non viola quello scopo. Reversibile se il
    telefono e' Android.
+
+## Correzione post-risoluzione
+
+L'utente ha chiarito: **il bersaglio e' solo Android**. La decisione AFK di servire il file via
+https decade — era stata presa per aggirare iOS, che non ci riguarda. Su Android Chrome `file://`
+esegue lo script, quindi il file si apre direttamente e nessun host e' necessario.
+
+Resta valido tutto il resto del ticket: micro-renderer a mano, niente moduli ES, cap sul DPR.
+Anzi il vincolo `file://` **si rafforza**: e' il modo previsto di aprirlo, non un ripiego.
