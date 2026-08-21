@@ -37,7 +37,8 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 | Canone | Concetto e regole di Mushoku Tensei, **senza canti** — si plasma per immagine |
 | Limite | Riserva di mana (tetto duro) + controllo (fallimento per degradazione) |
 | Ciclo | Poligono di tiro, bersagli inerti: costruisci → lancia → osserva → aggiusta |
-| File | Un `.html`, zero rete, zero asset, tutto procedurale |
+| File | Un `.html`, zero dipendenze, zero asset, zero build, tutto procedurale. **Servito via https**, non aperto da `file://` (ticket 02: su iOS un file locale non esegue JS). Uno `<script>` classico: i moduli ES non funzionano su `file://`. |
+| Rendering | Micro-renderer WebGL2 scritto a mano (ticket 02). Cap sul devicePixelRatio a 2. |
 | Persistenza | `localStorage` + export/import come stringa di testo |
 | Casa | `magic-builder/` in questo repo |
 | Scena | Nessun caster a schermo |
@@ -50,6 +51,7 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 <!-- una riga per ticket chiuso: gist + link. Il dettaglio vive nel ticket, non qui. -->
 
 - [01 — Il modello del mana in Mushoku Tensei, senza canti](issues/01-modello-mana-mushoku-tensei.md): il canone descrive il canto silenzioso come tre passaggi — **forma → potenza → velocita'** — quindi la pipeline ha tre stadi, non sei; attributi ridotti ai quattro d'attacco; il rango diventa scala comprata col mana, mai un cancello; la degradazione non e' canonica e va inventata.
+- [02 — Fondamenta tecniche di un file standalone](issues/02-fondamenta-tecniche-standalone.md): **micro-renderer WebGL2 a mano, niente three.js** — 4,6 KB misurati contro 515 KB tree-shaken, e il lato leggero e' gia' stato eseguito in Chromium; niente moduli ES su `file://`; su iPhone un file locale non esegue JavaScript, quindi il file (invariato, autonomo) si **serve via https**.
 
 ## Not yet specified
 
@@ -60,6 +62,8 @@ Nebbia in scope, non ancora abbastanza nitida per un ticket:
   pipeline. Graduera' probabilmente dopo il 06 (contratto di rendering).
 - **Come una spell passa da un telefono all'altro.** Il 09 decide il *formato*; resta aperto se la
   stringa basta o se serve qualcosa attorno.
+- **Post-processing.** Il 02 ha tolto three.js e con esso `EffectComposer` e `UnrealBloomPass`: se
+  vogliamo bloom o distorsione vanno scritti a mano. Se ne valga la pena lo dice il budget del 03.
 - **Magia di barriera.** Il 01 l'ha esclusa dal set di attributi ma ha mostrato perche' pesa: e'
   l'unica scuola del canone che produrrebbe una forma **persistente e non balistica**, e quindi
   l'unica che metterebbe alla prova la pipeline fuori dal caso proiettile. Non e' ancora

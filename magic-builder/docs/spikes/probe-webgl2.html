@@ -1,0 +1,50 @@
+<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><style>html,body{margin:0;background:#0a0a12}canvas{width:100vw;height:100vh;display:block}</style><canvas id=c></canvas>
+<script>var MR=(()=>{var h=Object.defineProperty;var F=Object.getOwnPropertyDescriptor;var L=Object.getOwnPropertyNames;var y=Object.prototype.hasOwnProperty;var N=(e,r)=>{for(var i in r)h(e,i,{get:r[i],enumerable:!0})},w=(e,r,i,t)=>{if(r&&typeof r=="object"||typeof r=="function")for(let n of L(r))!y.call(e,n)&&n!==i&&h(e,n,{get:()=>r[n],enumerable:!(t=F(r,n))||t.enumerable});return e};var D=e=>w(h({},"__esModule",{value:!0}),e);var W={};N(W,{BLEND:()=>p,clamp:()=>P,compose:()=>U,createContext:()=>I,createMesh:()=>k,createProgram:()=>B,draw:()=>Y,lookAt:()=>C,loop:()=>G,m4:()=>M,mul:()=>z,perspective:()=>O,setState:()=>V,setUniform:()=>H});var P=(e,r,i)=>e<r?r:e>i?i:e;function M(){return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1])}function O(e,r,i,t,n){let a=1/Math.tan(r/2);return e[0]=a/i,e[1]=0,e[2]=0,e[3]=0,e[4]=0,e[5]=a,e[6]=0,e[7]=0,e[8]=0,e[9]=0,e[10]=(n+t)/(t-n),e[11]=-1,e[12]=0,e[13]=0,e[14]=2*n*t/(t-n),e[15]=0,e}function z(e,r,i){for(let t=0;t<4;t++){let n=r[t],a=r[t+4],f=r[t+8],o=r[t+12];for(let c=0;c<4;c++)e[t+c*4]=n*i[c*4]+a*i[c*4+1]+f*i[c*4+2]+o*i[c*4+3]}return e}function C(e,r,i,t){let n=r[0]-i[0],a=r[1]-i[1],f=r[2]-i[2],o=1/Math.hypot(n,a,f);n*=o,a*=o,f*=o;let c=t[1]*f-t[2]*a,s=t[2]*n-t[0]*f,A=t[0]*a-t[1]*n;o=1/Math.hypot(c,s,A)||0,c*=o,s*=o,A*=o;let u=a*A-f*s,d=f*c-n*A,E=n*s-a*c;return e[0]=c,e[1]=u,e[2]=n,e[3]=0,e[4]=s,e[5]=d,e[6]=a,e[7]=0,e[8]=A,e[9]=E,e[10]=f,e[11]=0,e[12]=-(c*r[0]+s*r[1]+A*r[2]),e[13]=-(u*r[0]+d*r[1]+E*r[2]),e[14]=-(n*r[0]+a*r[1]+f*r[2]),e[15]=1,e}function U(e,r,i,t){let[n,a,f,o]=i,c=n+n,s=a+a,A=f+f,u=n*c,d=n*s,E=n*A,x=a*s,m=a*A,R=f*A,_=o*c,S=o*s,b=o*A;return e[0]=(1-(x+R))*t[0],e[1]=(d+b)*t[0],e[2]=(E-S)*t[0],e[3]=0,e[4]=(d-b)*t[1],e[5]=(1-(u+R))*t[1],e[6]=(m+_)*t[1],e[7]=0,e[8]=(E+S)*t[2],e[9]=(m-_)*t[2],e[10]=(1-(u+x))*t[2],e[11]=0,e[12]=r[0],e[13]=r[1],e[14]=r[2],e[15]=1,e}function I(e,{dprCap:r=2}={}){let i=e.getContext("webgl2",{antialias:!0,alpha:!1,powerPreference:"high-performance",premultipliedAlpha:!1,preserveDrawingBuffer:!1});if(!i)throw new Error("WebGL2 non disponibile");let t=1;function n(){t=Math.min(devicePixelRatio||1,r);let a=Math.round(e.clientWidth*t),f=Math.round(e.clientHeight*t);return(e.width!==a||e.height!==f)&&(e.width=a,e.height=f),i.viewport(0,0,e.width,e.height),e.width/e.height}return{gl:i,resize:n,get dpr(){return t}}}function T(e,r,i){let t=e.createShader(r);if(e.shaderSource(t,i),e.compileShader(t),!e.getShaderParameter(t,e.COMPILE_STATUS))throw new Error(e.getShaderInfoLog(t)+`
+`+i.split(`
+`).map((n,a)=>`${a+1}: ${n}`).join(`
+`));return t}function B(e,r,i){let t=e.createProgram();if(e.attachShader(t,T(e,e.VERTEX_SHADER,r)),e.attachShader(t,T(e,e.FRAGMENT_SHADER,i)),e.linkProgram(t),!e.getProgramParameter(t,e.LINK_STATUS))throw new Error(e.getProgramInfoLog(t));let n={},a=e.getProgramParameter(t,e.ACTIVE_UNIFORMS);for(let f=0;f<a;f++){let o=e.getActiveUniform(t,f),c=o.name.replace(/\[0\]$/,"");n[c]={loc:e.getUniformLocation(t,c),type:o.type,size:o.size}}return{program:t,uniforms:n}}function H(e,r,i,t){let n=r[i];if(!n)return;let{loc:a,type:f}=n;switch(f){case e.FLOAT:e.uniform1f(a,t);break;case e.FLOAT_VEC2:e.uniform2fv(a,t);break;case e.FLOAT_VEC3:e.uniform3fv(a,t);break;case e.FLOAT_VEC4:e.uniform4fv(a,t);break;case e.FLOAT_MAT4:e.uniformMatrix4fv(a,!1,t);break;case e.INT:case e.BOOL:case e.SAMPLER_2D:e.uniform1i(a,t);break;default:e.uniform1f(a,t)}}function k(e,{attributes:r,indices:i,instanced:t}){let n=e.createVertexArray();e.bindVertexArray(n);let a={},f=0,o=0;for(let[A,u]of Object.entries(r)){let d=e.createBuffer();e.bindBuffer(e.ARRAY_BUFFER,d),e.bufferData(e.ARRAY_BUFFER,u.data,u.dynamic?e.DYNAMIC_DRAW:e.STATIC_DRAW),e.enableVertexAttribArray(f),e.vertexAttribPointer(f,u.size,e.FLOAT,!1,0,0),u.divisor?e.vertexAttribDivisor(f,u.divisor):o=u.data.length/u.size,a[A]={buffer:d,loc:f,...u},f++}let c=null,s=0;return i&&(c=e.createBuffer(),e.bindBuffer(e.ELEMENT_ARRAY_BUFFER,c),e.bufferData(e.ELEMENT_ARRAY_BUFFER,i,e.STATIC_DRAW),s=i.length),e.bindVertexArray(null),{vao:n,buffers:a,count:o,ibo:c,icount:s,instanced:t||0,update(A,u){let d=a[A];e.bindBuffer(e.ARRAY_BUFFER,d.buffer),e.bufferSubData(e.ARRAY_BUFFER,0,u)}}}var p={NONE:0,ALPHA:1,ADD:2};function V(e,{blend:r=p.NONE,depthTest:i=!0,depthWrite:t=!0,cull:n=null}){if(i?e.enable(e.DEPTH_TEST):e.disable(e.DEPTH_TEST),e.depthMask(t),n===null?e.disable(e.CULL_FACE):(e.enable(e.CULL_FACE),e.cullFace(n)),r===p.NONE){e.disable(e.BLEND);return}e.enable(e.BLEND),r===p.ADD?e.blendFunc(e.SRC_ALPHA,e.ONE):e.blendFuncSeparate(e.SRC_ALPHA,e.ONE_MINUS_SRC_ALPHA,e.ONE,e.ONE_MINUS_SRC_ALPHA)}function Y(e,r,i){let t=i===void 0?e.TRIANGLES:i;e.bindVertexArray(r.vao),r.ibo?r.instanced?e.drawElementsInstanced(t,r.icount,e.UNSIGNED_SHORT,0,r.instanced):e.drawElements(t,r.icount,e.UNSIGNED_SHORT,0):r.instanced?e.drawArraysInstanced(t,0,r.count,r.instanced):e.drawArrays(t,0,r.count)}function G(e){let r=performance.now(),i=0,t=!0,n=a=>{if(!t)return;let f=Math.min((a-r)/1e3,.05);r=a,e(f,a/1e3),i=requestAnimationFrame(n)};return i=requestAnimationFrame(n),()=>{t=!1,cancelAnimationFrame(i)}}return D(W);})();
+</script>
+<script>
+const out=[];
+try{
+  const {createContext,createProgram,setUniform,createMesh,setState,draw,BLEND,m4,perspective,lookAt,mul}=MR;
+  const {gl,resize}=createContext(document.getElementById('c'));
+  out.push('ctx:'+gl.getParameter(gl.VERSION));
+  const asp=resize();
+  const {program,uniforms}=createProgram(gl,
+    `#version 300 es
+     in vec3 position; in vec3 offset; uniform mat4 uVP; uniform float uT; out vec3 vC;
+     void main(){ vec3 p=position+offset+vec3(0.,sin(uT+offset.x)*.3,0.);
+       vC=.5+.5*normalize(offset+vec3(.001)); gl_Position=uVP*vec4(p,1.); }`,
+    `#version 300 es
+     precision highp float; in vec3 vC; out vec4 o; void main(){ o=vec4(vC,1.); }`);
+  out.push('uniforms:'+Object.keys(uniforms).sort().join(','));
+  const N=64, off=new Float32Array(N*3);
+  for(let i=0;i<N;i++){off[i*3]=(i%8-3.5)*1.2; off[i*3+1]=0; off[i*3+2]=(Math.floor(i/8)-3.5)*1.2;}
+  const mesh=createMesh(gl,{attributes:{
+      position:{data:new Float32Array([-.4,-.4,0, .4,-.4,0, 0,.5,0]),size:3},
+      offset:{data:off,size:3,divisor:1}},instanced:N});
+  const vp=mul(m4(),perspective(m4(),1.0,asp,.1,100),lookAt(m4(),[0,6,12],[0,0,0],[0,1,0]));
+  gl.clearColor(.04,.04,.07,1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  setState(gl,{blend:BLEND.ADD,depthTest:true,depthWrite:false});
+  gl.useProgram(program);
+  setUniform(gl,uniforms,'uVP',vp); setUniform(gl,uniforms,'uT',1.2);
+  draw(gl,mesh);
+  const W=gl.drawingBufferWidth,H=gl.drawingBufferHeight;
+  const buf=new Uint8Array(W*H*4);
+  gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,buf);
+  let drawn=0; const seen=new Set();
+  for(let i=0;i<buf.length;i+=4){
+    const r=buf[i],g=buf[i+1],b=buf[i+2];
+    if(r===10&&g===10&&b===18) continue;
+    drawn++; if(seen.size<5000) seen.add(r+','+g+','+b);
+  }
+  out.push('framebuffer:'+W+'x'+H);
+  out.push('pixel non-sfondo:'+drawn+' ('+(100*drawn/(W*H)).toFixed(2)+'%)');
+  out.push('colori distinti:'+seen.size);
+  out.push('glError:'+gl.getError());
+  out.push(drawn>1000&&seen.size>10?'GEOMETRIA RESA':'FALLITO');
+}catch(e){out.push('ERRORE: '+e.message);}
+document.title=out.join(' | ');
+</script>
