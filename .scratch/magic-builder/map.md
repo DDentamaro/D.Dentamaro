@@ -38,7 +38,8 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 | Limite | Riserva di mana (tetto duro) + controllo (fallimento per degradazione) |
 | Ciclo | Poligono di tiro, bersagli inerti: costruisci → lancia → osserva → aggiusta |
 | File | Un `.html`, zero dipendenze, zero asset, zero build, tutto procedurale. Aperto da **`file://`**, nessun host. Uno `<script>` classico: i moduli ES non funzionano su `file://`. |
-| Rendering | Micro-renderer WebGL2 scritto a mano (ticket 02). Cap sul devicePixelRatio a 2. |
+| Rendering | Micro-renderer WebGL2 scritto a mano (ticket 02). Cap sul devicePixelRatio a **1,5**, adattivo verso 1,0 (ticket 03). |
+| Budget GPU | 4x overdraw (~2,8M frammenti/frame), 30 draw call, un solo passo full-screen a 1/4 (bloom), niente volumetrica raymarchata, **zero shader compilati a runtime** (ticket 03). |
 | Persistenza | `localStorage` + export/import come stringa di testo |
 | Casa | `magic-builder/` in questo repo |
 | Scena | Nessun caster a schermo |
@@ -53,6 +54,7 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 
 - [01 — Il modello del mana in Mushoku Tensei, senza canti](issues/01-modello-mana-mushoku-tensei.md): il canone descrive il canto silenzioso come tre passaggi — **forma → potenza → velocita'** — quindi la pipeline ha tre stadi, non sei; attributi ridotti ai quattro d'attacco; il rango diventa scala comprata col mana, mai un cancello; la degradazione non e' canonica e va inventata.
 - [02 — Fondamenta tecniche di un file standalone](issues/02-fondamenta-tecniche-standalone.md): **micro-renderer WebGL2 a mano, niente three.js** — 4,6 KB misurati contro 515 KB tree-shaken, e il lato leggero e' gia' stato eseguito in Chromium; niente moduli ES su `file://`; su iPhone un file locale non esegue JavaScript — ma il bersaglio e' **solo Android**, dove `file://` funziona, quindi nessun host serve.
+- [03 — Budget GPU su telefoni di generazione corrente](issues/03-budget-gpu-mobile.md): budget in **frammenti** (4x overdraw, ~2,8M/frame) e non in particelle; cap DPR **1,5** adattivo; 30 draw call; **un solo** passo full-screen (bloom a 1/4); volumetrica raymarchata esclusa; e soprattutto **zero compilazioni di shader a runtime** — un builder che genera shader per spell scatterebbe a ogni lancio inedito.
 
 ## Not yet specified
 
@@ -63,12 +65,13 @@ Nebbia in scope, non ancora abbastanza nitida per un ticket:
   pipeline. Graduera' probabilmente dopo il 06 (contratto di rendering).
 - **Come una spell passa da un telefono all'altro.** Il 09 decide il *formato*; resta aperto se la
   stringa basta o se serve qualcosa attorno.
-- **Post-processing.** Il 02 ha tolto three.js e con esso `EffectComposer` e `UnrealBloomPass`: se
-  vogliamo bloom o distorsione vanno scritti a mano. Se ne valga la pena lo dice il budget del 03.
 - **Magia di barriera.** Il 01 l'ha esclusa dal set di attributi ma ha mostrato perche' pesa: e'
   l'unica scuola del canone che produrrebbe una forma **persistente e non balistica**, e quindi
   l'unica che metterebbe alla prova la pipeline fuori dal caso proiettile. Non e' ancora
   ticketizzabile: dipende da come il 04 definisce lo stadio "forma".
+- **Effetti oltre il bloom.** Il 03 concede **un solo** passo full-screen e il bloom se lo prende.
+  Se piu' avanti un archetipo chiedesse distorsione o aberrazione, andrebbero infilate dentro quel
+  passo o dentro l'uber-shader. Non ticketizzabile finche' il 06 non dice quali archetipi esistono.
 - **Estrazione in repo proprio.** Oggi il progetto vive in `magic-builder/` dentro un repo di
   esercizi Java. Se cresce, si sposta. Decisione a valle, non prerequisito.
 
