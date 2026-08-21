@@ -49,6 +49,8 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 
 <!-- una riga per ticket chiuso: gist + link. Il dettaglio vive nel ticket, non qui. -->
 
+- [01 — Il modello del mana in Mushoku Tensei, senza canti](issues/01-modello-mana-mushoku-tensei.md): il canone descrive il canto silenzioso come tre passaggi — **forma → potenza → velocita'** — quindi la pipeline ha tre stadi, non sei; attributi ridotti ai quattro d'attacco; il rango diventa scala comprata col mana, mai un cancello; la degradazione non e' canonica e va inventata.
+
 ## Not yet specified
 
 Nebbia in scope, non ancora abbastanza nitida per un ticket:
@@ -58,6 +60,10 @@ Nebbia in scope, non ancora abbastanza nitida per un ticket:
   pipeline. Graduera' probabilmente dopo il 06 (contratto di rendering).
 - **Come una spell passa da un telefono all'altro.** Il 09 decide il *formato*; resta aperto se la
   stringa basta o se serve qualcosa attorno.
+- **Magia di barriera.** Il 01 l'ha esclusa dal set di attributi ma ha mostrato perche' pesa: e'
+  l'unica scuola del canone che produrrebbe una forma **persistente e non balistica**, e quindi
+  l'unica che metterebbe alla prova la pipeline fuori dal caso proiettile. Non e' ancora
+  ticketizzabile: dipende da come il 04 definisce lo stadio "forma".
 - **Estrazione in repo proprio.** Oggi il progetto vive in `magic-builder/` dentro un repo di
   esercizi Java. Se cresce, si sposta. Decisione a valle, non prerequisito.
 
