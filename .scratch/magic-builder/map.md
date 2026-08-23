@@ -33,12 +33,14 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 
 | | |
 |---|---|
-| Cuore | Builder-first: pipeline di plasmatura componibile |
-| Canone | Concetto e regole di Mushoku Tensei, **senza canti** — si plasma per immagine |
-| Limite | Riserva di mana (tetto duro) + controllo (fallimento per degradazione) |
+| Cuore | Builder-first: un'**immagine** componibile (ticket 04) |
+| Canone | Innesto di due fonti (ticket 04): **Witch Hat Atelier** per la grammatica della composizione, **Mushoku Tensei** per l'atto. Senza canti, e **senza disegnare** — il glifo e' il modello, non l'interfaccia. |
+| Composizione | Un'**immagine** = nucleo (4 materie: fuoco, acqua, terra, vento) + 6 qualita' tipizzate + carica a pressione. Vocabolario in `magic-builder/CONTEXT.md`. |
+| Limite | **Mana** limita l'intensita' e si spende caricando; **controllo** limita la complessita' (quante qualita' si tengono nitide) e superarlo **sfoca** invece di bloccare (ticket 04). |
 | Ciclo | Poligono di tiro, bersagli inerti: costruisci → lancia → osserva → aggiusta |
 | File | Un `.html`, zero dipendenze, zero asset, zero build, tutto procedurale. Aperto da **`file://`**, nessun host. Uno `<script>` classico: i moduli ES non funzionano su `file://`. |
 | Rendering | Micro-renderer WebGL2 scritto a mano (ticket 02). Cap sul devicePixelRatio a **1,5**, adattivo verso 1,0 (ticket 03). |
+| Shader | Quattro uber-shader, uno per materia; le qualita' entrano come uniform (ticket 04, determinato dal 03). |
 | Budget GPU | 4x overdraw (~2,8M frammenti/frame), 30 draw call, un solo passo full-screen a 1/4 (bloom), niente volumetrica raymarchata, **zero shader compilati a runtime** (ticket 03). |
 | Persistenza | `localStorage` + export/import come stringa di testo |
 | Casa | `magic-builder/` in questo repo |
@@ -55,6 +57,7 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 - [01 — Il modello del mana in Mushoku Tensei, senza canti](issues/01-modello-mana-mushoku-tensei.md): il canone descrive il canto silenzioso come tre passaggi — **forma → potenza → velocita'** — quindi la pipeline ha tre stadi, non sei; attributi ridotti ai quattro d'attacco; il rango diventa scala comprata col mana, mai un cancello; la degradazione non e' canonica e va inventata.
 - [02 — Fondamenta tecniche di un file standalone](issues/02-fondamenta-tecniche-standalone.md): **micro-renderer WebGL2 a mano, niente three.js** — 4,6 KB misurati contro 515 KB tree-shaken, e il lato leggero e' gia' stato eseguito in Chromium; niente moduli ES su `file://`; su iPhone un file locale non esegue JavaScript — ma il bersaglio e' **solo Android**, dove `file://` funziona, quindi nessun host serve.
 - [03 — Budget GPU su telefoni di generazione corrente](issues/03-budget-gpu-mobile.md): budget in **frammenti** (4x overdraw, ~2,8M/frame) e non in particelle; cap DPR **1,5** adattivo; 30 draw call; **un solo** passo full-screen (bloom a 1/4); volumetrica raymarchata esclusa; e soprattutto **zero compilazioni di shader a runtime** — un builder che genera shader per spell scatterebbe a ogni lancio inedito.
+- [04 — Gli stadi della pipeline di plasmatura e i loro operatori](issues/04-stadi-pipeline.md): risolto **in HITL**. Innesto di due fonti — **Witch Hat Atelier** da' la grammatica, **Mushoku Tensei** l'atto. Un'**immagine** e' **nucleo** (4 materie) + **qualita' tipizzate** (6: una direzionale, tre semi-direzionali invertibili, due non-direzionali) + **carica** (si tiene premuto, la durata *e'* il mana investito). Nessuno stadio "forma": emerge. Ne discendono **quattro uber-shader, uno per materia**.
 
 ## Not yet specified
 
@@ -69,6 +72,12 @@ Nebbia in scope, non ancora abbastanza nitida per un ticket:
   l'unica scuola del canone che produrrebbe una forma **persistente e non balistica**, e quindi
   l'unica che metterebbe alla prova la pipeline fuori dal caso proiettile. Non e' ancora
   ticketizzabile: dipende da come il 04 definisce lo stadio "forma".
+- **Materie derivate dalle combinazioni.** Vapore, fango, fulmine: nuclei ottenuti
+  combinandone due. L'utente le vuole, ma non sono ticketizzabili finche' le quattro di base
+  non sono rese — dipendono dal 06.
+- **La materia luce.** Quinta materia del canone di WHA, non adottata dal 04. Non e' fuori
+  scope: e' l'unica materia senza massa, quindi quella che metterebbe alla prova il modello
+  invece di confermarlo. Rimandata con le derivate.
 - **Effetti oltre il bloom.** Il 03 concede **un solo** passo full-screen e il bloom se lo prende.
   Se piu' avanti un archetipo chiedesse distorsione o aberrazione, andrebbero infilate dentro quel
   passo o dentro l'uber-shader. Non ticketizzabile finche' il 06 non dice quali archetipi esistono.

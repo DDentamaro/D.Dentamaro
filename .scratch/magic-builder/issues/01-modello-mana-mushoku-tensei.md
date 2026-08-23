@@ -61,3 +61,14 @@ affermazione come CANONE o INFERENZA.
 
 **Glossario**: creato `magic-builder/CONTEXT.md` con i termini che questo ticket risolve —
 mana, controllo, immagine, pipeline di plasmatura, attributo, rango, degradazione.
+
+## Nota di superamento (ticket 04)
+
+Il ticket 04 ha introdotto **Witch Hat Atelier** come modello di composizione. La pipeline a tre
+stadi estratta qui (forma → potenza → velocita') **non e' piu' la struttura della spell**: descriveva
+tre passaggi mentali, e la struttura adottata e' quella di WHA — nucleo, qualita' tipizzate, carica.
+
+Resta valido tutto il resto, ed e' la parte che regge il modello finale: mana come riserva finita,
+controllo distinto dalla capacita', le quattro materie d'attacco, l'esaurimento, e soprattutto la
+segnalazione che il costo temporale del rango restava senza casa — buco che il 04 ha chiuso con la
+carica.
