@@ -1,7 +1,7 @@
 # 04 — Gli stadi della pipeline di plasmatura e i loro operatori
 
-Type: grilling (declassato ad AFK — vedi Notes della mappa)
-Status: open
+Type: grilling (HITL ripristinato: l'utente lavora questo ticket di persona)
+Status: claimed
 Blocked by: 01
 
 ## Question
