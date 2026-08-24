@@ -71,3 +71,18 @@ c'era.
 
 Materia ottenuta combinando due nuclei — vapore, fango, fulmine. Prevista, non ancora definita:
 dipende da come rendiamo le quattro di base. In nebbia, non fuori scope.
+
+## Carico
+
+Quanto una composizione pesa sul controllo. Ogni qualita' contribuisce secondo la sua **classe**:
+direzionale 3, semi-direzionale 2, non-direzionale 1.
+
+## Nitidezza
+
+Quanto l'immagine e' fedele a cio' che volevi: `min(controllo / carico, 1)`, ridotta dallo
+**sforzo** quando la riserva e' bassa. A 1 l'immagine e' quella pensata; scendendo, degrada.
+
+## Sforzo
+
+La penalita' di nitidezza che subentra sotto il 20% di riserva. E' l'unico punto in cui mana e
+controllo si parlano: tenere premuto fino all'ultima goccia costa qualcosa oltre al mana.
