@@ -69,6 +69,8 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 
 - [11 — Demo verticale](issues/11-demo-verticale.md): **il primo codice che gira.** Un file da 23 KB, quattro materie, otto assi, dose, i quattro stati di degradazione — verificato eseguendolo in Chromium, non leggendolo. Tre bug trovati cosi', fra cui il collasso che volava all'indietro invece di cedere addosso. **Il budget del 03 resta non verificato**: serve una GPU Android vera.
 
+- [07 — Layout orizzontale dell'editor](issues/07-layout-orizzontale-editor.md): risolto misurando. **Otto assi in colonna singola non entrano** in un telefono orizzontale — intestazione e letture prendono 249px su 390, restano quattro righe. **Due colonne**: 8 assi su 8 visibili senza scroll. Arena a sinistra per il pollice che lancia, pannello a destra per quello che compone.
+
 ## Not yet specified
 
 Nebbia in scope, non ancora abbastanza nitida per un ticket:
