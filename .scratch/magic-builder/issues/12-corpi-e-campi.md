@@ -94,3 +94,30 @@ limite visto nella sandbox); scegliere il substrato a mano (nono asse mascherato
 
 Prima il **corpo** — pipeline gia' pronta col manichino, e risponde alla richiesta esplicita. Poi il
 **nastro**. Infine l'atlante procedurale.
+
+## Addendum — EthrA e la famiglia HD-2D
+
+L'utente ha indicato **EthrA** (StoneLab Games) come riferimento. E' in playtest e **non ha una
+scomposizione tecnica pubblicata**: quel che segue viene dalla sua famiglia visiva, l'HD-2D, che e'
+documentata e che e' anche quella del field fornito.
+
+**Il risultato piu' importante, e ribalta una mia raccomandazione precedente: la spell deve
+illuminare la scena.** Il team di Octopath racconta di aver messo effetti «normali» in combattimento,
+di non esserne stato soddisfatto, e di aver risolto aggiungendo una **point light nella scena** che
+faceva proiettare ombre ai personaggi durante gli effetti.
+
+Una spell che sta *sopra* la scena sembra un adesivo; una che illumina suolo e manichino sembra
+magia. Costa una manciata di ALU per frammento nei due shader che gia' esistono, e sui tiler l'ALU e'
+la risorsa abbondante.
+
+**Cambia l'ordine di lavoro**: prima la **luce**, poi il corpo, poi il nastro, infine l'atlante. E'
+il rapporto resa/costo migliore emerso da tutta la ricerca.
+
+**Secondo esito**: l'HD-2D e' «pixel a bassa risoluzione fusi con illuminazione e particelle **ad
+alta risoluzione**». Le nostre spell **non vanno pixelate** per intonarsi al mondo — il contrasto e'
+lo stile, non un errore.
+
+**Un conflitto dichiarato e non risolto**: l'HD-2D si appoggia molto a tilt-shift e profondita' di
+campo per staccare gli sprite dallo sfondo, ma il ticket 03 concede **un solo** passo full-screen e
+il bloom se l'e' gia' preso. Bloom e DOF competono. Se il mondo definitivo e' il field di
+riferimento, forse il DOF appartiene a quello e non al builder.

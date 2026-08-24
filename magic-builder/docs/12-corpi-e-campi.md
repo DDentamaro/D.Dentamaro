@@ -144,3 +144,55 @@ l'atlante procedurale in Canvas 2D.
 - [Custom ribbon effect for bullet trails — Real Time VFX](https://realtimevfx.com/t/custom-ribbon-effect-for-bullet-trails/24846)
 
 Lette come riassunti di risultati di ricerca: il proxy di rete blocca i domini.
+
+## 7. EthrA e la famiglia HD-2D
+
+L'utente ha indicato **EthrA** (StoneLab Games) come riferimento: RPG open-world in **pixel art 3D**,
+con Bob al corpo a corpo e **Veil che lancia le spell**. E' in playtest e **non esiste una
+scomposizione tecnica pubblicata** — quel che segue viene dalla sua famiglia visiva, l'HD-2D, che e'
+documentata, e che e' anche la famiglia del field di riferimento fornito (sprite billboardati dentro
+una scena 3D, render target per attore).
+
+Tre cose che l'HD-2D fa e che ci riguardano direttamente.
+
+### La spell illumina la scena
+
+E' il risultato piu' importante di questa ricerca, e ribalta un pezzo del §5.
+
+Il team di Octopath racconta di aver messo effetti visivi «normali» in combattimento, di **non
+esserne stato soddisfatto**, e di aver risolto aggiungendo una **point light nella scena**, cosi' che
+i personaggi proiettassero ombre sull'ambiente durante gli effetti.
+
+Tradotto per noi: una spell che sta *sopra* la scena sembra un adesivo; una spell che **illumina il
+suolo e il manichino** sembra magia. E costa pochissimo — una point light in piu' nei due shader
+gia' esistenti (suolo e corpi) sono una manciata di operazioni ALU per frammento, e sui tiler l'ALU
+e' la risorsa abbondante.
+
+**Raccomandazione: ogni immagine emette una luce puntiforme** al proprio centro di massa, del colore
+della materia, con intensita' proporzionale alla dose. Da fare **prima** del nastro e prima
+dell'atlante: e' il rapporto resa/costo migliore di tutta la ricerca.
+
+### I VFX restano nitidi, il mondo resta pixelato
+
+La definizione di HD-2D e' «pixel e sprite a bassa risoluzione fusi con **illuminazione e particelle
+ad alta risoluzione**». La tensione fra i due *e'* lo stile.
+
+Quindi le nostre spell **non vanno pixelate** per intonarsi al mondo: devono restare nitide. Il
+contrasto e' voluto, non un errore di coerenza.
+
+### Il conflitto sul passo full-screen
+
+L'HD-2D si appoggia molto al **tilt-shift e alla profondita' di campo**: sfocare lo sfondo e' cio'
+che stacca gli sprite dal mondo. Ma il ticket 03 concede **un solo passo full-screen**, e il bloom se
+l'e' gia' preso.
+
+Non lo risolvo qui, lo dichiaro: **bloom e profondita' di campo competono per l'unico slot**. Il
+bloom serve alla magia, la profondita' di campo serve allo stile del mondo. Se il mondo definitivo e'
+quello del field di riferimento, la scelta va rifatta guardandoli insieme — e forse il DOF appartiene
+al field e non al builder.
+
+### Fonti
+
+- [EthrA su Steam](https://store.steampowered.com/app/2177510/EthrA/) · [NeoGAF — EthrA, hybrid 2D-in-3D](https://www.neogaf.com/threads/ethra-rpg-with-hybrid-2d-in-a-3d-world-style-pc-indie-by-stonelab-games.1670647/) · [80.lv](https://80.lv/articles/this-indie-adventure-combines-pixelated-3d-models-2d-character-sprites)
+- [Octopath Traveler II e lo stile HD-2D — Unreal Engine](https://www.unrealengine.com/en-US/developer-interviews/octopath-traveler-ii-builds-a-bigger-bolder-world-in-its-stunning-hd-2d-style)
+- [HD-2D — Wikipedia](https://en.wikipedia.org/wiki/HD-2D)
