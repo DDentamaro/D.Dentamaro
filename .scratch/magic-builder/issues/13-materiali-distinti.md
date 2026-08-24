@@ -83,3 +83,42 @@ tiler la banda e' la risorsa scarsa); tenere due soli colori (e' la causa del pr
 
 Portare i quattro rumori e il profilo nel fragment shader dell'uber-shader. `voronoi` e `curl` sono
 i piu' cari: vanno misurati contro il budget del 03 sul frame time reale.
+
+## Implementazione
+
+I quattro rumori sono nel shader, con i profili scelti nel provino Python.
+
+**Decisione di architettura imposta dal budget**: il rumore della materia si valuta **una volta per
+particella, nel vertex shader**, non per frammento. Il `curl` per frammento costerebbe ~80 hash, cioe'
+~200 milioni di valutazioni per frame a 2,8M frammenti — fuori dal budget del ticket 03. Al frammento
+resta il bordo sfrangiato e la rampa. Una particella e' ~26px: il dettaglio interno non si vedrebbe
+comunque.
+
+**Rami su uniform**, non per frammento: sono coerenti per l'intera draw, quindi **solo le materie che
+usano un rumore lo pagano**. Confermato dai tempi misurati (rasterizzazione software, quindi contano
+i rapporti, non i valori):
+
+| Materia | rumori attivi | frame time |
+|---|---|---:|
+| vento | fbm, ridged, curl | **17,8 ms** |
+| fuoco | fbm, ridged, curl | 29,4 ms |
+| terra | fbm, voronoi | 34,4 ms |
+| acqua | tutti e quattro | **39,7 ms** |
+
+**Il voronoi e' il caro**, come previsto. Va rimisurato su GPU vera.
+
+### Due difetti trovati misurando
+
+1. **Le materie morbide sparivano.** Con `durezza 0.08` il vento spalma la maschera su meta' del
+   raggio e l'alfa scende sotto la soglia di visibilita'. Aggiunta una compensazione: piu' morbida
+   la materia, piu' alfa.
+2. **La Lancia di vento non arrivava mai al bersaglio** — e non era un bug di resa. Carico 12,0
+   chiede **108 di mana su un serbatoio da 100**: collassa a meta' evocazione. Il vento che combatte
+   la propria natura (convergenza e forza contro dispersione e leggerezza) e' letteralmente
+   inaccessibile a dose piena. **Il sistema stava funzionando**; era la sonda a ingannarmi. Al 55%
+   di dose costa 59 e arriva.
+
+### Cosa resta
+
+Il nucleo solido e' ancora un box non orientato e senza materiale: va allineato all'asse e deve
+ricevere lo stesso profilo di rumore delle particelle.

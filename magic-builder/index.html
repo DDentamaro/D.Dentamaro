@@ -128,13 +128,23 @@ const ASSI=[
   {k:'ritmo',      et:'ritmo',                     peso:1}
 ];
 const MATERIE={
-  fuoco:{nome:'Fuoco', col:[1.00,0.47,0.29], col2:[1.00,0.88,0.50],
+  // profilo visivo: pesi (fbm, ridged, voronoi, curl) + manopole + tre colori.
+  // Scelti guardando il provino di tools/materiali.py, non a occhio nel browser.
+  fuoco:{nome:'Fuoco',
+    pesi:[0.35,0.05,0.00,0.60], scala:5.0, bordo:0.10, scint:0.00, durezza:0.15,
+    c0:[1.00,0.95,0.72], c1:[1.00,0.47,0.16], c2:[0.42,0.09,0.05],
     riposo:{radiale:-0.6,massa:-0.5,vita:-0.6,rotazione:0.1,stabilita:0.0,levitazione:0.7,ritmo:0.8}},
-  acqua:{nome:'Acqua', col:[0.30,0.66,0.86], col2:[0.76,0.95,1.00],
+  acqua:{nome:'Acqua',
+    pesi:[0.45,0.05,0.35,0.15], scala:4.0, bordo:0.55, scint:0.30, durezza:0.55,
+    c0:[0.88,0.98,1.00], c1:[0.26,0.62,0.86], c2:[0.05,0.16,0.34],
     riposo:{radiale:0.2,massa:-0.3,vita:0.6,rotazione:0.6,stabilita:0.7,levitazione:-0.5,ritmo:-0.3}},
-  terra:{nome:'Terra', col:[0.72,0.52,0.26], col2:[0.95,0.82,0.58],
+  terra:{nome:'Terra',
+    pesi:[0.30,0.00,0.70,0.00], scala:3.0, bordo:0.25, scint:0.05, durezza:0.85,
+    c0:[0.92,0.80,0.58], c1:[0.62,0.42,0.20], c2:[0.18,0.11,0.06],
     riposo:{radiale:0.3,massa:0.8,vita:0.6,rotazione:-0.2,stabilita:0.9,levitazione:-0.8,ritmo:0.0}},
-  vento:{nome:'Vento', col:[0.48,0.74,0.63], col2:[0.86,1.00,0.94],
+  vento:{nome:'Vento',
+    pesi:[0.30,0.10,0.00,0.60], scala:7.0, bordo:0.15, scint:0.00, durezza:0.08,
+    c0:[0.94,1.00,0.97], c1:[0.48,0.76,0.64], c2:[0.10,0.24,0.19],
     riposo:{radiale:-0.7,massa:-0.8,vita:-0.2,rotazione:0.7,stabilita:0.1,levitazione:0.6,ritmo:0.4}}
 };
 const PRESET = [
@@ -256,10 +266,43 @@ void main(){
 /* --- particelle: billboard in world space --- */
 const PVS=`#version 300 es
 precision highp float;
+// ---- primitivi di rumore: gli stessi di tools/materiali.py ----
+// E' il tipo di rumore a fare la materia: voronoi da' cristallo, curl da' flusso,
+// ridged da' scariche, fbm da' fumo. Il profilo della materia ne pesa la miscela.
+float h21(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+float vn(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f);
+  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y); }
+float fbm2(vec2 p){ return 0.667*vn(p)+0.333*vn(p*2.0); }
+float fbm4(vec2 p){ float s=0.0,a=0.5; for(int i=0;i<4;i++){ s+=a*vn(p); p*=2.0; a*=0.5; } return s*1.0667; }
+float ridged4(vec2 p){ float s=0.0,a=0.5;
+  for(int i=0;i<4;i++){ float v=1.0-abs(vn(p)*2.0-1.0); s+=a*v*v; p*=2.0; a*=0.5; } return s*1.0667; }
+float voro(vec2 p){ vec2 i=floor(p),f=fract(p); float d1=8.0,d2=8.0;
+  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){
+    vec2 g=vec2(float(x),float(y));
+    vec2 o=vec2(h21(i+g),h21(i+g+37.0));
+    float d=length(g+o-f);
+    if(d<d1){ d2=d1; d1=d; } else if(d<d2){ d2=d; } }
+  return clamp(d2-d1,0.0,1.0); }
+float curl2(vec2 p){ float e=0.09;
+  float gx=fbm2(p+vec2(e,0.0))-fbm2(p-vec2(e,0.0));
+  float gy=fbm2(p+vec2(0.0,e))-fbm2(p-vec2(0.0,e));
+  return fbm2(p+vec2(gx,gy)*2.2); }
+// Rami su uniform: coerenti per l'intera draw, quindi solo le materie che usano
+// un rumore lo pagano davvero.
+float materia(vec2 p, vec4 pesi){
+  float s=0.0;
+  if(pesi.x>0.001) s+=pesi.x*fbm4(p);
+  if(pesi.y>0.001) s+=pesi.y*ridged4(p+11.0);
+  if(pesi.z>0.001) s+=pesi.z*voro(p*1.6+23.0);
+  if(pesi.w>0.001) s+=pesi.w*curl2(p*0.8+37.0);
+  return s/max(pesi.x+pesi.y+pesi.z+pesi.w,0.001);
+}
+
 in vec2 quad; in vec3 seed; in float slot;
 uniform mat4 uVP; uniform vec3 uRight,uUp,uOrigin,uAxis;
 uniform float uT,uLife,uSpeed,uRadial,uMass,uRot,uNoise,uGrav,uBeat,uCoher,uSize,uDrift;
-out float vAge; out vec2 vQuad; out float vSoft;
+uniform vec4 uPesi; uniform float uScala,uScint;
+out float vAge; out vec2 vQuad; out float vSoft; out float vRu; out float vSc;
 float h(float x){return fract(sin(x*127.1)*43758.5453);}
 void main(){
   // finestra di emissione: stretta se la formula converge, lunga se disperde
@@ -289,17 +332,32 @@ void main(){
   float sz=uSize*(0.42+0.62*sin(age*2.75))*mix(1.0,1.7,1.0-uCoher)*beat;
   wp += (uRight*quad.x + uUp*quad.y)*sz;
   gl_Position=uVP*vec4(wp,1.0);
+  // Il rumore della materia si valuta UNA VOLTA per particella: per frammento il curl
+  // costerebbe ~80 hash, cioe' fuori budget a 2,8M frammenti (ticket 03).
+  vec2 np=seed.xy*uScala + vec2(uT*0.6,-uT*0.35);
+  vRu=materia(np,uPesi);
+  vSc=uScint>0.001 ? step(0.86,h21(seed.xy*91.0+floor(uT*9.0)))*uScint : 0.0;
   vAge=age; vQuad=quad; vSoft=uCoher;
 }`;
 const PFS=`#version 300 es
-precision mediump float; in float vAge; in vec2 vQuad; in float vSoft;
-uniform vec3 uCol,uCol2; uniform float uAlpha; out vec4 o;
+precision mediump float;
+in float vAge; in vec2 vQuad; in float vSoft; in float vRu; in float vSc;
+uniform vec3 uC0,uC1,uC2;          // nucleo / mezzo / bordo
+uniform float uAlpha,uDurezza,uBordo;
+out vec4 o;
 void main(){
   float d=length(vQuad);
-  float edge=mix(0.75,0.06,vSoft);
-  float a=smoothstep(1.0,1.0-edge-0.02,d)*(1.0-vAge*vAge*0.82)*uAlpha;
+  float sfrangia=(vRu-0.5)*(1.0-uDurezza)*0.85;   // il rumore sfrangia il bordo
+  float soglia=1.0-vAge*0.30;
+  float morb=mix(0.62,0.05,uDurezza*0.55+vSoft*0.45);
+  float comp=mix(2.4,1.0,clamp(uDurezza*1.3,0.0,1.0));   // morbida = piu' alfa, o sparisce
+  float a=smoothstep(soglia+morb*0.5,soglia-morb*0.5,d+sfrangia)*(1.0-vAge*vAge*0.82)*uAlpha*comp;
   if(a<=0.003)discard;
-  o=vec4(mix(uCol2,uCol,clamp(vAge*2.2,0.0,1.0))*a,a);
+  float temp=clamp(d*0.80+vAge*0.55+(vRu-0.5)*0.40,0.0,1.0);
+  vec3 c = temp<0.5 ? mix(uC0,uC1,temp*2.0) : mix(uC1,uC2,(temp-0.5)*2.0);
+  c += uC0*pow(clamp((d-(soglia-0.26))/0.26,0.0,1.0),2.0)*uBordo*0.9;   // bordo che si accende
+  c += vSc;                                                            // scintille
+  o=vec4(c*a,a);
 }`;
 
 let P_GROUND,P_BOX,P_PART,vaoGround,vaoBox,vaoPart,boxCount=0;
@@ -412,7 +470,7 @@ function paramsDaFormula(nit,collasso){
     grav: collasso?-0.3:lev*0.42, beat: collasso?0:(ritmo*0.5+0.5),
     coher: collasso?0.15:Math.min(nit,1),
     size: 0.034*(0.75+0.45*formula.dose)*(collasso?1.7:1),
-    drift: collasso?0:deriva, col:M.col, col2:M.col2, alpha: collasso?0.42:0.26
+    drift: collasso?0:deriva, prof:M, col:M.c1, col2:M.c0, alpha: collasso?0.42:0.26
   };
 }
 // La testa della spell, calcolata come nel vertex shader: serve alla luce e all'impatto.
@@ -429,7 +487,7 @@ function pesiSubstrato(){
   return {corpo, nastro, campo:1-Math.max(corpo,nastro)};
 }
 function colpisci(pos,p,forza){
-  impatto={t0:performance.now()/1000,pos:pos.slice(),col:p.col,col2:p.col2,forza};
+  impatto={t0:performance.now()/1000,pos:pos.slice(),prof:p.prof,col:p.col,col2:p.col2,forza};
   dummyHit=1; shake=Math.min(0.22,0.06+forza*0.16);
   const dx=pos[0]-BERSAGLIO[0], dz=pos[2]-BERSAGLIO[2];
   const l=Math.hypot(dx,dz)||1; dummyLean=[-dx/l*forza*0.09,-dz/l*forza*0.09];
@@ -568,7 +626,7 @@ function frame(now){
       } else if(tv>=p.life){ volo.colpito=true; colpisci(head,p,volo.forza*0.5); }
     }
   }
-  if(lampoLancio>0){ luceP=ORIGINE; luceC=MATERIE[formula.materia].col;
+  if(lampoLancio>0){ luceP=ORIGINE; luceC=MATERIE[formula.materia].c1;
     luceI=Math.max(luceI,lampoLancio*2.2); lampoLancio=Math.max(0,lampoLancio-dt*2.6); }
   let decP=[0,-99,0],decC=[0,0,0],decR=0,decI=0;
   if(impatto){
@@ -614,7 +672,7 @@ function frame(now){
     const tv=T-volo.t0, p=volo.p, head=testaSpell(p,tv);
     const age=Math.min(tv/Math.max(p.life,0.05),1);
     const s=(0.07+0.15*volo.w.corpo)*(0.6+0.5*formula.dose)*(1-age*0.25);
-    gl.uniform1f(P_BOX.u.uFlash,0.30); gl.uniform1f(P_BOX.u.uEmis,1.8);
+    gl.uniform1f(P_BOX.u.uFlash,0.10); gl.uniform1f(P_BOX.u.uEmis,0.75);
     gl.uniform3f(P_BOX.u.uOff,head[0],head[1],head[2]);
     gl.uniform3f(P_BOX.u.uSize,s,s,s*(1+volo.w.corpo*2.6));
     gl.uniform3f(P_BOX.u.uCol,p.col[0],p.col[1],p.col[2]);
@@ -633,8 +691,11 @@ function frame(now){
     gl.uniform1f(u.uRadial,p.radial); gl.uniform1f(u.uMass,p.mass); gl.uniform1f(u.uRot,p.rot);
     gl.uniform1f(u.uNoise,p.noise); gl.uniform1f(u.uGrav,p.grav); gl.uniform1f(u.uBeat,p.beat);
     gl.uniform1f(u.uCoher,p.coher); gl.uniform1f(u.uSize,p.size*scala); gl.uniform1f(u.uDrift,p.drift);
-    gl.uniform3f(u.uCol,p.col[0],p.col[1],p.col[2]);
-    gl.uniform3f(u.uCol2,p.col2[0],p.col2[1],p.col2[2]);
+    const pr=p.prof;
+    gl.uniform4f(u.uPesi,pr.pesi[0],pr.pesi[1],pr.pesi[2],pr.pesi[3]);
+    gl.uniform1f(u.uScala,pr.scala); gl.uniform1f(u.uScint,pr.scint);
+    gl.uniform1f(u.uDurezza,pr.durezza); gl.uniform1f(u.uBordo,pr.bordo);
+    gl.uniform3fv(u.uC0,pr.c0); gl.uniform3fv(u.uC1,pr.c1); gl.uniform3fv(u.uC2,pr.c2);
     gl.uniform1f(u.uAlpha,alfa);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,N);
     gl.depthMask(true);
@@ -649,7 +710,7 @@ function frame(now){
     const ti=T-impatto.t0;
     disegnaCampo({life:0.42,axis:[0,1,0],speed:0.55,radial:-1.0,mass:-0.8,rot:0.5,
       noise:1.2,grav:-0.5,beat:0,coher:0.85,size:0.030*(0.7+impatto.forza),
-      drift:0,col:impatto.col,col2:impatto.col2,alpha:0.30*impatto.forza},
+      drift:0,prof:impatto.prof,col:impatto.col,col2:impatto.col2,alpha:0.30*impatto.forza},
       ti,impatto.pos,1,0.30*impatto.forza);
   }
   gl.bindVertexArray(null);
