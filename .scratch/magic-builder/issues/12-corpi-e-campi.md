@@ -121,3 +121,39 @@ lo stile, non un errore.
 campo per staccare gli sprite dallo sfondo, ma il ticket 03 concede **un solo** passo full-screen e
 il bloom se l'e' gia' preso. Bloom e DOF competono. Se il mondo definitivo e' il field di
 riferimento, forse il DOF appartiene a quello e non al builder.
+
+## Implementazione (prima passata)
+
+L'utente ha bocciato la resa precedente: «incoerente, le spell non sembrano tali e non sembrano fare
+niente». Il terzo punto era il piu' grave: **una spell che non fa nulla all'arrivo non e' un attacco,
+e' un'animazione.**
+
+Implementato, nell'ordine deciso dalla ricerca:
+
+1. **La spell illumina la scena.** Point light che segue la testa, letta dallo shader del suolo e da
+   quello dei corpi. E' il risultato HD-2D del §7, ed e' quello che stacca la magia dall'adesivo.
+2. **Impatto.** La testa e' calcolata su CPU con la stessa formula del vertex shader; quando entra
+   nel raggio del bersaglio (o quando la vita finisce, a meta' forza) scatta l'evento: **decalco ad
+   anello** che si allarga a terra, **lampo di luce**, **scoppio di particelle** che rimbalza
+   all'indietro dal punto colpito.
+3. **Reazione del bersaglio.** Il manichino **lampeggia** e **si piega** nella direzione del colpo,
+   piu' in alto che alla base. Piu' scossa di camera proporzionale alla forza.
+4. **Corpo solido.** Le formule con `peso_corpo > 0.15` disegnano un nucleo incandescente allungato
+   sull'asse, davanti alla nuvola. E' il secondo substrato del §2, il primo a entrare.
+5. **Lampo di lancio** all'origine quando la formula parte.
+
+### Tre difetti trovati guardando, non leggendo
+
+- **La spell era una catena di grumi staccati.** Il `ritmo` la spezzava in otto gruppi netti. Ora
+  modula la **densita'**, non spezza la scia.
+- **Le particelle nascevano spalmate su tutto il volo**, quindi non c'era una testa. Ora la finestra
+  di emissione e' **stretta se la formula converge, lunga se disperde** — la compattezza produce un
+  proiettile, la dispersione una scia.
+- **Mirava storto e volava sopra il bersaglio**, perche' l'asse era fisso su −Z e la levitazione del
+  fuoco la portava alta. Ora **si mira al bersaglio** e sono gravita' e deriva a decidere se ci
+  arrivi: il fallimento resta leggibile invece che sistematico.
+
+### Cosa resta
+
+Nastro (substrato lineare), atlante procedurale in Canvas 2D, e la decisione dichiarata al §7 fra
+bloom e profondita' di campo per l'unico passo full-screen.

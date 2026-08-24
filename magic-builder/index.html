@@ -211,6 +211,8 @@ precision highp float; in vec2 g; uniform mat4 uVP; out vec2 vW;
 void main(){ vW=g*24.0; gl_Position=uVP*vec4(vW.x,0.0,vW.y,1.0); }`;
 const GFS=`#version 300 es
 precision mediump float; in vec2 vW; out vec4 o;
+uniform vec3 uLightP,uLightC; uniform float uLightI;
+uniform vec3 uDecalP,uDecalC; uniform float uDecalR,uDecalI;
 void main(){
   vec2 f=abs(fract(vW)-0.5)/fwidth(vW);
   float line=1.0-min(min(f.x,f.y),1.0);
@@ -218,18 +220,38 @@ void main(){
   float major=1.0-min(min(f5.x,f5.y),1.0);
   float d=length(vW); float fade=1.0-smoothstep(6.0,22.0,d);
   vec3 c=mix(vec3(0.075,0.098,0.11), vec3(0.16,0.20,0.22), line*0.55+major*0.45);
-  o=vec4(c*fade + vec3(0.031,0.043,0.051)*(1.0-fade), 1.0);
+  c=c*fade + vec3(0.031,0.043,0.051)*(1.0-fade);
+
+  // la spell illumina il suolo: e' cio' che la fa sembrare magia invece di un adesivo
+  vec3 wp=vec3(vW.x,0.0,vW.y);
+  float dl=length(wp-uLightP);
+  c += uLightC*uLightI/(1.0+dl*dl*1.6);
+
+  // decalco d'impatto: anello che si allarga e si spegne
+  float dd=length(wp-vec3(uDecalP.x,0.0,uDecalP.z));
+  float ring=exp(-pow((dd-uDecalR)*3.5,2.0))+exp(-pow(dd*2.0,2.0))*0.55;
+  c += uDecalC*ring*uDecalI;
+  o=vec4(c,1.0);
 }`;
 /* --- manichino: pila di box, proporzioni del DUMMY_BOXES di riferimento --- */
 const BVS=`#version 300 es
 precision highp float; in vec3 p; in vec3 nrm; uniform mat4 uVP; uniform vec3 uOff; uniform vec3 uSize;
-out float vL;
-void main(){ vec3 w=p*uSize+uOff;
+out float vL; out vec3 vW;
+void main(){ vec3 w=p*uSize+uOff; vW=w;
   vL=0.35+0.65*max(dot(normalize(nrm),normalize(vec3(0.4,0.85,0.3))),0.0);
   gl_Position=uVP*vec4(w,1.0); }`;
 const BFS=`#version 300 es
-precision mediump float; in float vL; uniform vec3 uCol; out vec4 o;
-void main(){ o=vec4(uCol*vL,1.0); }`;
+precision mediump float; in float vL; in vec3 vW;
+uniform vec3 uCol,uLightC; uniform vec3 uLightP; uniform float uLightI,uFlash,uEmis;
+out vec4 o;
+void main(){
+  vec3 c=uCol*vL;
+  float dl=length(vW-uLightP);
+  c += uLightC*uLightI/(1.0+dl*dl*1.6);
+  c = mix(c, vec3(1.0), uFlash);
+  c += uCol*uEmis;
+  o=vec4(c,1.0);
+}`;
 
 /* --- particelle: billboard in world space --- */
 const PVS=`#version 300 es
@@ -240,8 +262,11 @@ uniform float uT,uLife,uSpeed,uRadial,uMass,uRot,uNoise,uGrav,uBeat,uCoher,uSize
 out float vAge; out vec2 vQuad; out float vSoft;
 float h(float x){return fract(sin(x*127.1)*43758.5453);}
 void main(){
-  float grp=floor(slot*8.0);
-  float birth=mix(slot,grp/8.0,uBeat)*uLife*1.15;
+  // finestra di emissione: stretta se la formula converge, lunga se disperde
+  float sprd=mix(0.14,0.95,clamp(-uRadial*0.5+0.5,0.0,1.0));
+  float birth=slot*uLife*sprd;
+  // il ritmo modula la densita', non spezza la scia in blocchi
+  float beat=1.0-uBeat*0.55*(0.5+0.5*sin(slot*44.0));
   float age=(uT-birth)/max(uLife,0.05);
   if(age<0.0||age>1.0){gl_Position=vec4(2.0,2.0,0.0,1.0);vAge=1.0;vQuad=vec2(0);vSoft=0.0;return;}
 
@@ -261,7 +286,7 @@ void main(){
   wp.y += uGrav*age*age*1.6;
   wp += (vec3(h(seed.z*13.0),h(seed.z*29.0),h(seed.z*7.0))-0.5)*uNoise*0.55*age;
 
-  float sz=uSize*(0.55+0.45*sin(age*3.14159))*mix(1.0,1.7,1.0-uCoher);
+  float sz=uSize*(0.42+0.62*sin(age*2.75))*mix(1.0,1.7,1.0-uCoher)*beat;
   wp += (uRight*quad.x + uUp*quad.y)*sz;
   gl_Position=uVP*vec4(wp,1.0);
   vAge=age; vQuad=quad; vSoft=uCoher;
@@ -272,7 +297,7 @@ uniform vec3 uCol,uCol2; uniform float uAlpha; out vec4 o;
 void main(){
   float d=length(vQuad);
   float edge=mix(0.75,0.06,vSoft);
-  float a=smoothstep(1.0,1.0-edge-0.02,d)*(1.0-vAge*vAge)*uAlpha;
+  float a=smoothstep(1.0,1.0-edge-0.02,d)*(1.0-vAge*vAge*0.82)*uAlpha;
   if(a<=0.003)discard;
   o=vec4(mix(uCol2,uCol,clamp(vAge*2.2,0.0,1.0))*a,a);
 }`;
@@ -347,7 +372,8 @@ function aggiornaCamera(){
   }
   const cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
   const dx=Math.sin(cam.yaw)*cp, dy=sp, dz=Math.cos(cam.yaw)*cp;
-  const tgt=[0,CAM.targetHeight,0];
+  const sk=shake>0?shake:0;
+  const tgt=[Math.sin(performance.now()*0.045)*sk, CAM.targetHeight+Math.cos(performance.now()*0.061)*sk, 0];
   const eye=[tgt[0]+dx*cam.dist, tgt[1]+dy*cam.dist, tgt[2]+dz*cam.dist];
   const lk=lookAt(m4(),eye,tgt,[0,1,0]);
   camBasis=lk;
@@ -357,6 +383,11 @@ function aggiornaCamera(){
 /* --- stato --- */
 let serbatoio=SERBATOIO, evocando=false, tEvoc=0, tRichiesto=0, manaIniziale=0;
 let volo=null, ultimoVerdetto=0;
+let impatto=null;                 // {t0,pos,col,forza}
+let dummyHit=0, dummyLean=[0,0];  // reazione del bersaglio
+let shake=0;                      // scossa di camera
+const BERSAGLIO=[DUMMY_POS[0],1.06,DUMMY_POS[2]];   // torso
+const RAGGIO_COLPO=0.75;
 
 function paramsDaFormula(nit,collasso){
   const M=MATERIE[formula.materia], v=valoreDi;
@@ -368,23 +399,47 @@ function paramsDaFormula(nit,collasso){
   }
   const vita=v('vita'),stab=v('stabilita'),lev=v('levitazione'),ritmo=v('ritmo'),dirV=v('direzione');
   const deriva=(1-Math.min(nit,1))*tRichiesto*0.4*(Math.random()<0.5?-1:1);
-  const ax=[0,0,-1];
+  const dxb=BERSAGLIO[0]-ORIGINE[0], dyb=BERSAGLIO[1]-ORIGINE[1], dzb=BERSAGLIO[2]-ORIGINE[2];
+  const lb=Math.hypot(dxb,dyb,dzb);
+  // si mira al bersaglio; gravita' e deriva decidono poi se ci arrivi davvero
+  const ax=[dxb/lb, dyb/lb, dzb/lb];
   return {
     life: collasso?0.55:0.45+(vita*0.5+0.5)*1.6,
     axis: ax,
-    speed: collasso?0.10:(0.15+Math.abs(dirV)*1.5),
+    speed: collasso?0.10:(0.30+Math.abs(dirV)*1.25),
     radial: collasso?1.0:radiale, mass: collasso?-1.0:massa, rot: collasso?1.6:rot,
     noise:(1-(stab*0.5+0.5))*(collasso?2.2:1),
-    grav: collasso?-0.3:lev*0.9, beat: collasso?0:(ritmo*0.5+0.5),
+    grav: collasso?-0.3:lev*0.42, beat: collasso?0:(ritmo*0.5+0.5),
     coher: collasso?0.15:Math.min(nit,1),
     size: 0.034*(0.75+0.45*formula.dose)*(collasso?1.7:1),
     drift: collasso?0:deriva, col:M.col, col2:M.col2, alpha: collasso?0.42:0.26
   };
 }
+// La testa della spell, calcolata come nel vertex shader: serve alla luce e all'impatto.
+function testaSpell(p,t){
+  const age=Math.min(t/Math.max(p.life,0.05),1);
+  return [ORIGINE[0]+p.axis[0]*p.speed*age*3.2,
+          ORIGINE[1]+p.axis[1]*p.speed*age*3.2 + p.grav*age*age*1.6,
+          ORIGINE[2]+p.axis[2]*p.speed*age*3.2];
+}
+function pesiSubstrato(){
+  const cl=x=>Math.max(0,Math.min(1,x));
+  const comp=cl(valoreDi('radiale')), sol=cl(valoreDi('massa')), per=cl(valoreDi('vita'));
+  const corpo=comp*sol, nastro=comp*(1-sol)*per;
+  return {corpo, nastro, campo:1-Math.max(corpo,nastro)};
+}
+function colpisci(pos,p,forza){
+  impatto={t0:performance.now()/1000,pos:pos.slice(),col:p.col,col2:p.col2,forza};
+  dummyHit=1; shake=Math.min(0.22,0.06+forza*0.16);
+  const dx=pos[0]-BERSAGLIO[0], dz=pos[2]-BERSAGLIO[2];
+  const l=Math.hypot(dx,dz)||1; dummyLean=[-dx/l*forza*0.09,-dz/l*forza*0.09];
+}
 function lancia(collasso){
   const s=stato();
-  volo={t0:performance.now()/1000, p:paramsDaFormula(s.nit,collasso)};
+  volo={t0:performance.now()/1000, p:paramsDaFormula(s.nit,collasso),
+        w:pesiSubstrato(), colpito:collasso, forza:formula.dose*Math.min(s.nit+0.35,1)};
   volo.dur=volo.p.life+0.6;
+  lampoLancio=0.35;
   const v=document.getElementById('verdict');
   v.textContent = collasso?'collasso':(s.nit>=0.999?'pulita':(s.nit>=0.75?'deriva':'inversione spontanea'));
   v.style.color = collasso?'var(--bad)':(s.nit>=0.999?'var(--ok)':(s.nit>=0.75?'var(--warn)':'var(--bad)'));
@@ -482,7 +537,7 @@ function aggiorna(){
 }
 
 /* --- loop --- */
-let last=performance.now(),acc=0,frames=0;
+let last=performance.now(),acc=0,frames=0,lampoLancio=0;
 function frame(now){
   const dt=Math.min((now-last)/1000,0.05); last=now;
   resize(); aggiornaCamera();
@@ -498,43 +553,104 @@ function frame(now){
   mb.style.width=(serbatoio/SERBATOIO*100)+'%';
   mb.classList.toggle('low',serbatoio<SERBATOIO*0.2);
 
+  /* ---- luce, impatto, reazioni: e' quel che trasforma un'animazione in un attacco ---- */
+  const T=now/1000;
+  let luceP=[0,-99,0], luceC=[0,0,0], luceI=0;
+  if(volo){
+    const tv=T-volo.t0, p=volo.p;
+    const head=testaSpell(p,tv);
+    const inten=(1-Math.min(tv/volo.dur,1));
+    luceP=head; luceC=p.col; luceI=0.85*inten*volo.forza;
+    if(!volo.colpito){
+      const dx=head[0]-BERSAGLIO[0],dy=head[1]-BERSAGLIO[1],dz=head[2]-BERSAGLIO[2];
+      if(dx*dx+dy*dy+dz*dz < RAGGIO_COLPO*RAGGIO_COLPO){
+        volo.colpito=true; colpisci(head,p,volo.forza);
+      } else if(tv>=p.life){ volo.colpito=true; colpisci(head,p,volo.forza*0.5); }
+    }
+  }
+  if(lampoLancio>0){ luceP=ORIGINE; luceC=MATERIE[formula.materia].col;
+    luceI=Math.max(luceI,lampoLancio*2.2); lampoLancio=Math.max(0,lampoLancio-dt*2.6); }
+  let decP=[0,-99,0],decC=[0,0,0],decR=0,decI=0;
+  if(impatto){
+    const ti=T-impatto.t0, dur=0.55+impatto.forza*0.35;
+    if(ti>dur) impatto=null;
+    else{ const k=ti/dur;
+      decP=impatto.pos; decC=impatto.col2; decR=0.25+k*(1.4+impatto.forza*1.1);
+      decI=(1-k)*(1-k)*1.5*impatto.forza;
+      luceP=impatto.pos; luceC=impatto.col2; luceI=Math.max(luceI,(1-k)*2.4*impatto.forza);
+    }
+  }
+  dummyHit=Math.max(0,dummyHit-dt*3.2);
+  dummyLean[0]*=0.90; dummyLean[1]*=0.90;
+  shake=Math.max(0,shake-dt*1.4);
+
   gl.clearColor(0.031,0.043,0.051,1);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST); gl.depthMask(true); gl.disable(gl.BLEND);
 
   gl.useProgram(P_GROUND.p); gl.bindVertexArray(vaoGround);
   gl.uniformMatrix4fv(P_GROUND.u.uVP,false,VP);
+  gl.uniform3fv(P_GROUND.u.uLightP,luceP); gl.uniform3fv(P_GROUND.u.uLightC,luceC);
+  gl.uniform1f(P_GROUND.u.uLightI,luceI);
+  gl.uniform3fv(P_GROUND.u.uDecalP,decP); gl.uniform3fv(P_GROUND.u.uDecalC,decC);
+  gl.uniform1f(P_GROUND.u.uDecalR,decR); gl.uniform1f(P_GROUND.u.uDecalI,decI);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 
   gl.useProgram(P_BOX.p); gl.bindVertexArray(vaoBox);
   gl.uniformMatrix4fv(P_BOX.u.uVP,false,VP);
+  gl.uniform3fv(P_BOX.u.uLightP,luceP); gl.uniform3fv(P_BOX.u.uLightC,luceC);
+  gl.uniform1f(P_BOX.u.uLightI,luceI); gl.uniform1f(P_BOX.u.uEmis,0);
+  gl.uniform1f(P_BOX.u.uFlash,dummyHit*0.75);
   for(const b of DUMMY){
-    gl.uniform3f(P_BOX.u.uOff,DUMMY_POS[0],b.y,DUMMY_POS[2]);
+    const h=b.y/1.7;   // il colpo piega di piu' in alto che alla base
+    gl.uniform3f(P_BOX.u.uOff,DUMMY_POS[0]+dummyLean[0]*h,b.y,DUMMY_POS[2]+dummyLean[1]*h);
     gl.uniform3f(P_BOX.u.uSize,b.s[0],b.s[1],b.s[2]);
     gl.uniform3f(P_BOX.u.uCol,b.c[0],b.c[1],b.c[2]);
     gl.drawArrays(gl.TRIANGLES,0,boxCount);
   }
 
+  /* ---- corpo: le formule compatte e pesanti hanno un nucleo solido ---- */
+  if(volo && volo.w.corpo>0.15 && !volo.colpito){
+    const tv=T-volo.t0, p=volo.p, head=testaSpell(p,tv);
+    const age=Math.min(tv/Math.max(p.life,0.05),1);
+    const s=(0.07+0.15*volo.w.corpo)*(0.6+0.5*formula.dose)*(1-age*0.25);
+    gl.uniform1f(P_BOX.u.uFlash,0.30); gl.uniform1f(P_BOX.u.uEmis,1.8);
+    gl.uniform3f(P_BOX.u.uOff,head[0],head[1],head[2]);
+    gl.uniform3f(P_BOX.u.uSize,s,s,s*(1+volo.w.corpo*2.6));
+    gl.uniform3f(P_BOX.u.uCol,p.col[0],p.col[1],p.col[2]);
+    gl.drawArrays(gl.TRIANGLES,0,boxCount);
+  }
+
+  /* ---- campo di particelle ---- */
+  function disegnaCampo(p,tv,orig,scala,alfa){
+    const u=P_PART.u;
+    gl.useProgram(P_PART.p); gl.bindVertexArray(vaoPart);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE); gl.depthMask(false);
+    gl.uniformMatrix4fv(u.uVP,false,VP);
+    gl.uniform3fv(u.uRight,camBasis.right); gl.uniform3fv(u.uUp,camBasis.up);
+    gl.uniform3fv(u.uOrigin,orig); gl.uniform3fv(u.uAxis,p.axis);
+    gl.uniform1f(u.uT,tv); gl.uniform1f(u.uLife,p.life); gl.uniform1f(u.uSpeed,p.speed);
+    gl.uniform1f(u.uRadial,p.radial); gl.uniform1f(u.uMass,p.mass); gl.uniform1f(u.uRot,p.rot);
+    gl.uniform1f(u.uNoise,p.noise); gl.uniform1f(u.uGrav,p.grav); gl.uniform1f(u.uBeat,p.beat);
+    gl.uniform1f(u.uCoher,p.coher); gl.uniform1f(u.uSize,p.size*scala); gl.uniform1f(u.uDrift,p.drift);
+    gl.uniform3f(u.uCol,p.col[0],p.col[1],p.col[2]);
+    gl.uniform3f(u.uCol2,p.col2[0],p.col2[1],p.col2[2]);
+    gl.uniform1f(u.uAlpha,alfa);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,N);
+    gl.depthMask(true);
+  }
   if(volo){
-    const t=now/1000-volo.t0;
-    if(t>volo.dur) volo=null;
-    else{
-      const p=volo.p,u=P_PART.u;
-      gl.useProgram(P_PART.p); gl.bindVertexArray(vaoPart);
-      gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE); gl.depthMask(false);
-      gl.uniformMatrix4fv(u.uVP,false,VP);
-      gl.uniform3fv(u.uRight,camBasis.right); gl.uniform3fv(u.uUp,camBasis.up);
-      gl.uniform3fv(u.uOrigin,ORIGINE); gl.uniform3fv(u.uAxis,p.axis);
-      gl.uniform1f(u.uT,t); gl.uniform1f(u.uLife,p.life); gl.uniform1f(u.uSpeed,p.speed);
-      gl.uniform1f(u.uRadial,p.radial); gl.uniform1f(u.uMass,p.mass); gl.uniform1f(u.uRot,p.rot);
-      gl.uniform1f(u.uNoise,p.noise); gl.uniform1f(u.uGrav,p.grav); gl.uniform1f(u.uBeat,p.beat);
-      gl.uniform1f(u.uCoher,p.coher); gl.uniform1f(u.uSize,p.size); gl.uniform1f(u.uDrift,p.drift);
-      gl.uniform3f(u.uCol,p.col[0],p.col[1],p.col[2]);
-      gl.uniform3f(u.uCol2,p.col2[0],p.col2[1],p.col2[2]);
-      gl.uniform1f(u.uAlpha,p.alpha);
-      gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,N);
-      gl.depthMask(true);
-    }
+    const tv=T-volo.t0;
+    if(tv>volo.dur) volo=null;
+    else disegnaCampo(volo.p,tv,ORIGINE,0.6+0.7*volo.w.campo,volo.p.alpha);
+  }
+  /* ---- scoppio d'impatto: le particelle rimbalzano indietro dal punto colpito ---- */
+  if(impatto){
+    const ti=T-impatto.t0;
+    disegnaCampo({life:0.42,axis:[0,1,0],speed:0.55,radial:-1.0,mass:-0.8,rot:0.5,
+      noise:1.2,grav:-0.5,beat:0,coher:0.85,size:0.030*(0.7+impatto.forza),
+      drift:0,col:impatto.col,col2:impatto.col2,alpha:0.30*impatto.forza},
+      ti,impatto.pos,1,0.30*impatto.forza);
   }
   gl.bindVertexArray(null);
 
