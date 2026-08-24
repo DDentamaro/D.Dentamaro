@@ -91,3 +91,9 @@ male; con, il sistema ti dice *quanto* hai sbagliato e da che parte.
 e' ciò che la regola del §2 vieta); un uber-shader unico per tutte le materie (ogni spell avrebbe
 pagato il ramo piu' caro); geometrie dedicate per forma (rimette in piedi lo stadio "forma" che il
 04 ha eliminato, e moltiplica i programmi).
+
+## Nota (ripensamento sulla carica)
+
+L'intensita' come scalare moltiplicativo decade col ripensamento sulla carica (vedi 05 riaperto).
+Il substrato, la regola anti-fango, il contratto e il budget **non dipendevano** dalla carica e
+restano validi. Va rivista solo la fascia degli stati di degradazione, che era ancorata allo sforzo.

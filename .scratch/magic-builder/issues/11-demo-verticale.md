@@ -43,3 +43,9 @@ cosa funziona.
 
 Gira sul telefono Android dell'utente, aperta da `file://`, e produce due risposte: un numero di
 frame time reale contro il budget del 03, e un giudizio dell'utente sulla durata della carica.
+
+## Nota (ripensamento sulla carica)
+
+**In attesa del 05 riaperto.** La demo avrebbe testato «quanto e' lunga la pressione giusta», che
+era la domanda del modello vecchio. Con il tempo di evocazione come proprieta' della spell, la
+domanda diventa un'altra: **quali soglie temporali si sentono giuste** per tap / 1 s / 3 s.

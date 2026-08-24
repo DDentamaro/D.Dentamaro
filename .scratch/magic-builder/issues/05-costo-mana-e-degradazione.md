@@ -1,7 +1,7 @@
 # 05 — Costo del mana e modello di controllo/degradazione
 
 Type: grilling (declassato ad AFK — vedi Notes della mappa)
-Status: resolved
+Status: riaperto
 Blocked by: 04
 
 ## Question
@@ -89,3 +89,18 @@ differenziato per materia (nulla da bilanciare finche' non c'e' niente da bilanc
 
 **Da tarare, non da difendere**: 3,3 s di carica piena e 8,3 s di ricarica sono prima ipotesi. Il
 ticket 11 esiste anche per smentirli col pollice.
+
+## RIAPERTO — la carica non e' piu' un moltiplicatore di potenza
+
+L'utente ha rifiutato il modello «piu' tieni premuto, piu' e' forte». Il tempo di evocazione non e'
+una leva continua che regola la potenza: e' una **proprieta' della spell composta**. Un proiettile
+di fuoco parte al tap, una palla di fuoco chiede 1 s, un meteorite 3 s.
+
+Decade quindi tutto il §2 di `05-costo-e-degradazione.md` — l'intensita' come `sqrt(mana)` e la
+carica come versamento continuo — e con esso lo **sforzo** del §4, che esisteva per punire chi
+teneva premuto fino in fondo.
+
+Resta valido il §3 (carico per classe della qualita') e il §5 (la degradazione che corrompe le
+qualita' nel proprio idioma): quelli non dipendevano dalla carica.
+
+Ricomporre prima di richiudere.
