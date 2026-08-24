@@ -105,3 +105,38 @@ Restano da giudicare col pollice, e nessun documento puo' farlo:
 - tap / 1 s / 3 s si sentono come **tre spell diverse** o come **tre attese diverse**?
 - `carico²/40`, drenaggio 30/s, ricarica 12/s: le costanti del 05 reggono al tatto?
 - i valori di riposo delle materie si **vedono** passando da fuoco a terra?
+
+## Riscrittura in 3D (file di riferimento fornito dall'utente)
+
+L'utente ha fornito l'ambiente in cui il sistema dovra' girare: `rmndwn_field_v80_combat_dummy_hitboxes`,
+7.887 righe. Analizzato ed estratto:
+
+- **WebGL2 con matematica scritta a mano, nessuna libreria** — la stessa conclusione del ticket 02,
+  raggiunta indipendentemente. Conferma la scelta.
+- **Camera**: fov 34°, near 0,1, far 80, yaw 0, pitch 37°, distanza 10,6, mira a 0,58 da terra.
+  Orbita fra 2° e 89° di pitch, distanza 1,2–76, inerzia 0,86.
+- **Scala**: mondo 96×96 unita', 1 unita' ≈ 1 metro (il CANON da' un umano a ~1,7).
+- **Manichino**: pila di box (palo 0,94 + torso 0,48 + testa 0,34), hurtbox a capsula per giunto.
+
+La sandbox e' stata **riscritta in world space 3D** con quella camera alla lettera. Il rendering
+2D in clip space e' stato abbandonato.
+
+Aggiunte: suolo a griglia prospettica, manichino con le proporzioni del riferimento, orbita a due
+dita con inerzia, e le **14 formule del grimorio** caricabili dal pannello, coi nomi che cambiano
+per materia.
+
+### Verificato eseguendo
+
+| | |
+|---|---|
+| grimorio | 14 preset, nomi per materia (Dardo / Dardo d'Acqua / Scheggia / Lama d'Aria) |
+| affinita' **dal vivo** | la Lancia costa **11,2 (3,14 s)** nel fuoco e **6,8 (1,16 s)** nella terra |
+| volo | testa calda, scia che si spegne, profondita' leggibile |
+
+Un bug trovato: **l'additivo con 2000 sovrapposizioni saturava a bianco**. Alfa da 0,9 a 0,26,
+dimensione da 0,055 a 0,034 unita'. I pixel saturi sono scesi da un blocco compatto a 272–600 su
+11–17k pixel di spell.
+
+E un difetto **della sonda**, non del codice, in cui sono caduto tre volte: tenevo premuto per un
+tempo indovinato invece di leggere quello richiesto dalla UI, quindi la spell non partiva e sembrava
+un rendering rotto. La sonda ora legge `#r-tem`.

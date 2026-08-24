@@ -3,13 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Magic Builder — fetta verticale</title>
+<title>Magic Builder — sandbox</title>
 <style>
   :root{
-    --bg:#080B0D; --panel:#10161A; --line:#1E282E; --ink:#DCE6EA; --muted:#7E9199;
-    --fuoco:#F0774C; --acqua:#57B6DC; --terra:#D0A04A; --vento:#82C4A8;
-    --ok:#7FCCA4; --warn:#E0A85C; --bad:#EE8A72;
-    --mat:var(--fuoco);
+    --bg:#080B0D;--panel:#10161A;--line:#1E282E;--ink:#DCE6EA;--muted:#7E9199;
+    --fuoco:#F0774C;--acqua:#57B6DC;--terra:#D0A04A;--vento:#82C4A8;
+    --ok:#7FCCA4;--warn:#E0A85C;--bad:#EE8A72;--mat:var(--fuoco);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
@@ -17,45 +16,36 @@
   #app{display:flex;height:100%;width:100%}
   #arena{position:relative;flex:1 1 auto;min-width:0;touch-action:none}
   canvas{display:block;width:100%;height:100%}
-
   #hud{position:absolute;inset:0;pointer-events:none}
-  #fps{position:absolute;top:8px;left:10px;font:11px/1.5 ui-monospace,monospace;color:var(--muted);
-    background:rgba(8,11,13,.6);padding:4px 8px;border-radius:3px;white-space:pre}
-  #verdict{position:absolute;top:8px;right:10px;font:11px/1.5 ui-monospace,monospace;
-    padding:4px 9px;border-radius:99px;border:1px solid currentColor;opacity:0;transition:opacity .25s}
+  #fps{position:absolute;top:7px;left:9px;font:10px/1.5 ui-monospace,monospace;color:var(--muted);
+    background:rgba(8,11,13,.55);padding:3px 7px;border-radius:3px;white-space:pre}
+  #verdict{position:absolute;top:7px;right:9px;font:10px/1.5 ui-monospace,monospace;
+    padding:3px 9px;border-radius:99px;border:1px solid currentColor;opacity:0;transition:opacity .25s}
   #verdict.on{opacity:1}
-  #origine{position:absolute;left:14%;bottom:calc(31% - 5px);width:10px;height:10px;margin:-5px 0 0 -5px;
-    border-radius:50%;background:var(--mat);opacity:.55}
-  #bersaglio{position:absolute;left:78%;bottom:calc(31% - 26px);width:52px;height:52px;margin:-26px 0 0 -26px;
-    border:1px solid var(--line);border-radius:50%;display:grid;place-items:center}
-  #bersaglio i{width:16px;height:16px;border:1px solid var(--line);border-radius:50%}
-  #hint{position:absolute;left:0;right:0;bottom:14px;text-align:center;color:var(--muted);
-    font-size:11px;letter-spacing:.04em}
-
-  #ring{position:absolute;width:96px;height:96px;margin:-48px 0 0 -48px;pointer-events:none;opacity:0;
-    transition:opacity .12s}
+  #hint{position:absolute;left:0;right:0;bottom:9px;text-align:center;color:var(--muted);font-size:10px}
+  #ring{position:absolute;width:86px;height:86px;margin:-43px 0 0 -43px;opacity:0;transition:opacity .12s}
   #ring.on{opacity:1}
   #ring circle{fill:none;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
 
   #panel{flex:0 0 366px;background:var(--panel);border-left:1px solid var(--line);
     display:flex;flex-direction:column;overflow:hidden}
-  #panel header{padding:8px 14px;border-bottom:1px solid var(--line)}
-  #mats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-  .mat{padding:7px 0;border:1px solid var(--line);background:transparent;color:var(--muted);
-    border-radius:3px;font:600 11px/1 ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+  #panel header{padding:7px 12px;border-bottom:1px solid var(--line)}
+  #mats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  .mat{padding:6px 0;border:1px solid var(--line);background:transparent;color:var(--muted);
+    border-radius:3px;font:600 10.5px/1 ui-sans-serif,system-ui,sans-serif;cursor:pointer}
   .mat[aria-pressed=true]{color:var(--bg);background:var(--c);border-color:var(--c)}
-  .mat:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .mat:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  #grimorio{width:100%;margin-top:5px;background:#0C1215;color:var(--ink);border:1px solid var(--line);
+    border-radius:3px;padding:5px 7px;font:11px ui-sans-serif,system-ui,sans-serif}
 
-  #axes{flex:1 1 auto;overflow-y:auto;padding:4px 12px 4px;
-    display:grid;grid-template-columns:1fr 1fr;column-gap:14px;align-content:start}
-  .ax{display:grid;grid-template-columns:1fr 46px;align-items:center;column-gap:6px;
-    height:auto;padding:1px 0 2px}
-  .axhead{display:contents}
-  .axname{font-size:10px;line-height:1.15;letter-spacing:0;overflow:hidden;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  #axes{flex:1 1 auto;overflow-y:auto;padding:4px 12px;display:grid;
+    grid-template-columns:1fr 1fr;column-gap:14px;align-content:start}
+  .ax{display:grid;grid-template-columns:1fr 46px;align-items:center;column-gap:6px;padding:1px 0 2px}
+  .axname{font-size:10px;line-height:1.15;overflow:hidden;display:-webkit-box;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical}
   .axname b{font-weight:600}
-  .axval{font:9.5px/1 ui-monospace,monospace;color:var(--muted);font-variant-numeric:tabular-nums;
-    text-align:right}
+  .axval{font:9.5px/1 ui-monospace,monospace;color:var(--muted);text-align:right;
+    font-variant-numeric:tabular-nums}
   .axval.set{color:var(--mat)}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:17px;background:transparent;
     margin:0;display:block;grid-column:1/-1}
@@ -63,23 +53,19 @@
   input[type=range]::-moz-range-track{height:3px;background:var(--line);border-radius:2px}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
     background:var(--ink);margin-top:-6px;border:0}
-  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--ink);border:0}
-  input[type=range]:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--ink);border:0}
 
-  #readout{border-top:1px solid var(--line);padding:7px 14px 10px;background:#0C1215}
-  .rows{display:grid;grid-template-columns:auto auto auto auto;gap:1px 8px;font:11px/1.6 ui-monospace,monospace;
-    font-variant-numeric:tabular-nums}
+  #readout{border-top:1px solid var(--line);padding:7px 12px 9px;background:#0C1215}
+  .rows{display:grid;grid-template-columns:auto auto auto auto;gap:1px 8px;
+    font:10.5px/1.6 ui-monospace,monospace;font-variant-numeric:tabular-nums}
   .rows dt{color:var(--muted)} .rows dd{margin:0;text-align:right}
-  #state{margin-top:8px;padding:5px 9px;border-radius:3px;font-size:11px;text-align:center;
+  .dosebox{grid-template-columns:1fr 46px;margin:5px 0 3px;border-top:1px solid var(--line);padding-top:5px}
+  #state{margin-top:6px;padding:4px 8px;border-radius:3px;font-size:10.5px;text-align:center;
     border:1px solid currentColor}
   .s-ok{color:var(--ok)} .s-warn{color:var(--warn)} .s-bad{color:var(--bad)}
-  .dosebox{height:auto;grid-template-columns:1fr 46px;margin:5px 0 3px;
-    border-top:1px solid var(--line);padding-top:6px}
-  .dosebox input{grid-column:1/-1}
-  #mana{margin-top:9px;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
-  #mana i{display:block;height:100%;width:100%;background:var(--acqua);transition:width .06s linear}
+  #mana{margin-top:7px;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+  #mana i{display:block;height:100%;width:100%;background:var(--acqua)}
   #mana i.low{background:var(--bad)}
-
   @media (max-width:760px){ #panel{flex-basis:300px} .axname{font-size:9.5px} }
 </style>
 </head>
@@ -88,22 +74,19 @@
   <div id="arena">
     <canvas id="c"></canvas>
     <div id="hud">
-      <div id="fps">—</div>
-      <div id="verdict"></div>
+      <div id="fps">—</div><div id="verdict"></div>
       <svg id="ring" viewBox="0 0 100 100" aria-hidden="true">
         <circle cx="50" cy="50" r="44" stroke="#1E282E" stroke-width="4"></circle>
         <circle id="arc" cx="50" cy="50" r="44" stroke="currentColor" stroke-width="4"
                 stroke-dasharray="276.5" stroke-dashoffset="276.5"></circle>
       </svg>
-      <div id="origine"></div>
-      <div id="bersaglio"><i></i></div>
-      <div id="hint">tieni premuto nell'arena per evocare · rilascia prima e non parte</div>
+      <div id="hint">tieni premuto per evocare · trascina con due dita per orbitare</div>
     </div>
   </div>
-
   <aside id="panel">
     <header>
       <div id="mats" role="group" aria-label="Materia"></div>
+      <select id="grimorio" aria-label="Formula dal grimorio"></select>
     </header>
     <div id="axes"></div>
     <div id="readout">
@@ -119,403 +102,454 @@
 
 <script>
 "use strict";
-/* ============================================================
-   Magic Builder — fetta verticale (ticket 11)
-   Un file, zero dipendenze, zero asset, script classico:
-   i moduli ES non funzionano su file:// (ticket 02).
-   ============================================================ */
+/* ==========================================================================
+   Magic Builder — sandbox 3D
+   Camera e proporzioni prese dal field V80 di riferimento: WebGL2, matematica
+   a mano, nessuna libreria. Un file, zero asset, script classico (i moduli ES
+   non funzionano su file://).
+   ========================================================================== */
 
-/* ---------- modello (ticket 04 / 05) ---------- */
-const BASE = 2, CTRL = 7, SERBATOIO = 100, DRENAGGIO = 30, RICARICA = 12;
+/* --- camera del riferimento, alla lettera --- */
+const CAM = { fovDeg:34, near:0.1, far:80, yaw:0, pitchDeg:37, distance:10.6, targetHeight:0.58,
+              minPitchDeg:2, maxPitchDeg:89, minDist:1.2, maxDist:76,
+              yawPerPx:0.006, pitchPerPx:0.005, inertia:0.86, cutoff:0.02 };
+const DEG = Math.PI/180;
 
-const ASSI = [
-  {k:'direzione',  et:'direzione',                 peso:3, bip:false, dir:true},
-  {k:'radiale',    et:'convergenza ↔ dispersione', peso:2, bip:true},
-  {k:'massa',      et:'forza ↔ cedevolezza',       peso:2, bip:true},
-  {k:'vita',       et:'durata ↔ istantaneità',     peso:2, bip:true},
-  {k:'rotazione',  et:'rotazione ↔ contro',        peso:2, bip:true},
-  {k:'stabilita',  et:'stabilità',                 peso:1, bip:true},
-  {k:'levitazione',et:'levitazione ↔ peso',        peso:1, bip:true},
-  {k:'ritmo',      et:'ritmo',                     peso:1, bip:true}
+/* --- modello (ticket 04/05) --- */
+const BASE=2, CTRL=7, SERBATOIO=100, DRENAGGIO=30, RICARICA=12;
+const ASSI=[
+  {k:'direzione',  et:'direzione',                 peso:3, dir:true},
+  {k:'radiale',    et:'convergenza ↔ dispersione', peso:2},
+  {k:'massa',      et:'forza ↔ cedevolezza',       peso:2},
+  {k:'vita',       et:'durata ↔ istantaneità',     peso:2},
+  {k:'rotazione',  et:'rotazione ↔ contro',        peso:2},
+  {k:'stabilita',  et:'stabilità',                 peso:1},
+  {k:'levitazione',et:'levitazione ↔ peso',        peso:1},
+  {k:'ritmo',      et:'ritmo',                     peso:1}
+];
+const MATERIE={
+  fuoco:{nome:'Fuoco', col:[1.00,0.47,0.29], col2:[1.00,0.88,0.50],
+    riposo:{radiale:-0.6,massa:-0.5,vita:-0.6,rotazione:0.1,stabilita:0.0,levitazione:0.7,ritmo:0.8}},
+  acqua:{nome:'Acqua', col:[0.30,0.66,0.86], col2:[0.76,0.95,1.00],
+    riposo:{radiale:0.2,massa:-0.3,vita:0.6,rotazione:0.6,stabilita:0.7,levitazione:-0.5,ritmo:-0.3}},
+  terra:{nome:'Terra', col:[0.72,0.52,0.26], col2:[0.95,0.82,0.58],
+    riposo:{radiale:0.3,massa:0.8,vita:0.6,rotazione:-0.2,stabilita:0.9,levitazione:-0.8,ritmo:0.0}},
+  vento:{nome:'Vento', col:[0.48,0.74,0.63], col2:[0.86,1.00,0.94],
+    riposo:{radiale:-0.7,massa:-0.8,vita:-0.2,rotazione:0.7,stabilita:0.1,levitazione:0.6,ritmo:0.4}}
+};
+const PRESET = [
+  {n:"Dardo", d:"getto teso lungo l'asse", a:{"direzione": 1.0}, nomi:{"fuoco": "Dardo", "acqua": "Dardo d'Acqua", "terra": "Scheggia", "vento": "Lama d'Aria"}},
+  {n:"Cono", d:"si allarga andando", a:{"direzione": 1.0, "radiale": -0.8}, nomi:{"fuoco": "Soffio", "acqua": "Getto", "terra": "Frana", "vento": "Raffica"}},
+  {n:"Fiammata", d:"si apre, sale, crepita, sparisce", a:{"radiale": -0.8, "vita": -0.8, "levitazione": 0.8, "ritmo": 0.9}, nomi:{"fuoco": "Vampa", "acqua": "Sfiato", "terra": "Sbuffo", "vento": "Folata"}},
+  {n:"Flusso", d:"tiene insieme mentre scorre", a:{"direzione": 0.9, "radiale": 0.3, "massa": -0.4, "vita": 0.9, "stabilita": 0.8}, nomi:{"fuoco": "Colata", "acqua": "Corrente", "terra": "Fiumana", "vento": "Scia"}},
+  {n:"Lancia", d:"stretta, pesante, tiene la linea", a:{"direzione": 1.0, "radiale": 1.0, "massa": 1.0}, nomi:{"fuoco": "Lancia di Fiamma", "acqua": "Lancia di Gelo", "terra": "Ariete", "vento": "Falce"}},
+  {n:"Frusta", d:"parte dritta, poi arriccia", a:{"direzione": 1.0, "massa": -0.9, "vita": 0.8}, nomi:{"fuoco": "Frusta", "acqua": "Correnti", "terra": "Zolla", "vento": "Spirale"}},
+  {n:"Nube", d:"si apre, non pesa, resta", a:{"radiale": -1.0, "massa": -1.0, "vita": 1.0}, nomi:{"fuoco": "Braci Erranti", "acqua": "Nebbia", "terra": "Sabbie", "vento": "Turbine"}},
+  {n:"Scoppio", d:"lampo secco tutt'intorno", a:{"radiale": -1.0, "vita": -1.0, "massa": 0.8, "stabilita": 0.8}, nomi:{"fuoco": "Nova", "acqua": "Grandine", "terra": "Ghiaia", "vento": "Scoppio"}},
+  {n:"Muro", d:"compatto, fermo, sospeso", a:{"radiale": 0.8, "vita": 1.0, "stabilita": 1.0, "levitazione": 0.5}, nomi:{"fuoco": "Fornace", "acqua": "Barriera", "terra": "Muro", "vento": "Schermo"}},
+  {n:"Vortice", d:"gira su se stesso e avanza", a:{"direzione": 0.5, "rotazione": 1.0, "radiale": 0.5, "vita": 0.8}, nomi:{"fuoco": "Turbine Igneo", "acqua": "Vortice", "terra": "Mulino", "vento": "Ciclone"}},
+  {n:"Sciame", d:"a raffiche, non un flusso", a:{"direzione": 0.7, "radiale": -0.7, "ritmo": 1.0, "vita": 0.6}, nomi:{"fuoco": "Scintille", "acqua": "Rovescio", "terra": "Lapidazione", "vento": "Sferzate"}},
+  {n:"Sospeso", d:"si ferma a mezz'aria e tiene", a:{"radiale": 0.6, "vita": 1.0, "levitazione": 1.0, "stabilita": 0.9}, nomi:{"fuoco": "Colonna", "acqua": "Bolla", "terra": "Pilastro", "vento": "Corrente Ascendente"}},
+  {n:"Massa", d:"compatta, cade, arriva", a:{"direzione": 0.8, "radiale": 0.9, "massa": 1.0, "vita": 0.5, "levitazione": -1.0}, nomi:{"fuoco": "Meteorite", "acqua": "Diluvio", "terra": "Cataclisma", "vento": "Martello d'Aria"}},
+  {n:"Tempesta", d:"si allarga, gira, fluttua e avanza", a:{"direzione": 0.6, "radiale": -0.9, "massa": -0.8, "vita": 0.9, "rotazione": 0.8, "levitazione": 0.7}, nomi:{"fuoco": "Bufera di Braci", "acqua": "Monsone", "terra": "Nembo", "vento": "Tempesta"}}
 ];
 
-const MATERIE = {
-  fuoco:{col:[1.00,0.47,0.29], col2:[1.00,0.86,0.42], nome:'Fuoco',
-    riposo:{radiale:-0.6, massa:-0.5, vita:-0.6, rotazione: 0.1, stabilita:0.0, levitazione: 0.7, ritmo: 0.8}},
-  acqua:{col:[0.34,0.71,0.86], col2:[0.72,0.93,1.00], nome:'Acqua',
-    riposo:{radiale: 0.2, massa:-0.3, vita: 0.6, rotazione: 0.6, stabilita:0.7, levitazione:-0.5, ritmo:-0.3}},
-  terra:{col:[0.82,0.63,0.29], col2:[1.00,0.86,0.60], nome:'Terra',
-    riposo:{radiale: 0.3, massa: 0.8, vita: 0.6, rotazione:-0.2, stabilita:0.9, levitazione:-0.8, ritmo: 0.0}},
-  vento:{col:[0.51,0.77,0.66], col2:[0.85,1.00,0.94], nome:'Vento',
-    riposo:{radiale:-0.7, massa:-0.8, vita:-0.2, rotazione: 0.7, stabilita:0.1, levitazione: 0.6, ritmo: 0.4}}
-};
-
-/* la formula: solo gli assi impostati; gli altri prendono il riposo della materia */
-const formula = { materia:'fuoco', dose:1.0, assi:{} };
-
-const riposoDi = (k) => (k === 'direzione' ? 0 : MATERIE[formula.materia].riposo[k]);
-const valoreDi = (k) => (k in formula.assi ? formula.assi[k] : riposoDi(k));
-
-function carico(){
-  let c = BASE;
-  for (const a of ASSI){
-    if (!(a.k in formula.assi)) continue;          // i valori di riposo sono gratis
-    c += a.peso * Math.abs(formula.assi[a.k] - riposoDi(a.k));
-  }
-  return c;
-}
-const tempoBase = (c) => (c*c)/40;
+const formula={materia:'fuoco', dose:1.0, assi:{}};
+const riposoDi=k=>(k==='direzione'?0:MATERIE[formula.materia].riposo[k]);
+const valoreDi=k=>(k in formula.assi?formula.assi[k]:riposoDi(k));
+function carico(){ let c=BASE;
+  for(const a of ASSI){ if(!(a.k in formula.assi))continue;
+    c += a.peso*Math.abs(formula.assi[a.k]-riposoDi(a.k)); } return c; }
+const tempoBase=c=>(c*c)/40;
 function stato(){
-  const c = carico(), t = tempoBase(c)*formula.dose, m = t*DRENAGGIO;
-  const nit = Math.min(CTRL/(c*formula.dose), 1);
-  const doseMax = Math.min(CTRL/c, 2);
-  let deg = 'pulita';
-  if (nit < 0.75) deg = (nit < 0.45) ? 'inversione spontanea' : 'inversione spontanea';
-  else if (nit < 0.999) deg = 'deriva';
-  return {c, t, m, nit, doseMax, deg};
+  const c=carico(), t=tempoBase(c)*formula.dose, m=t*DRENAGGIO;
+  const nit=Math.min(CTRL/(c*formula.dose),1), doseMax=Math.min(CTRL/c,2);
+  const deg = nit>=0.999?'pulita':(nit>=0.75?'deriva':'inversione spontanea');
+  return {c,t,m,nit,doseMax,deg};
 }
 
-/* ---------- micro-renderer WebGL2 (ticket 02) ---------- */
-const canvas = document.getElementById('c');
-const gl = canvas.getContext('webgl2', {antialias:false, alpha:false, premultipliedAlpha:false,
-  powerPreference:'high-performance', preserveDrawingBuffer:false});
-if (!gl){ document.getElementById('hint').textContent = 'WebGL2 non disponibile su questo browser.'; }
+/* --- matematica: identica per forma a quella del field di riferimento --- */
+function m4(){return new Float32Array(16)}
+function perspective(o,f,a,n,fa){const t=1/Math.tan(f/2);o.fill(0);
+  o[0]=t/a;o[5]=t;o[10]=(fa+n)/(n-fa);o[11]=-1;o[14]=2*fa*n/(n-fa);return o}
+function lookAt(o,e,c,up){
+  let zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];let l=1/Math.hypot(zx,zy,zz);zx*=l;zy*=l;zz*=l;
+  let xx=up[1]*zz-up[2]*zy,xy=up[2]*zx-up[0]*zz,xz=up[0]*zy-up[1]*zx;l=1/(Math.hypot(xx,xy,xz)||1);
+  xx*=l;xy*=l;xz*=l;
+  const yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
+  o[0]=xx;o[1]=yx;o[2]=zx;o[3]=0;o[4]=xy;o[5]=yy;o[6]=zy;o[7]=0;o[8]=xz;o[9]=yz;o[10]=zz;o[11]=0;
+  o[12]=-(xx*e[0]+xy*e[1]+xz*e[2]);o[13]=-(yx*e[0]+yy*e[1]+yz*e[2]);o[14]=-(zx*e[0]+zy*e[1]+zz*e[2]);o[15]=1;
+  return {m:o, right:[xx,xy,xz], up:[yx,yy,yz], fwd:[-zx,-zy,-zz]};
+}
+function mul(o,a,b){for(let i=0;i<4;i++){const a0=a[i],a1=a[i+4],a2=a[i+8],a3=a[i+12];
+  for(let j=0;j<4;j++){o[i+j*4]=a0*b[j*4]+a1*b[j*4+1]+a2*b[j*4+2]+a3*b[j*4+3];}}return o}
 
-const DPR_CAP = 1.5;                                  // ticket 03
-let aspect = 1;
+/* --- contesto --- */
+const canvas=document.getElementById('c');
+const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,premultipliedAlpha:false,
+  powerPreference:'high-performance'});
+if(!gl) document.getElementById('hint').textContent='WebGL2 non disponibile.';
+const DPR_CAP=1.5; let aspect=16/9;
 function resize(){
-  const d = Math.min(devicePixelRatio || 1, DPR_CAP);
-  const w = Math.round(canvas.clientWidth * d), h = Math.round(canvas.clientHeight * d);
-  if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
-  gl.viewport(0,0,canvas.width,canvas.height);
-  aspect = canvas.width / Math.max(canvas.height,1);
+  const d=Math.min(devicePixelRatio||1,DPR_CAP);
+  const w=Math.round(canvas.clientWidth*d),h=Math.round(canvas.clientHeight*d);
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+  gl.viewport(0,0,canvas.width,canvas.height); aspect=canvas.width/Math.max(canvas.height,1);
 }
+function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);
+  if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(o));return o}
+function prog(v,f){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,v));
+  gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+  const u={},n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
+  for(let i=0;i<n;i++){const q=gl.getActiveUniform(p,i);const nm=q.name.replace(/\[0\]$/,'');
+    u[nm]=gl.getUniformLocation(p,nm);} return {p,u}}
 
-function sh(type, src){
-  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-  return s;
-}
-function program(vs, fs){
-  const p = gl.createProgram();
-  gl.attachShader(p, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs));
-  gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
-  const u = {}, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
-  for (let i=0;i<n;i++){ const info = gl.getActiveUniform(p,i);
-    const nm = info.name.replace(/\[0\]$/,''); u[nm] = gl.getUniformLocation(p, nm); }
-  return {p, u};
-}
+/* --- suolo: griglia in world space --- */
+const GVS=`#version 300 es
+precision highp float; in vec2 g; uniform mat4 uVP; out vec2 vW;
+void main(){ vW=g*24.0; gl_Position=uVP*vec4(vW.x,0.0,vW.y,1.0); }`;
+const GFS=`#version 300 es
+precision mediump float; in vec2 vW; out vec4 o;
+void main(){
+  vec2 f=abs(fract(vW)-0.5)/fwidth(vW);
+  float line=1.0-min(min(f.x,f.y),1.0);
+  vec2 f5=abs(fract(vW/5.0)-0.5)/fwidth(vW/5.0);
+  float major=1.0-min(min(f5.x,f5.y),1.0);
+  float d=length(vW); float fade=1.0-smoothstep(6.0,22.0,d);
+  vec3 c=mix(vec3(0.075,0.098,0.11), vec3(0.16,0.20,0.22), line*0.55+major*0.45);
+  o=vec4(c*fade + vec3(0.031,0.043,0.051)*(1.0-fade), 1.0);
+}`;
+/* --- manichino: pila di box, proporzioni del DUMMY_BOXES di riferimento --- */
+const BVS=`#version 300 es
+precision highp float; in vec3 p; in vec3 nrm; uniform mat4 uVP; uniform vec3 uOff; uniform vec3 uSize;
+out float vL;
+void main(){ vec3 w=p*uSize+uOff;
+  vL=0.35+0.65*max(dot(normalize(nrm),normalize(vec3(0.4,0.85,0.3))),0.0);
+  gl_Position=uVP*vec4(w,1.0); }`;
+const BFS=`#version 300 es
+precision mediump float; in float vL; uniform vec3 uCol; out vec4 o;
+void main(){ o=vec4(uCol*vL,1.0); }`;
 
-/* Un solo programma. La composizione entra come uniform, mai come codice: il ticket 03
-   vieta di compilare shader a runtime, perche' su mobile e' uno stallo visibile. */
-const VS = `#version 300 es
+/* --- particelle: billboard in world space --- */
+const PVS=`#version 300 es
 precision highp float;
-in vec2 quad;        // -1..1
-in vec3 seed;        // rand per particella
-in float slot;       // indice normalizzato
-
-uniform float uT;        // tempo dall'inizio dell'emissione
-uniform float uLife;     // durata di vita base
-uniform vec2  uDir;      // direzione (x,y) gia' ruotata
-uniform float uSpeed;
-uniform float uRadial;   // + converge, - disperde
-uniform float uMass;     // + tiene la linea, - devia
-uniform float uRot;      // momento angolare
-uniform float uNoise;    // 1 - stabilita
-uniform float uGrav;     // + fluttua, - cade
-uniform float uBeat;     // ritmo: 0 continuo, 1 a raffiche
-uniform float uCoher;    // nitidezza -> nitidezza del bordo
-uniform float uSize;
-uniform float uAspect;
-uniform float uDrift;    // deriva: scarto dell'asse
-uniform vec2  uOrigin;
-out float vAge; out float vSeed; out float vSoft;
-
-float h(float x){ return fract(sin(x*127.1)*43758.5453); }
-
+in vec2 quad; in vec3 seed; in float slot;
+uniform mat4 uVP; uniform vec3 uRight,uUp,uOrigin,uAxis;
+uniform float uT,uLife,uSpeed,uRadial,uMass,uRot,uNoise,uGrav,uBeat,uCoher,uSize,uDrift;
+out float vAge; out vec2 vQuad; out float vSoft;
+float h(float x){return fract(sin(x*127.1)*43758.5453);}
 void main(){
-  // ritmo: a raffiche le particelle nascono a gruppi
-  float grp = floor(slot*8.0);
-  float birth = mix(slot, grp/8.0, uBeat) * uLife * 1.15;
-  float age = (uT - birth) / max(uLife, 0.05);
-  if (age < 0.0 || age > 1.0){ gl_Position = vec4(2.0,2.0,0.0,1.0); vAge=1.0; vSeed=0.0; vSoft=0.0; return; }
+  float grp=floor(slot*8.0);
+  float birth=mix(slot,grp/8.0,uBeat)*uLife*1.15;
+  float age=(uT-birth)/max(uLife,0.05);
+  if(age<0.0||age>1.0){gl_Position=vec4(2.0,2.0,0.0,1.0);vAge=1.0;vQuad=vec2(0);vSoft=0.0;return;}
 
-  float sp = uSpeed * mix(0.55, 1.0, uMass*0.5+0.5);
-  vec2 dir = vec2(cos(uDrift)*uDir.x - sin(uDrift)*uDir.y,
-                  sin(uDrift)*uDir.x + cos(uDrift)*uDir.y);
-  vec2 perp = vec2(-dir.y, dir.x);
+  // asse orizzontale ruotato dalla deriva
+  vec3 ax=normalize(vec3(uAxis.x*cos(uDrift)-uAxis.z*sin(uDrift),uAxis.y,
+                         uAxis.x*sin(uDrift)+uAxis.z*cos(uDrift)));
+  vec3 pu=normalize(cross(ax,vec3(0.0,1.0,0.0)));
+  vec3 pv=normalize(cross(ax,pu));
 
-  // spread iniziale per particella
-  float ang = seed.x * 6.2831853;
-  float rad = (0.045 + seed.y*0.13);
+  float ang=seed.x*6.2831853, rad=0.06+seed.y*0.20;
+  float spread=rad*(1.0-uRadial*age*1.2);
+  float ra=uRot*age*3.0;
+  vec3 off=pu*cos(ang+ra)*spread + pv*sin(ang+ra)*spread;
+  off += pu*(1.0-clamp(uMass*0.5+0.5,0.0,1.0))*sin(age*4.0+seed.z*6.28)*0.45*age;
 
-  // radiale: converge verso l'asse o si apre
-  float spread = rad * (1.0 - uRadial*age*1.2);
-  vec2 off = perp*cos(ang)*spread + dir*sin(ang)*spread*0.25;
+  vec3 wp=uOrigin + ax*uSpeed*age*3.2 + off;
+  wp.y += uGrav*age*age*1.6;
+  wp += (vec3(h(seed.z*13.0),h(seed.z*29.0),h(seed.z*7.0))-0.5)*uNoise*0.55*age;
 
-  // rotazione attorno all'asse
-  float ra = uRot * age * 3.0;
-  off = vec2(off.x*cos(ra) - off.y*sin(ra), off.x*sin(ra) + off.y*cos(ra));
-
-  // cedevolezza: si lascia deviare progressivamente
-  off += perp * (1.0 - clamp(uMass*0.5+0.5,0.0,1.0)) * sin(age*4.0 + seed.z*6.28) * 0.30 * age;
-
-  vec2 pos = dir * sp * age + off;
-  pos.y += uGrav * age * age * 0.9;                       // gravita'
-  pos += (vec2(h(seed.z*13.0), h(seed.z*29.0)) - 0.5) * uNoise * 0.5 * age;
-
-  float sz = uSize * (0.55 + 0.45*sin(age*3.14159)) * mix(1.0, 1.6, 1.0-uCoher);
-  vec2 v = uOrigin + pos + quad * sz * vec2(1.0/uAspect, 1.0);
-  gl_Position = vec4(v.x, v.y, 0.0, 1.0);
-  vAge = age; vSeed = seed.z; vSoft = uCoher;
+  float sz=uSize*(0.55+0.45*sin(age*3.14159))*mix(1.0,1.7,1.0-uCoher);
+  wp += (uRight*quad.x + uUp*quad.y)*sz;
+  gl_Position=uVP*vec4(wp,1.0);
+  vAge=age; vQuad=quad; vSoft=uCoher;
+}`;
+const PFS=`#version 300 es
+precision mediump float; in float vAge; in vec2 vQuad; in float vSoft;
+uniform vec3 uCol,uCol2; uniform float uAlpha; out vec4 o;
+void main(){
+  float d=length(vQuad);
+  float edge=mix(0.75,0.06,vSoft);
+  float a=smoothstep(1.0,1.0-edge-0.02,d)*(1.0-vAge*vAge)*uAlpha;
+  if(a<=0.003)discard;
+  o=vec4(mix(uCol2,uCol,clamp(vAge*2.2,0.0,1.0))*a,a);
 }`;
 
-/* il fragment vero: cerchio morbido, bordo governato dalla coerenza */
-const FS2 = `#version 300 es
-precision mediump float;
-in float vAge; in float vSeed; in float vSoft;
-in vec2 vQuad;
-uniform vec3 uCol; uniform vec3 uCol2; uniform float uAlpha;
-out vec4 o;
-void main(){
-  float d = length(vQuad);
-  float edge = mix(0.75, 0.05, vSoft);              // nitido = bordo netto
-  float a = smoothstep(1.0, 1.0-edge-0.02, d);
-  a *= (1.0 - vAge*vAge) * uAlpha;
-  if (a <= 0.003) discard;
-  vec3 c = mix(uCol2, uCol, clamp(vAge*1.4,0.0,1.0));
-  o = vec4(c*a, a);                                  // premultiplicato, blend additivo
-}`;
+let P_GROUND,P_BOX,P_PART,vaoGround,vaoBox,vaoPart,boxCount=0;
+const N=2000;
+function buildGL(){
+  P_GROUND=prog(GVS,GFS); P_BOX=prog(BVS,BFS); P_PART=prog(PVS,PFS);
 
-const VS2 = VS.replace('out float vAge; out float vSeed; out float vSoft;',
-                       'out float vAge; out float vSeed; out float vSoft; out vec2 vQuad;')
-              .replace('vAge = age; vSeed = seed.z; vSoft = uCoher;',
-                       'vAge = age; vSeed = seed.z; vSoft = uCoher; vQuad = quad;');
+  vaoGround=gl.createVertexArray(); gl.bindVertexArray(vaoGround);
+  const gq=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,gq);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  let l=gl.getAttribLocation(P_GROUND.p,'g'); gl.enableVertexAttribArray(l);
+  gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
 
-let prog = null, vao = null, N = 2000;
-function build(){
-  prog = program(VS2, FS2);
-  vao = gl.createVertexArray(); gl.bindVertexArray(vao);
-  const quad = new Float32Array([-1,-1, 1,-1, -1,1, 1,1]);
-  const qb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, qb);
-  gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
-  const lq = gl.getAttribLocation(prog.p,'quad');
-  gl.enableVertexAttribArray(lq); gl.vertexAttribPointer(lq,2,gl.FLOAT,false,0,0);
+  // cubo unitario con normali
+  const F=[[[0,0,1],[-1,-1,1,1,-1,1,-1,1,1,1,-1,1,1,1,1,-1,1,1]],
+           [[0,0,-1],[1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,1,-1,1,1,-1]],
+           [[1,0,0],[1,-1,1,1,-1,-1,1,1,1,1,-1,-1,1,1,-1,1,1,1]],
+           [[-1,0,0],[-1,-1,-1,-1,-1,1,-1,1,-1,-1,-1,1,-1,1,1,-1,1,-1]],
+           [[0,1,0],[-1,1,1,1,1,1,-1,1,-1,1,1,1,1,1,-1,-1,1,-1]],
+           [[0,-1,0],[-1,-1,-1,1,-1,-1,-1,-1,1,1,-1,-1,1,-1,1,-1,-1,1]]];
+  const bd=[]; for(const [nn,vs] of F){ for(let i=0;i<vs.length;i+=3){
+    bd.push(vs[i]*0.5,vs[i+1]*0.5,vs[i+2]*0.5,nn[0],nn[1],nn[2]); } }
+  boxCount=bd.length/6;
+  vaoBox=gl.createVertexArray(); gl.bindVertexArray(vaoBox);
+  const bb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bb);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(bd),gl.STATIC_DRAW);
+  l=gl.getAttribLocation(P_BOX.p,'p'); gl.enableVertexAttribArray(l);
+  gl.vertexAttribPointer(l,3,gl.FLOAT,false,24,0);
+  l=gl.getAttribLocation(P_BOX.p,'nrm'); gl.enableVertexAttribArray(l);
+  gl.vertexAttribPointer(l,3,gl.FLOAT,false,24,12);
 
-  const seeds = new Float32Array(N*3), slots = new Float32Array(N);
-  for (let i=0;i<N;i++){ seeds[i*3]=Math.random(); seeds[i*3+1]=Math.random(); seeds[i*3+2]=Math.random();
-    slots[i]= i/N; }
-  const sb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, sb);
-  gl.bufferData(gl.ARRAY_BUFFER, seeds, gl.STATIC_DRAW);
-  const ls = gl.getAttribLocation(prog.p,'seed');
-  gl.enableVertexAttribArray(ls); gl.vertexAttribPointer(ls,3,gl.FLOAT,false,0,0); gl.vertexAttribDivisor(ls,1);
-
-  const tb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, tb);
-  gl.bufferData(gl.ARRAY_BUFFER, slots, gl.STATIC_DRAW);
-  const lt = gl.getAttribLocation(prog.p,'slot');
-  gl.enableVertexAttribArray(lt); gl.vertexAttribPointer(lt,1,gl.FLOAT,false,0,0); gl.vertexAttribDivisor(lt,1);
+  vaoPart=gl.createVertexArray(); gl.bindVertexArray(vaoPart);
+  const pq=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,pq);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  l=gl.getAttribLocation(P_PART.p,'quad'); gl.enableVertexAttribArray(l);
+  gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+  const sd=new Float32Array(N*3),sl=new Float32Array(N);
+  for(let i=0;i<N;i++){sd[i*3]=Math.random();sd[i*3+1]=Math.random();sd[i*3+2]=Math.random();sl[i]=i/N;}
+  const sb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,sb);
+  gl.bufferData(gl.ARRAY_BUFFER,sd,gl.STATIC_DRAW);
+  l=gl.getAttribLocation(P_PART.p,'seed'); gl.enableVertexAttribArray(l);
+  gl.vertexAttribPointer(l,3,gl.FLOAT,false,0,0); gl.vertexAttribDivisor(l,1);
+  const tb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,tb);
+  gl.bufferData(gl.ARRAY_BUFFER,sl,gl.STATIC_DRAW);
+  l=gl.getAttribLocation(P_PART.p,'slot'); gl.enableVertexAttribArray(l);
+  gl.vertexAttribPointer(l,1,gl.FLOAT,false,0,0); gl.vertexAttribDivisor(l,1);
   gl.bindVertexArray(null);
 }
 
-/* ---------- stato di gioco ---------- */
-let serbatoio = SERBATOIO;
-let evocando = false, tEvoc = 0, tRichiesto = 0, manaIniziale = 0;
-let volo = null;                    // {t0, params}
-let ultimoVerdetto = 0;
+/* manichino: proporzioni di DUMMY_BOXES del riferimento */
+const DUMMY=[
+  {y:0.055,s:[0.82,0.11,0.24],c:[0.35,0.26,0.18]},
+  {y:0.53, s:[0.13,0.94,0.13],c:[0.42,0.29,0.18]},
+  {y:1.06, s:[0.52,0.48,0.30],c:[0.58,0.38,0.23]},
+  {y:1.10, s:[1.06,0.12,0.12],c:[0.46,0.31,0.19]},
+  {y:1.42, s:[0.34,0.34,0.32],c:[0.64,0.42,0.24]},
+  {y:1.64, s:[0.20,0.10,0.20],c:[0.37,0.26,0.17]}
+];
+const DUMMY_POS=[0,0,-3.2];
+const ORIGINE=[0,0.95,2.6];
 
-function paramsDaFormula(nit, collasso){
-  const M = MATERIE[formula.materia];
-  const v = (k) => valoreDi(k);
-  let radiale = v('radiale'), massa = v('massa'), rot = v('rotazione');
-  // inversione spontanea: un asse semi-direzionale si ribalta
-  if (nit < 0.75){
-    const scelti = ['radiale','massa','rotazione'].filter(k => k in formula.assi);
-    if (scelti.length){
-      const k = scelti[Math.floor(Math.random()*scelti.length)];
-      if (k==='radiale') radiale = -radiale; else if (k==='massa') massa = -massa; else rot = -rot;
-    }
+/* --- camera runtime --- */
+const cam={yaw:CAM.yaw, pitch:CAM.pitchDeg*DEG, dist:CAM.distance, yawVel:0, pitchVel:0};
+const VP=m4(); let camBasis=null;
+function aggiornaCamera(){
+  if(Math.abs(cam.yawVel)>CAM.cutoff||Math.abs(cam.pitchVel)>CAM.cutoff){
+    cam.yaw+=cam.yawVel; cam.pitch+=cam.pitchVel;
+    cam.yawVel*=CAM.inertia; cam.pitchVel*=CAM.inertia;
+    cam.pitch=Math.max(CAM.minPitchDeg*DEG,Math.min(CAM.maxPitchDeg*DEG,cam.pitch));
   }
-  const vita = v('vita'), stab = v('stabilita'), lev = v('levitazione'), ritmo = v('ritmo');
-  const dirV = v('direzione');
-  // deriva: l'asse scarta, tanto piu' quanto e' lunga l'evocazione
-  const deriva = (1 - Math.min(nit,1)) * tRichiesto * 0.55 * (Math.random()<0.5?-1:1);
-  // il collasso implode sull'origine: non e' la spell al contrario, e' la spell che cede addosso
+  const cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  const dx=Math.sin(cam.yaw)*cp, dy=sp, dz=Math.cos(cam.yaw)*cp;
+  const tgt=[0,CAM.targetHeight,0];
+  const eye=[tgt[0]+dx*cam.dist, tgt[1]+dy*cam.dist, tgt[2]+dz*cam.dist];
+  const lk=lookAt(m4(),eye,tgt,[0,1,0]);
+  camBasis=lk;
+  mul(VP, perspective(m4(),CAM.fovDeg*DEG,aspect,CAM.near,CAM.far), lk.m);
+}
+
+/* --- stato --- */
+let serbatoio=SERBATOIO, evocando=false, tEvoc=0, tRichiesto=0, manaIniziale=0;
+let volo=null, ultimoVerdetto=0;
+
+function paramsDaFormula(nit,collasso){
+  const M=MATERIE[formula.materia], v=valoreDi;
+  let radiale=v('radiale'), massa=v('massa'), rot=v('rotazione');
+  if(nit<0.75){
+    const s=['radiale','massa','rotazione'].filter(k=>k in formula.assi);
+    if(s.length){const k=s[(Math.random()*s.length)|0];
+      if(k==='radiale')radiale=-radiale; else if(k==='massa')massa=-massa; else rot=-rot;}
+  }
+  const vita=v('vita'),stab=v('stabilita'),lev=v('levitazione'),ritmo=v('ritmo'),dirV=v('direzione');
+  const deriva=(1-Math.min(nit,1))*tRichiesto*0.4*(Math.random()<0.5?-1:1);
+  const ax=[0,0,-1];
   return {
-    life: collasso ? 0.55 : 0.45 + (vita*0.5+0.5)*1.6,
-    dir: [Math.cos(0.20), Math.sin(0.20)],
-    speed: collasso ? 0.12 : (0.18 + Math.abs(dirV)*1.85),
-    radial: collasso ? 1.0 : radiale,
-    mass: collasso ? -1.0 : massa,
-    rot: collasso ? 1.6 : rot,
-    noise: (1 - (stab*0.5+0.5)) * (collasso ? 2.2 : 1),
-    grav: collasso ? -0.25 : lev*0.55, beat: collasso ? 0 : (ritmo*0.5+0.5),
-    coher: collasso ? 0.15 : Math.min(nit,1),
-    size: 0.013 * (0.75 + 0.45*formula.dose) * (collasso ? 1.7 : 1),
-    drift: collasso ? 0 : deriva,
-    col: M.col, col2: M.col2,
-    alpha: collasso ? 1.0 : 0.85
+    life: collasso?0.55:0.45+(vita*0.5+0.5)*1.6,
+    axis: ax,
+    speed: collasso?0.10:(0.15+Math.abs(dirV)*1.5),
+    radial: collasso?1.0:radiale, mass: collasso?-1.0:massa, rot: collasso?1.6:rot,
+    noise:(1-(stab*0.5+0.5))*(collasso?2.2:1),
+    grav: collasso?-0.3:lev*0.9, beat: collasso?0:(ritmo*0.5+0.5),
+    coher: collasso?0.15:Math.min(nit,1),
+    size: 0.034*(0.75+0.45*formula.dose)*(collasso?1.7:1),
+    drift: collasso?0:deriva, col:M.col, col2:M.col2, alpha: collasso?0.42:0.26
   };
 }
-
 function lancia(collasso){
-  const s = stato();
-  volo = {t0: performance.now()/1000, p: paramsDaFormula(s.nit, collasso), dur: 0};
-  volo.dur = volo.p.life + 0.6;
-  const v = document.getElementById('verdict');
-  const testo = collasso ? 'collasso' : (s.nit >= 0.999 ? 'pulita'
-                : (s.nit >= 0.75 ? 'deriva' : 'inversione spontanea'));
-  v.textContent = testo;
-  v.style.color = collasso ? 'var(--bad)' : (s.nit>=0.999 ? 'var(--ok)' : (s.nit>=0.75?'var(--warn)':'var(--bad)'));
-  v.classList.add('on'); ultimoVerdetto = performance.now();
+  const s=stato();
+  volo={t0:performance.now()/1000, p:paramsDaFormula(s.nit,collasso)};
+  volo.dur=volo.p.life+0.6;
+  const v=document.getElementById('verdict');
+  v.textContent = collasso?'collasso':(s.nit>=0.999?'pulita':(s.nit>=0.75?'deriva':'inversione spontanea'));
+  v.style.color = collasso?'var(--bad)':(s.nit>=0.999?'var(--ok)':(s.nit>=0.75?'var(--warn)':'var(--bad)'));
+  v.classList.add('on'); ultimoVerdetto=performance.now();
 }
 
-/* ---------- input: tieni premuto ---------- */
-const arena = document.getElementById('arena');
-const ring = document.getElementById('ring'), arc = document.getElementById('arc');
-function inizia(x,y){
-  const s = stato();
-  if (s.t <= 0.001) return;
-  evocando = true; tEvoc = 0; tRichiesto = s.t; manaIniziale = serbatoio;
-  ring.style.left = x+'px'; ring.style.top = y+'px';
-  ring.style.color = 'var(--mat)'; ring.classList.add('on');
-}
-function ferma(completa){
-  if (!evocando) return;
-  evocando = false; ring.classList.remove('on');
-  if (completa) lancia(false);
-  else if (completa === false && serbatoio <= 0.01) lancia(true);
-  else serbatoio = Math.min(SERBATOIO, manaIniziale);   // rilascio anticipato: mana restituito
-}
-arena.addEventListener('pointerdown', e => { e.preventDefault();
-  const r = arena.getBoundingClientRect(); inizia(e.clientX-r.left, e.clientY-r.top);
-  arena.setPointerCapture(e.pointerId); });
-arena.addEventListener('pointerup',   () => ferma(null));
-arena.addEventListener('pointercancel',() => ferma(null));
+/* --- input: un dito evoca, due dita orbitano --- */
+const arena=document.getElementById('arena');
+const ring=document.getElementById('ring'), arc=document.getElementById('arc');
+const punt=new Map(); let orbitando=false, lastO=null;
+function inizia(x,y){ const s=stato(); if(s.t<=0.001)return;
+  evocando=true;tEvoc=0;tRichiesto=s.t;manaIniziale=serbatoio;
+  ring.style.left=x+'px';ring.style.top=y+'px';ring.style.color='var(--mat)';ring.classList.add('on'); }
+function annulla(){ if(!evocando)return; evocando=false;ring.classList.remove('on');
+  serbatoio=Math.min(SERBATOIO,manaIniziale); }
+arena.addEventListener('pointerdown',e=>{ e.preventDefault(); arena.setPointerCapture(e.pointerId);
+  punt.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(punt.size===1){ const r=arena.getBoundingClientRect(); inizia(e.clientX-r.left,e.clientY-r.top); }
+  else { annulla(); orbitando=true; lastO={x:e.clientX,y:e.clientY}; } });
+arena.addEventListener('pointermove',e=>{ if(!punt.has(e.pointerId))return;
+  punt.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(orbitando&&lastO){ const dx=e.clientX-lastO.x, dy=e.clientY-lastO.y;
+    cam.yawVel=-dx*CAM.yawPerPx; cam.pitchVel=dy*CAM.pitchPerPx;
+    cam.yaw+=cam.yawVel; cam.pitch=Math.max(CAM.minPitchDeg*DEG,
+      Math.min(CAM.maxPitchDeg*DEG,cam.pitch+cam.pitchVel));
+    lastO={x:e.clientX,y:e.clientY}; } });
+function su(e){ punt.delete(e.pointerId);
+  if(punt.size===0){ orbitando=false; lastO=null; annulla(); } }
+arena.addEventListener('pointerup',su); arena.addEventListener('pointercancel',su);
+arena.addEventListener('wheel',e=>{ e.preventDefault();
+  cam.dist=Math.max(CAM.minDist,Math.min(CAM.maxDist,cam.dist*(e.deltaY>0?1.13:1/1.13))); },{passive:false});
 
-/* ---------- UI ---------- */
+/* --- UI --- */
 function costruisciUI(){
-  const mats = document.getElementById('mats');
-  for (const k of Object.keys(MATERIE)){
-    const b = document.createElement('button');
-    b.className='mat'; b.type='button'; b.textContent = MATERIE[k].nome;
-    b.style.setProperty('--c', `var(--${k})`);
-    b.setAttribute('aria-pressed', String(k===formula.materia));
-    b.onclick = () => { formula.materia = k;
-      document.documentElement.style.setProperty('--mat', `var(--${k})`);
-      [...mats.children].forEach(c => c.setAttribute('aria-pressed', String(c===b)));
-      aggiorna(); };
+  const mats=document.getElementById('mats');
+  for(const k of Object.keys(MATERIE)){
+    const b=document.createElement('button'); b.className='mat'; b.type='button';
+    b.textContent=MATERIE[k].nome; b.style.setProperty('--c',`var(--${k})`);
+    b.setAttribute('aria-pressed',String(k===formula.materia));
+    b.onclick=()=>{ formula.materia=k;
+      document.documentElement.style.setProperty('--mat',`var(--${k})`);
+      [...mats.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+      riempiGrimorio(); aggiorna(); };
     mats.appendChild(b);
   }
-  const box = document.getElementById('axes');
-  for (const a of ASSI){
-    const d = document.createElement('div'); d.className='ax';
-    d.innerHTML = `<div class="axhead"><span class="axname"><b>${a.et}</b></span>
-      <span class="axval" id="v-${a.k}">riposo</span></div>`;
-    const r = document.createElement('input');
-    r.type='range'; r.min = a.dir?0:-100; r.max=100; r.step=1; r.value=0;
-    r.setAttribute('aria-label', a.et);
-    r.oninput = () => { const val = +r.value/100;
-      if (Math.abs(val) < 0.02 && !a.dir) delete formula.assi[a.k];
-      else if (a.dir && val < 0.02) delete formula.assi[a.k];
-      else formula.assi[a.k] = val;
-      aggiorna(); };
+  const box=document.getElementById('axes');
+  for(const a of ASSI){
+    const d=document.createElement('div'); d.className='ax';
+    d.innerHTML=`<span class="axname"><b>${a.et}</b></span><span class="axval" id="v-${a.k}">riposo</span>`;
+    const r=document.createElement('input'); r.type='range'; r.min=a.dir?0:-100; r.max=100; r.step=1;
+    r.value=0; r.id='s-'+a.k; r.setAttribute('aria-label',a.et);
+    r.oninput=()=>{ const val=+r.value/100;
+      if(Math.abs(val)<0.02) delete formula.assi[a.k]; else formula.assi[a.k]=val;
+      document.getElementById('grimorio').value=''; aggiorna(); };
     d.appendChild(r); box.appendChild(d);
   }
-  // la dose non e' un asse: vive col resto delle letture, in basso
-  const d = document.createElement('div'); d.className='ax dosebox';
-  d.innerHTML = `<span class="axname"><b>dose</b></span><span class="axval set" id="v-dose">100%</span>`;
-  const r = document.createElement('input');
-  r.type='range'; r.min=25; r.max=200; r.step=5; r.value=100; r.setAttribute('aria-label','dose');
-  r.oninput = () => { formula.dose = +r.value/100; aggiorna(); };
+  const d=document.createElement('div'); d.className='ax dosebox';
+  d.innerHTML=`<span class="axname"><b>dose</b></span><span class="axval set" id="v-dose">100%</span>`;
+  const r=document.createElement('input'); r.type='range'; r.min=25;r.max=200;r.step=5;r.value=100;
+  r.setAttribute('aria-label','dose');
+  r.oninput=()=>{formula.dose=+r.value/100;aggiorna();};
   d.appendChild(r);
-  document.getElementById('readout').insertBefore(d, document.getElementById('state'));
-}
+  document.getElementById('readout').insertBefore(d,document.getElementById('state'));
 
+  const sel=document.getElementById('grimorio');
+  sel.onchange=()=>{ const p=PRESET[+sel.value]; if(!p)return;
+    formula.assi={}; for(const [k,v] of Object.entries(p.a)) formula.assi[k]=v;
+    for(const a of ASSI){ const s=document.getElementById('s-'+a.k);
+      s.value=Math.round((a.k in formula.assi?formula.assi[a.k]:0)*100); }
+    aggiorna(); };
+  riempiGrimorio();
+}
+function riempiGrimorio(){
+  const sel=document.getElementById('grimorio');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— formula libera —</option>' +
+    PRESET.map((p,i)=>`<option value="${i}">${p.nomi[formula.materia]} · ${p.d}</option>`).join('');
+  sel.value=cur;
+}
 function aggiorna(){
-  const s = stato();
-  for (const a of ASSI){
-    const el = document.getElementById('v-'+a.k);
-    if (a.k in formula.assi){ el.textContent = (formula.assi[a.k]>=0?'+':'') + formula.assi[a.k].toFixed(2);
+  const s=stato();
+  for(const a of ASSI){ const el=document.getElementById('v-'+a.k);
+    if(a.k in formula.assi){ el.textContent=(formula.assi[a.k]>=0?'+':'')+formula.assi[a.k].toFixed(2);
       el.classList.add('set'); }
-    else { el.textContent = 'riposo ' + (a.dir ? '0' : (riposoDi(a.k)>=0?'+':'') + riposoDi(a.k).toFixed(1));
-      el.classList.remove('set'); }
-  }
-  document.getElementById('v-dose').textContent = Math.round(formula.dose*100)+'%';
-  document.getElementById('r-car').textContent = s.c.toFixed(1);
-  document.getElementById('r-tem').textContent = s.t.toFixed(2)+' s';
-  document.getElementById('r-man').textContent = s.m.toFixed(0) + (s.m > SERBATOIO ? ' ⚠' : '');
-  document.getElementById('r-dos').textContent = Math.round(s.doseMax*100)+'%';
-  const st = document.getElementById('state');
-  st.textContent = s.m > SERBATOIO ? 'collasso: il serbatoio non basta' : s.deg;
-  st.className = s.m > SERBATOIO ? 's-bad' : (s.deg==='pulita'?'s-ok':(s.deg==='deriva'?'s-warn':'s-bad'));
+    else { el.textContent='riposo '+(a.dir?'0':(riposoDi(a.k)>=0?'+':'')+riposoDi(a.k).toFixed(1));
+      el.classList.remove('set'); } }
+  document.getElementById('v-dose').textContent=Math.round(formula.dose*100)+'%';
+  document.getElementById('r-car').textContent=s.c.toFixed(1);
+  document.getElementById('r-tem').textContent=s.t.toFixed(2)+' s';
+  document.getElementById('r-man').textContent=s.m.toFixed(0)+(s.m>SERBATOIO?' ⚠':'');
+  document.getElementById('r-dos').textContent=Math.round(s.doseMax*100)+'%';
+  const st=document.getElementById('state');
+  st.textContent=s.m>SERBATOIO?'collasso: il serbatoio non basta':s.deg;
+  st.className=s.m>SERBATOIO?'s-bad':(s.deg==='pulita'?'s-ok':(s.deg==='deriva'?'s-warn':'s-bad'));
 }
 
-/* ---------- loop ---------- */
-let last = performance.now(), acc = 0, frames = 0, msAvg = 0;
+/* --- loop --- */
+let last=performance.now(),acc=0,frames=0;
 function frame(now){
-  const dt = Math.min((now-last)/1000, 0.05); last = now;
-  resize();
+  const dt=Math.min((now-last)/1000,0.05); last=now;
+  resize(); aggiornaCamera();
 
-  if (evocando){
-    tEvoc += dt;
-    serbatoio = Math.max(0, serbatoio - DRENAGGIO*dt);
-    const p = Math.min(tEvoc/tRichiesto, 1);
-    arc.setAttribute('stroke-dashoffset', String(276.5*(1-p)));
-    if (serbatoio <= 0 && p < 1){ evocando=false; ring.classList.remove('on'); lancia(true); }
-    else if (p >= 1){ evocando=false; ring.classList.remove('on'); lancia(false); }
-  } else {
-    serbatoio = Math.min(SERBATOIO, serbatoio + RICARICA*dt);
+  if(evocando){
+    tEvoc+=dt; serbatoio=Math.max(0,serbatoio-DRENAGGIO*dt);
+    const p=Math.min(tEvoc/tRichiesto,1);
+    arc.setAttribute('stroke-dashoffset',String(276.5*(1-p)));
+    if(serbatoio<=0&&p<1){evocando=false;ring.classList.remove('on');lancia(true);}
+    else if(p>=1){evocando=false;ring.classList.remove('on');lancia(false);}
+  } else serbatoio=Math.min(SERBATOIO,serbatoio+RICARICA*dt);
+  const mb=document.getElementById('manabar');
+  mb.style.width=(serbatoio/SERBATOIO*100)+'%';
+  mb.classList.toggle('low',serbatoio<SERBATOIO*0.2);
+
+  gl.clearColor(0.031,0.043,0.051,1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST); gl.depthMask(true); gl.disable(gl.BLEND);
+
+  gl.useProgram(P_GROUND.p); gl.bindVertexArray(vaoGround);
+  gl.uniformMatrix4fv(P_GROUND.u.uVP,false,VP);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+
+  gl.useProgram(P_BOX.p); gl.bindVertexArray(vaoBox);
+  gl.uniformMatrix4fv(P_BOX.u.uVP,false,VP);
+  for(const b of DUMMY){
+    gl.uniform3f(P_BOX.u.uOff,DUMMY_POS[0],b.y,DUMMY_POS[2]);
+    gl.uniform3f(P_BOX.u.uSize,b.s[0],b.s[1],b.s[2]);
+    gl.uniform3f(P_BOX.u.uCol,b.c[0],b.c[1],b.c[2]);
+    gl.drawArrays(gl.TRIANGLES,0,boxCount);
   }
-  const mb = document.getElementById('manabar');
-  mb.style.width = (serbatoio/SERBATOIO*100)+'%';
-  mb.classList.toggle('low', serbatoio < SERBATOIO*0.2);
 
-  gl.clearColor(0.031,0.043,0.051,1); gl.clear(gl.COLOR_BUFFER_BIT);
-  if (volo){
-    const t = now/1000 - volo.t0;
-    if (t > volo.dur) volo = null;
-    else {
-      const p = volo.p, u = prog.u;
-      gl.useProgram(prog.p); gl.bindVertexArray(vao);
-      gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);   // additivo, premultiplicato
-      gl.disable(gl.DEPTH_TEST);
-      gl.uniform1f(u.uT,t); gl.uniform1f(u.uLife,p.life);
-      gl.uniform2f(u.uDir,p.dir[0],p.dir[1]); gl.uniform1f(u.uSpeed,p.speed);
+  if(volo){
+    const t=now/1000-volo.t0;
+    if(t>volo.dur) volo=null;
+    else{
+      const p=volo.p,u=P_PART.u;
+      gl.useProgram(P_PART.p); gl.bindVertexArray(vaoPart);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE); gl.depthMask(false);
+      gl.uniformMatrix4fv(u.uVP,false,VP);
+      gl.uniform3fv(u.uRight,camBasis.right); gl.uniform3fv(u.uUp,camBasis.up);
+      gl.uniform3fv(u.uOrigin,ORIGINE); gl.uniform3fv(u.uAxis,p.axis);
+      gl.uniform1f(u.uT,t); gl.uniform1f(u.uLife,p.life); gl.uniform1f(u.uSpeed,p.speed);
       gl.uniform1f(u.uRadial,p.radial); gl.uniform1f(u.uMass,p.mass); gl.uniform1f(u.uRot,p.rot);
       gl.uniform1f(u.uNoise,p.noise); gl.uniform1f(u.uGrav,p.grav); gl.uniform1f(u.uBeat,p.beat);
-      gl.uniform1f(u.uCoher,p.coher); gl.uniform1f(u.uSize,p.size);
-      gl.uniform1f(u.uAspect,aspect); gl.uniform1f(u.uDrift,p.drift);
-      gl.uniform2f(u.uOrigin,-0.72,-0.38);
+      gl.uniform1f(u.uCoher,p.coher); gl.uniform1f(u.uSize,p.size); gl.uniform1f(u.uDrift,p.drift);
       gl.uniform3f(u.uCol,p.col[0],p.col[1],p.col[2]);
       gl.uniform3f(u.uCol2,p.col2[0],p.col2[1],p.col2[2]);
       gl.uniform1f(u.uAlpha,p.alpha);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,N);
-      gl.bindVertexArray(null);
+      gl.depthMask(true);
     }
   }
-  if (ultimoVerdetto && now - ultimoVerdetto > 1800){
-    document.getElementById('verdict').classList.remove('on'); ultimoVerdetto = 0;
-  }
+  gl.bindVertexArray(null);
 
-  frames++; acc += dt;
-  if (acc >= 0.5){
-    msAvg = (acc/frames)*1000;
-    document.getElementById('fps').textContent =
-      msAvg.toFixed(1)+' ms  ·  '+Math.round(frames/acc)+' fps\n'+N+' particelle';
-    frames = 0; acc = 0;
-  }
+  if(ultimoVerdetto&&now-ultimoVerdetto>1800){
+    document.getElementById('verdict').classList.remove('on'); ultimoVerdetto=0; }
+  frames++; acc+=dt;
+  if(acc>=0.5){ document.getElementById('fps').textContent=
+    ((acc/frames)*1000).toFixed(1)+' ms · '+Math.round(frames/acc)+' fps\n'+N+' particelle';
+    frames=0; acc=0; }
   requestAnimationFrame(frame);
 }
-
-try {
-  resize(); build(); costruisciUI(); aggiorna();
+try{ resize(); buildGL(); costruisciUI(); aggiorna();
   document.documentElement.style.setProperty('--mat','var(--fuoco)');
   requestAnimationFrame(frame);
-} catch(e){
-  document.getElementById('hint').textContent = 'errore: ' + e.message;
-  console.error(e);
-}
+}catch(e){ document.getElementById('hint').textContent='errore: '+e.message; console.error(e); }
 </script>
 </body>
 </html>
