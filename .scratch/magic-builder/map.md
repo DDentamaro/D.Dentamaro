@@ -20,6 +20,12 @@ abilita' cablate a mano). Quello e' una vetrina VFX; questo e' un builder. La di
 **Skill da consultare ogni sessione**: `domain-modeling` sempre (il glossario di questo effort e'
 giovane e va costruito); `research` per i ticket di tipo research; `prototype` per il 07.
 
+**OVERRIDE — la demo verticale precede la specifica completa.** Il ticket 11 costruisce una fetta
+verticale bloccata solo da 05 e 06, prima che 07, 08 e 09 siano chiusi. Motivo: il budget del 03 e'
+aritmetica non verificata (nessuna GPU Android in sessione) e la durata della carica e' una domanda
+tattile. Entrambe si risolvono solo con codice su un telefono vero. Effetto: 07, 08 e 09 escono
+dalla strada critica.
+
 **OVERRIDE — l'esecuzione entra nella mappa.** Wayfinder di default pianifica e basta. Qui no:
 l'utente ha chiesto di procedere allo sviluppo, quindi il ticket 10 costruisce davvero il file.
 I ticket 01-09 restano decisioni: 10 non si tocca finche' non sono chiusi.
