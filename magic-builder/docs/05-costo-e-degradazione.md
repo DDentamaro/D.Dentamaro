@@ -1,130 +1,122 @@
-# Costo del mana e degradazione
+# Costo dell'evocazione e degradazione
 
-Risultato del ticket 05. Definisce quanto costa un'immagine e cosa succede quando eccede il
-controllo.
+Risultato del ticket 05, **riscritto** dopo il ripensamento sulla carica. La versione precedente
+trattava la pressione come un moltiplicatore continuo di potenza ed e' stata scartata.
 
-Principio che guida tutto: **due limiti, due valute, nessuna sovrapposizione.** Il mana paga
-l'intensita', il controllo paga la complessita'. Si toccano in un punto solo — la carica.
+**Non esiste nessun moltiplicatore di potenza.** Un proiettile, una palla di fuoco e un meteorite
+non sono la stessa spell a tre volumi: sono tre formule diverse, con tre prezzi in tempo diversi.
 
 ---
 
-## 1. Le costanti
+## 1. Le tre regole
 
-| Grandezza | Valore | Nota |
-|---|---:|---|
-| Riserva di mana | 100 | punti |
-| Ricarica | 12/s | riserva piena da vuoto in 8,3 s |
-| Drenaggio in carica | 30/s | carica piena in 3,3 s |
-| Controllo | 6 | costante: la progressione e' fuori scope |
+1. La **complessita' della formula** determina il **tempo di evocazione**.
+2. Il **serbatoio di mana si svuota mentre evochi**, a ritmo costante.
+3. Oltre la soglia di **controllo**, la formula **degrada**.
 
-## 2. Intensita': rendimenti decrescenti
+La 2 e' il punto in cui il modello si semplifica: il costo in mana non e' una formula da calcolare,
+e' una conseguenza. Evochi piu' a lungo, spendi di piu'. Nient'altro da bilanciare.
 
-Il mana si versa a ritmo costante — `mana = 30 × t` — ma l'effetto cresce con la **radice**:
+## 2. Le costanti
 
-```
-intensita' = sqrt(mana / 100)
-```
-
-| Tieni premuto | Mana | Intensita' |
-|---:|---:|---:|
-| 0,25 s | 7,5 | 0,27 |
-| 0,50 s | 15 | 0,39 |
-| 1,00 s | 30 | 0,55 |
-| 1,67 s | 50 | 0,71 |
-| 2,50 s | 75 | 0,87 |
-| 3,33 s | 100 | 1,00 |
-
-Raddoppiare la potenza costa **quattro volte** il mana. Serve a rendere «quanto tengo premuto» una
-decisione invece di uno slider: la prima mezza pressione rende molto, l'ultima quasi niente.
-
-## 3. Complessita': il carico sul controllo
-
-La complessita' **non costa mana**. Costa controllo, ed e' la seconda valuta.
-
-Ogni qualita' pesa secondo la sua **classe** — che e' la tipizzazione del ticket 04 che paga di
-nuovo, qui nel costo:
-
-| Classe | Carico | Perche' |
-|---|---:|---|
-| Direzionale | 3 | espone un vettore: due gradi di liberta' da tenere |
-| Semi-direzionale | 2 | un verso da tenere |
-| Non-direzionale | 1 | c'e' o non c'e' |
-
-```
-carico    = somma dei carichi delle qualita' attive
-nitidezza = min(controllo / carico, 1)
-```
-
-| Composizione | Carico | Nitidezza |
-|---|---:|---:|
-| solo direzione | 3 | 1,00 |
-| direzione + 1 non-direzionale | 4 | 1,00 |
-| direzione + 1 semi + 1 non-dir | 6 | 1,00 |
-| tre semi-direzionali | 6 | 1,00 |
-| direzione + tre semi | 9 | 0,67 |
-| tutte e sei | 11 | 0,55 |
-
-Sotto carico 6 l'immagine e' perfetta; sopra, si sfoca. **Non si blocca mai.**
-
-Nota di progetto: con tutte e sei le qualita' la nitidezza si ferma a 0,55, quindi la soglia di
-collasso (§5) **non si raggiunge per complessita' da sola**. Ci si arriva solo impilando tutto *e*
-svuotando la riserva. Il fallimento peggiore va guadagnato.
-
-## 4. Lo sforzo: dove le due valute si toccano
-
-Sotto il **20% di riserva** l'immagine risente dello sforzo:
-
-```
-sforzo    = 0.5 + 0.5 × min(riserva / 20, 1)
-nitidezza = min(controllo / carico, 1) × sforzo
-```
-
-A riserva vuota la nitidezza e' dimezzata. E' l'unico punto in cui mana e controllo si parlano, ed e'
-voluto: tenere premuto fino all'ultima goccia deve costare qualcosa oltre al mana.
-
-Risolve anche la domanda lasciata aperta dal ticket 04 — cosa succede se la carica supera il mana
-residuo. Risposta: **la carica si ferma a zero** e l'immagine parte con quel che ha, ma l'ultimo
-tratto e' stato pagato in nitidezza.
-
-## 5. La degradazione: le tue qualita' che si comportano male
-
-Il pezzo di progetto di questo ticket. La degradazione **non e' rumore generico**: corrompe
-esattamente le qualita' che stai tenendo, ognuna nel proprio idioma. Cosi' e' leggibile — vedi cosa
-e' andato storto e capisci perche'.
-
-| Nitidezza | Cosa accade |
+| Grandezza | Valore |
 |---|---|
-| 1,00 | l'immagine e' quella che volevi |
-| 0,65 – 0,99 | **deriva**: la direzionale scarta. Errore ∝ (1 − nitidezza) × durata della carica |
-| 0,45 – 0,65 | **inversione spontanea**: una semi-direzionale puo' ribaltarsi. Volevi convergenza, esce dispersione |
-| 0,35 – 0,45 | **instabilita'**: la durata si accorcia a caso, l'immagine puo' spegnersi prima |
-| < 0,35 | **collasso**: al rilascio l'immagine cede addosso a chi lancia |
+| Serbatoio | 100 |
+| Ricarica | 12/s |
+| Drenaggio durante l'evocazione | 30/s |
+| Controllo | 7 |
+| Tempo di evocazione | `carico² / 40` secondi |
 
-Il gradino centrale e' quello che rende il sistema suo: **l'inversione, che nel ticket 04 e' un
-operatore che l'utente controlla, in degradazione diventa qualcosa che gli succede addosso.** Lo
-stesso meccanismo, letto al contrario.
+Il **carico** e' la complessita', pesata per classe della qualita' (ticket 04): direzionale 3,
+semi-direzionale 2, non-direzionale 1.
 
-E la deriva scala con la durata della carica: **un'immagine sfocata tenuta a lungo devia di piu'.**
-Cosi' la carica smette di essere uno slider e diventa una scommessa — piu' potenza contro piu'
-errore accumulato.
+Il tempo cresce col **quadrato** del carico, non linearmente: la complessita' si compone, non si
+somma. E' quel che fa stare nella stessa scala un tap e tre secondi.
 
-## 6. Cosa non costa
+## 3. La tabella
 
-Il **nucleo** e' neutro: le quattro materie costano uguale. Le differenze sono di comportamento e di
-resa, non di prezzo. Bilanciarle per materia e' un'ottimizzazione da fare quando ci sara' qualcosa
-da bilanciare — non ora.
+| Carico | Tempo | Mana | Lanci col serbatoio pieno | Nitidezza | Stato |
+|---:|---:|---:|---:|---:|---|
+| 2 | 0,10 s | 3 | 33 | 1,00 | pulita |
+| 3 | 0,23 s | 7 | 14 | 1,00 | pulita |
+| 4 | 0,40 s | 12 | 8 | 1,00 | pulita |
+| 5 | 0,62 s | 19 | 5 | 1,00 | pulita |
+| 6 | 0,90 s | 27 | 3 | 1,00 | pulita |
+| 7 | 1,23 s | 37 | 2 | 1,00 | pulita |
+| 8 | 1,60 s | 48 | 2 | 0,88 | deriva |
+| 9 | 2,02 s | 61 | 1 | 0,78 | deriva |
+| 10 | 2,50 s | 75 | 1 | 0,70 | inversione spontanea |
+| 11 | 3,02 s | 91 | 1 | 0,64 | inversione spontanea |
+
+### Taratura contro l'esempio che ha originato il modello
+
+| Spell | Formula | Carico | Tempo |
+|---|---|---:|---:|
+| **Proiettile** | direzione | 3 | **0,23 s** — un tap |
+| **Palla di fuoco** | direzione + dispersione + durata | 7 | **1,23 s** |
+| **Meteorite** | tutte e sei | 11 | **3,02 s** |
+
+Tap, un secondo, tre secondi. La formula `carico²/40` non e' stata scelta e poi giustificata: e'
+stata calibrata su questi tre numeri e ci cade sopra.
+
+## 4. Perche' il controllo vale 7 e non 6
+
+Con controllo 6 la palla di fuoco sarebbe nata gia' degradata, e una palla di fuoco dev'essere pane
+quotidiano. A **7**, tutte le formule fino a carico 7 escono pulite — cioe' la grande maggioranza —
+e degradano solo le tre o quattro piu' cariche.
+
+E' la traduzione fedele della decisione presa in conversazione: **il tempo lo paghi sempre, la
+degradazione la rischi solo se strafai.**
+
+Conseguenza voluta: il **meteorite non viene mai perfetto**. Usare tutte e sei le qualita' insieme
+sta oltre quel che si tiene nitido, sempre. La spell piu' grande e' anche quella che non ti obbedisce
+del tutto.
+
+## 5. La degradazione
+
+Invariata nella sostanza rispetto alla prima stesura: **non e' rumore generico, corrompe le qualita'
+che stai tenendo, ognuna nel proprio idioma.** Cambiano solo le soglie, ora ancorate al carico.
+
+| Stato | Innesco | Cosa accade |
+|---|---|---|
+| **pulita** | carico ≤ 7 | la formula e' quella che volevi |
+| **deriva** | carico 8–9 | la direzionale scarta. Un **asse fantasma** mostra dove volevi tirare |
+| **inversione spontanea** | carico 10–11 | una semi-direzionale si ribalta: volevi convergenza, esce dispersione |
+| **collasso** | **il serbatoio si esaurisce a meta' evocazione** | la formula cede addosso a chi lancia |
+
+Il **collasso** ha ora un innesco tutto suo, ed e' la parte migliore del modello: non dipende dalla
+complessita' ma dal serbatoio. **La stessa formula e' sicura a serbatoio pieno e letale a serbatoio
+basso.**
+
+| Serbatoio | Carico massimo portabile a termine |
+|---:|---:|
+| 100 | 11 |
+| 60 | 8 |
+| 40 | 7 |
+| 25 | 5 |
+
+Da qui la tensione dell'evocazione: due barre che corrono: l'anello che si chiude e il serbatoio che
+cala. Il mana smette di essere contabilita' e diventa una decisione.
+
+Lo stato **instabilita'** della prima stesura e' stato eliminato: con soli sei qualita' la fascia
+non e' raggiungibile, e uno stato irraggiungibile e' peso morto.
+
+## 6. Rilascio anticipato
+
+Stacchi il dito prima della fine: **non parte niente, e il mana speso torna.** Deciso per tenere il
+sistema semplice; l'alternativa (esce la versione parziale con le sole qualita' gia' evocate) resta
+un'idea valida ma costa complessita' che oggi non serve.
 
 ---
 
 ## Passa al 06
 
-Cinque stati da rendere visibilmente distinti, e il ticket 11 li provera' tutti:
-deriva, inversione spontanea, instabilita', collasso, piu' l'immagine pulita. La regola
-dichiarata in cartografia vale qui: **un fallimento deve essere bello quanto un successo**, o
-nessuno sperimentera'.
+Gli stati resi diventano **quattro**, non cinque: pulita, deriva, inversione spontanea, collasso.
+L'asse fantasma resta il dispositivo di leggibilita' della deriva.
 
 ## Passa al 11
 
-I numeri di questa pagina sono **da tarare col pollice**, non da difendere. In particolare: 3,3 s di
-carica piena e 8,3 s di ricarica completa sono la prima ipotesi. Il ticket 11 esiste anche per
-smentirli.
+Da tarare col pollice, non da difendere: `carico²/40`, il drenaggio a 30/s e la ricarica a 12/s.
+La domanda della demo non e' piu' «quanto e' lunga la pressione giusta» — quella era la domanda del
+modello scartato — ma **se tap / 1 s / 3 s si sentono come tre spell diverse invece che come tre
+attese diverse**.

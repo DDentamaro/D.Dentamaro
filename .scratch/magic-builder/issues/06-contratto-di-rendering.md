@@ -97,3 +97,14 @@ pagato il ramo piu' caro); geometrie dedicate per forma (rimette in piedi lo sta
 L'intensita' come scalare moltiplicativo decade col ripensamento sulla carica (vedi 05 riaperto).
 Il substrato, la regola anti-fango, il contratto e il budget **non dipendevano** dalla carica e
 restano validi. Va rivista solo la fascia degli stati di degradazione, che era ancorata allo sforzo.
+
+## Aggiornamento (05 seconda stesura)
+
+Gli stati di degradazione da rendere sono **quattro**, non cinque: pulita, deriva, inversione
+spontanea, collasso. `instabilita'` e' eliminato perche' irraggiungibile.
+
+Il **collasso** cambia innesco: non e' piu' una fascia di nitidezza ma un evento — il serbatoio che
+si esaurisce a meta' evocazione. Va reso come tale: le due barre che corrono, e quella del mana che
+arriva a zero per prima.
+
+Substrato, regola anti-fango, contratto e budget restano invariati.

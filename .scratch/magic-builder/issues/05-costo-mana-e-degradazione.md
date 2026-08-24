@@ -1,7 +1,7 @@
 # 05 — Costo del mana e modello di controllo/degradazione
 
 Type: grilling (declassato ad AFK — vedi Notes della mappa)
-Status: riaperto
+Status: resolved
 Blocked by: 04
 
 ## Question
@@ -23,84 +23,69 @@ controllo non basta?
 
 Le formule e le soglie, con la logica dietro. Alimenta il 06 (la degradazione va resa) e il 10.
 
-## Answer
+## Answer (seconda stesura)
 
-Risolto. Modello completo in
+Risolto **in HITL con l'utente**. La prima stesura trattava la pressione come moltiplicatore
+continuo di potenza ed e' stata scartata da lui. Modello in
 [`magic-builder/docs/05-costo-e-degradazione.md`](../../../magic-builder/docs/05-costo-e-degradazione.md).
 
-**Principio: due limiti, due valute, nessuna sovrapposizione.** Il mana paga l'intensita', il
-controllo paga la complessita'. Si toccano in un punto solo, lo sforzo a riserva bassa.
+**Non esiste nessun moltiplicatore di potenza.** Proiettile, palla di fuoco e meteorite non sono la
+stessa spell a tre volumi: sono tre formule con tre prezzi in tempo diversi.
 
-### Costanti
+### Le tre regole
 
-Riserva 100 · ricarica 12/s (piena da vuoto in 8,3 s) · drenaggio in carica 30/s (carica piena in
-3,3 s) · controllo 6, costante perche' la progressione e' fuori scope.
+1. La complessita' della formula (**carico**) determina il **tempo di evocazione**: `carico² / 40` s.
+2. Il **serbatoio si svuota mentre evochi**, a 30/s. Il costo in mana non e' una formula, e' una
+   conseguenza — evochi piu' a lungo, spendi di piu'.
+3. Oltre il **controllo** (7) la formula **degrada**.
 
-### Intensita': rendimenti decrescenti
+Il tempo cresce col **quadrato** del carico: la complessita' si compone, non si somma. E' cio' che
+fa stare tap e tre secondi nella stessa scala.
 
-`mana = 30 × t`, ma `intensita' = sqrt(mana/100)`. Raddoppiare la potenza costa **quattro volte** il
-mana. Serve a rendere «quanto tengo premuto» una decisione e non uno slider: la prima mezza
-pressione rende molto, l'ultima quasi niente.
+### Taratura
 
-### Complessita': carico sul controllo
+| Spell | Formula | Carico | Tempo |
+|---|---|---:|---:|
+| Proiettile | direzione | 3 | 0,23 s (tap) |
+| Palla di fuoco | direzione + dispersione + durata | 7 | 1,23 s |
+| Meteorite | tutte e sei | 11 | 3,02 s |
 
-Non costa mana. Ogni qualita' pesa secondo la **classe** — direzionale 3, semi-direzionale 2,
-non-direzionale 1 — ed e' la tipizzazione del 04 che paga una terza volta, qui nel costo.
+La formula non e' stata scelta e poi giustificata: e' stata calibrata sui tre numeri dell'utente e
+ci cade sopra.
 
-`nitidezza = min(controllo / carico, 1)`. Sotto carico 6 l'immagine e' perfetta, sopra si sfoca, e
-**non si blocca mai**.
+### Controllo 7, non 6
 
-### La degradazione corrompe le qualita' che stai tenendo
+Con 6 la palla di fuoco sarebbe nata degradata, e dev'essere pane quotidiano. A 7 tutte le formule
+fino a carico 7 escono pulite e degradano solo le piu' cariche — traduzione fedele di «il tempo lo
+paghi sempre, la degradazione la rischi solo se strafai».
 
-E' il pezzo di progetto del ticket: non rumore generico, ma ogni qualita' che si comporta male nel
-proprio idioma, quindi leggibile.
+Conseguenza voluta: **il meteorite non viene mai perfetto.**
 
-| Nitidezza | Cosa accade |
+### Il collasso ha un innesco tutto suo
+
+Quattro stati, non cinque. `instabilita'` e' eliminato: con sei qualita' la sua fascia non e'
+raggiungibile, e uno stato irraggiungibile e' peso morto.
+
+| Stato | Innesco |
 |---|---|
-| 1,00 | l'immagine e' quella che volevi |
-| 0,65–0,99 | **deriva**: la direzionale scarta, errore ∝ (1−nitidezza) × durata carica |
-| 0,45–0,65 | **inversione spontanea**: una semi-direzionale si ribalta |
-| 0,35–0,45 | **instabilita'**: la durata si accorcia a caso |
-| < 0,35 | **collasso**: al rilascio l'immagine cede addosso a chi lancia |
+| pulita | carico ≤ 7 |
+| deriva | carico 8–9 |
+| inversione spontanea | carico 10–11 |
+| **collasso** | **il serbatoio si esaurisce a meta' evocazione** |
 
-Il gradino centrale e' quello che rende il sistema suo: **l'inversione, che nel 04 e' un operatore
-che l'utente controlla, in degradazione diventa qualcosa che gli succede addosso.** Stesso
-meccanismo letto al contrario.
+Il collasso non dipende piu' dalla complessita' ma dal serbatoio: **la stessa formula e' sicura a
+serbatoio pieno e letale a serbatoio basso**. Da qui la tensione dell'evocazione, due barre che
+corrono — l'anello che si chiude e il serbatoio che cala. Il mana smette di essere contabilita'.
 
-E la deriva scala con la durata della carica: un'immagine sfocata tenuta a lungo devia di piu'.
-La carica smette di essere uno slider e diventa una scommessa.
+### Rilascio anticipato
 
-### Proprieta' verificata coi numeri
+Non parte niente, mana restituito. Scelta dell'utente per tenere il sistema semplice; l'uscita
+parziale resta un'idea valida ma costa complessita' che oggi non serve.
 
-Con tutte e sei le qualita' il carico e' 11 e la nitidezza si ferma a **0,55**: la soglia di
-collasso non si raggiunge per complessita' da sola. Ci si arriva solo impilando tutto **e**
-svuotando la riserva. Il fallimento peggiore va guadagnato.
+**Alternative scartate**: la potenza regolata dalla pressione (rifiutata dall'utente: e' cio' che ha
+riaperto il ticket); il costo in mana per qualita', slegato dal tempo (due numeri da bilanciare per
+ogni qualita' invece di zero); il costo fisso per materia; il tempo lineare nel carico (non copre
+l'intervallo tap→3 s); nessuna degradazione (la formula massima sarebbe sempre la scelta giusta,
+basta pazienza).
 
-### Chiude la domanda lasciata aperta dal 04
-
-Cosa succede se la carica supera il mana residuo: sotto il 20% di riserva subentra lo **sforzo**
-(`0.5 + 0.5 × min(riserva/20, 1)`), che moltiplica la nitidezza; a zero la carica si ferma e
-l'immagine parte con quel che ha. L'ultimo tratto si paga in nitidezza, non solo in mana.
-
-**Alternative scartate**: costo lineare (nessuna decisione, solo uno slider); la complessita' che
-costa mana (avrebbe fuso le due valute e reso il controllo un duplicato); il rifiuto delle immagini
-troppo complesse (contraddice la scelta di cartografia di degradare invece di bloccare); il costo
-differenziato per materia (nulla da bilanciare finche' non c'e' niente da bilanciare).
-
-**Da tarare, non da difendere**: 3,3 s di carica piena e 8,3 s di ricarica sono prima ipotesi. Il
-ticket 11 esiste anche per smentirli col pollice.
-
-## RIAPERTO — la carica non e' piu' un moltiplicatore di potenza
-
-L'utente ha rifiutato il modello «piu' tieni premuto, piu' e' forte». Il tempo di evocazione non e'
-una leva continua che regola la potenza: e' una **proprieta' della spell composta**. Un proiettile
-di fuoco parte al tap, una palla di fuoco chiede 1 s, un meteorite 3 s.
-
-Decade quindi tutto il §2 di `05-costo-e-degradazione.md` — l'intensita' come `sqrt(mana)` e la
-carica come versamento continuo — e con esso lo **sforzo** del §4, che esisteva per punire chi
-teneva premuto fino in fondo.
-
-Resta valido il §3 (carico per classe della qualita') e il §5 (la degradazione che corrompe le
-qualita' nel proprio idioma): quelli non dipendevano dalla carica.
-
-Ricomporre prima di richiudere.
+**Da tarare, non da difendere**: `carico²/40`, drenaggio 30/s, ricarica 12/s.

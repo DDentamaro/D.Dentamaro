@@ -49,3 +49,12 @@ frame time reale contro il budget del 03, e un giudizio dell'utente sulla durata
 **In attesa del 05 riaperto.** La demo avrebbe testato «quanto e' lunga la pressione giusta», che
 era la domanda del modello vecchio. Con il tempo di evocazione come proprieta' della spell, la
 domanda diventa un'altra: **quali soglie temporali si sentono giuste** per tap / 1 s / 3 s.
+
+## Sbloccato (05 seconda stesura)
+
+La domanda della demo cambia. Non piu' «quanto e' lunga la pressione giusta» — era la domanda del
+modello scartato — ma: **tap / 1 s / 3 s si sentono come tre spell diverse, o come tre attese
+diverse?** Se e' la seconda, il modello e' sbagliato a monte.
+
+Da provare anche il collasso: avviare una formula che il serbatoio non regge, e vedere le due barre
+correre.
