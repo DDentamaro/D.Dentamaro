@@ -81,3 +81,33 @@ che e' piu' diretta su touch e ripristina il costo in tempo del canone).
 ### Sblocca
 
 05, 06, 07, 09.
+
+## Answer (terza stesura)
+
+Assi **continui** e valori di riposo per materia. Modello in
+[`magic-builder/docs/04-modello-immagine.md`](../../../magic-builder/docs/04-modello-immagine.md),
+catalogo dati in [`catalogo.json`](../../../magic-builder/docs/catalogo.json).
+
+**Spell infinite**: le sei qualita' discrete diventano **otto assi continui** da −1 a +1. Le formule
+con nome sono punti di riferimento su un continuo, non un catalogo chiuso, e interpolare fra due
+spell salvate e' un'operazione sui numeri.
+
+**Due assi nuovi**, che coprono buchi veri del modello di moto: **rotazione ↔ controrotazione**
+(niente faceva ruotare — un ciclone girava solo nel nome) e **ritmo** (niente distingueva un flusso
+continuo da una raffica).
+
+**Valori di riposo per materia**: ogni materia porta i propri valori per gli assi non impostati, e
+**non pagano carico**. La materia regala il suo carattere; le scelte sono cio' che paghi. Il fuoco
+si apre, e' leggero, dura poco, sale e crepita; l'acqua tiene insieme mentre scorre; la terra e'
+compatta, pesante e ferma; il vento disperde, non pesa e vortica.
+
+**L'affinita' ne discende**: siccome il costo e' la distanza dal riposo (ticket 05), la stessa
+"lancia" costa 6,8 nella terra e 12,0 nel vento. Su tredici archetipi: terra 4, vento 4, fuoco 3,
+acqua 3. Nessuna materia universalmente migliore, nessuna neutra.
+
+**Iterazioni di bilanciamento**: la prima passata dava terra 5 e fuoco 0 — il fuoco aveva valori
+tutti vicini a zero ed era diventato neutro per sbaglio. La seconda dava acqua 0 per lo stesso
+motivo. Risolto dando a ogni materia una natura marcata, e all'acqua in particolare l'identita' che
+le mancava: il **flusso coerente**, l'unica che tiene insieme mentre scorre.
+
+**Semplifica il rendering**: assi continui = uniform continue, **zero rami** nell'uber-shader.

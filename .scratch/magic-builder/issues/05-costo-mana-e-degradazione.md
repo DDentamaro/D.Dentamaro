@@ -89,3 +89,30 @@ l'intervallo tap→3 s); nessuna degradazione (la formula massima sarebbe sempre
 basta pazienza).
 
 **Da tarare, non da difendere**: `carico²/40`, drenaggio 30/s, ricarica 12/s.
+
+## Answer (terza stesura)
+
+`carico = 2 + 3·|direzione| + Σ peso · |valore scelto − valore di riposo|`
+
+Il **carico e' la distanza dalla natura della materia**, non un conteggio di qualita'. Assecondare
+la materia e' economico, combatterla e' caro: e' questa formula a dare alle quattro materie
+un'identita' **meccanica** senza violare la regola anti-fango del 06.
+
+La base **2** e' il nucleo — evocare costa comunque. Senza, chiedere a una materia esattamente la
+propria natura costerebbe zero, quindi tempo zero.
+
+**La dose** e' un moltiplicatore scelto costruendo, non lanciando: moltiplica tempo, mana, potenza e
+carico effettivo. Da cui **dose massima pulita = controllo ÷ carico**, che e' la regola che governa
+tutto il bilanciamento — e la risposta al «le spell forti devono poter essere eseguite
+correttamente»: da chi ha piu' controllo, o da chiunque accetti di indebolirle.
+
+**I due attributi ora fanno lavori diversi**, che era il problema aperto: con il carico che arriva a
+~14 e oltre, il **serbatoio** decide cosa riesci a **completare** (100 punti finanziano 3,33 s, cioe'
+carico ~11,5) e il **controllo** decide cosa reggi **pulito**. Nessuno dei due e' ridondante.
+
+Conseguenza gratis: le formule assurde si escludono da sole — combattere una materia su tutti gli
+assi da' carico ~21, cioe' 11 s e 330 di mana, e il serbatoio non lo finanzia.
+
+Invariato dalla seconda stesura: `tempo = carico²/40`, drenaggio 30/s durante l'evocazione, i quattro
+stati di degradazione con il collasso innescato dal serbatoio che finisce a meta' evocazione,
+rilascio anticipato che annulla senza spendere.

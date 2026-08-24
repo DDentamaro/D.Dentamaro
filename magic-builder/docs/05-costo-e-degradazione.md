@@ -1,122 +1,111 @@
 # Costo dell'evocazione e degradazione
 
-Risultato del ticket 05, **riscritto** dopo il ripensamento sulla carica. La versione precedente
-trattava la pressione come un moltiplicatore continuo di potenza ed e' stata scartata.
+Risultato del ticket 05, **terza stesura**. Le prime due sono state scartate: la carica come
+moltiplicatore continuo di potenza, e il carico come conteggio di qualita' discrete.
 
-**Non esiste nessun moltiplicatore di potenza.** Un proiettile, una palla di fuoco e un meteorite
-non sono la stessa spell a tre volumi: sono tre formule diverse, con tre prezzi in tempo diversi.
+**Non esiste nessun moltiplicatore di potenza al lancio.**
 
 ---
 
-## 1. Le tre regole
+## 1. Le quattro regole
 
-1. La **complessita' della formula** determina il **tempo di evocazione**.
-2. Il **serbatoio di mana si svuota mentre evochi**, a ritmo costante.
-3. Oltre la soglia di **controllo**, la formula **degrada**.
+1. Il **carico** e' la distanza dalla natura della materia.
+2. Il carico determina il **tempo di evocazione**.
+3. Il **serbatoio si svuota mentre evochi**, a ritmo costante.
+4. Oltre il **controllo**, la formula **degrada**.
 
-La 2 e' il punto in cui il modello si semplifica: il costo in mana non e' una formula da calcolare,
-e' una conseguenza. Evochi piu' a lungo, spendi di piu'. Nient'altro da bilanciare.
+## 2. Il carico
 
-## 2. Le costanti
+```
+carico = 2 + 3·|direzione| + Σ  peso(asse) · |valore scelto − valore di riposo|
+```
 
-| Grandezza | Valore |
-|---|---|
-| Serbatoio | 100 |
-| Ricarica | 12/s |
-| Drenaggio durante l'evocazione | 30/s |
-| Controllo | 7 |
-| Tempo di evocazione | `carico² / 40` secondi |
+Il **2** e' il nucleo: evocare qualcosa costa comunque. Senza, chiedere a una materia esattamente
+la propria natura costerebbe zero, quindi tempo zero.
 
-Il **carico** e' la complessita', pesata per classe della qualita' (ticket 04): direzionale 3,
-semi-direzionale 2, non-direzionale 1.
+Il resto e' distanza. Assecondare la materia e' economico; combatterla e' caro. E' questa formula a
+dare alle quattro materie un'identita' **meccanica** e non solo visiva, senza violare la regola
+anti-fango del ticket 06 (le qualita' muovono, la materia dipinge).
 
-Il tempo cresce col **quadrato** del carico, non linearmente: la complessita' si compone, non si
-somma. E' quel che fa stare nella stessa scala un tap e tre secondi.
+## 3. Tempo e mana
 
-## 3. La tabella
+```
+tempo = carico² / 40   secondi
+mana  = 30 per secondo, drenati durante l'evocazione
+```
 
-| Carico | Tempo | Mana | Lanci col serbatoio pieno | Nitidezza | Stato |
-|---:|---:|---:|---:|---:|---|
-| 2 | 0,10 s | 3 | 33 | 1,00 | pulita |
-| 3 | 0,23 s | 7 | 14 | 1,00 | pulita |
-| 4 | 0,40 s | 12 | 8 | 1,00 | pulita |
-| 5 | 0,62 s | 19 | 5 | 1,00 | pulita |
-| 6 | 0,90 s | 27 | 3 | 1,00 | pulita |
-| 7 | 1,23 s | 37 | 2 | 1,00 | pulita |
-| 8 | 1,60 s | 48 | 2 | 0,88 | deriva |
-| 9 | 2,02 s | 61 | 1 | 0,78 | deriva |
-| 10 | 2,50 s | 75 | 1 | 0,70 | inversione spontanea |
-| 11 | 3,02 s | 91 | 1 | 0,64 | inversione spontanea |
+Il costo in mana **non e' una formula da bilanciare**: e' una conseguenza. Evochi piu' a lungo,
+spendi di piu'.
 
-### Taratura contro l'esempio che ha originato il modello
+Il quadrato e' cio' che fa stare nella stessa scala un tap e cinque secondi. Nel catalogo il carico
+va da **3,0** (Vampa nel fuoco: 0,23 s) a **14,3** (Meteorite nel fuoco: 5,1 s).
 
-| Spell | Formula | Carico | Tempo |
-|---|---|---:|---:|
-| **Proiettile** | direzione | 3 | **0,23 s** — un tap |
-| **Palla di fuoco** | direzione + dispersione + durata | 7 | **1,23 s** |
-| **Meteorite** | tutte e sei | 11 | **3,02 s** |
+## 4. La dose
 
-Tap, un secondo, tre secondi. La formula `carico²/40` non e' stata scelta e poi giustificata: e'
-stata calibrata su questi tre numeri e ci cade sopra.
+Un moltiplicatore scelto **costruendo** la formula, non lanciandola.
 
-## 4. Perche' il controllo vale 7 e non 6
+```
+tempo effettivo = tempo × dose
+mana effettivo  = mana  × dose
+potenza         = dose
+nitidezza       = min(controllo / (carico × dose), 1)
+```
 
-Con controllo 6 la palla di fuoco sarebbe nata gia' degradata, e una palla di fuoco dev'essere pane
-quotidiano. A **7**, tutte le formule fino a carico 7 escono pulite — cioe' la grande maggioranza —
-e degradano solo le tre o quattro piu' cariche.
+Da cui la regola che governa tutto il bilanciamento:
 
-E' la traduzione fedele della decisione presa in conversazione: **il tempo lo paghi sempre, la
-degradazione la rischi solo se strafai.**
+> **Dose massima pulita = controllo ÷ carico**
 
-Conseguenza voluta: il **meteorite non viene mai perfetto**. Usare tutte e sei le qualita' insieme
-sta oltre quel che si tiene nitido, sempre. La spell piu' grande e' anche quella che non ti obbedisce
-del tutto.
+Una formula semplice la carichi al doppio e resta precisa; una complessa cede molto prima.
+Complessita' e potenza sono in tensione, e il controllo e' il cambio fra le due.
+
+Corollario: **le formule piu' forti si possono eseguire correttamente** — da un mago con piu'
+controllo, oppure da chiunque accetti di indebolirle. Un Meteorite al 70% esce perfetto e colpisce
+come un Meteorite al 70%.
 
 ## 5. La degradazione
 
-Invariata nella sostanza rispetto alla prima stesura: **non e' rumore generico, corrompe le qualita'
-che stai tenendo, ognuna nel proprio idioma.** Cambiano solo le soglie, ora ancorate al carico.
+Non e' rumore generico: **corrompe gli assi che stai tenendo, ognuno nel proprio idioma.**
 
 | Stato | Innesco | Cosa accade |
 |---|---|---|
-| **pulita** | carico ≤ 7 | la formula e' quella che volevi |
-| **deriva** | carico 8–9 | la direzionale scarta. Un **asse fantasma** mostra dove volevi tirare |
-| **inversione spontanea** | carico 10–11 | una semi-direzionale si ribalta: volevi convergenza, esce dispersione |
+| **pulita** | carico × dose ≤ controllo | la formula e' quella che volevi |
+| **deriva** | nitidezza 0,75–1,00 | la direzionale scarta. Un **asse fantasma** mostra dove volevi tirare |
+| **inversione spontanea** | nitidezza 0,45–0,75 | un asse semi-direzionale si ribalta di segno |
 | **collasso** | **il serbatoio si esaurisce a meta' evocazione** | la formula cede addosso a chi lancia |
 
-Il **collasso** ha ora un innesco tutto suo, ed e' la parte migliore del modello: non dipende dalla
-complessita' ma dal serbatoio. **La stessa formula e' sicura a serbatoio pieno e letale a serbatoio
-basso.**
+Il **collasso** non dipende dalla complessita' ma dal serbatoio: **la stessa formula e' sicura a
+serbatoio pieno e letale a serbatoio basso**. Da qui la tensione dell'evocazione — due barre che
+corrono.
 
-| Serbatoio | Carico massimo portabile a termine |
-|---:|---:|
-| 100 | 11 |
-| 60 | 8 |
-| 40 | 7 |
-| 25 | 5 |
+## 6. I due attributi fanno lavori diversi
 
-Da qui la tensione dell'evocazione: due barre che corrono: l'anello che si chiude e il serbatoio che
-cala. Il mana smette di essere contabilita' e diventa una decisione.
+Con il carico che arriva a ~14 (e oltre, combattendo la materia su tutti gli assi), **il serbatoio
+torna a essere significativo**:
 
-Lo stato **instabilita'** della prima stesura e' stato eliminato: con soli sei qualita' la fascia
-non e' raggiungibile, e uno stato irraggiungibile e' peso morto.
+| Serbatoio | Secondi finanziabili | Carico massimo completabile |
+|---:|---:|---:|
+| 100 | 3,33 | ~11,5 |
+| 200 | 6,67 | ~16 |
+| 300 | 10,0 | ~20 |
 
-## 6. Rilascio anticipato
+- Il **serbatoio** decide **cosa riesci a completare**.
+- Il **controllo** decide **cosa reggi pulito**.
 
-Stacchi il dito prima della fine: **non parte niente, e il mana speso torna.** Deciso per tenere il
-sistema semplice; l'alternativa (esce la versione parziale con le sole qualita' gia' evocate) resta
-un'idea valida ma costa complessita' che oggi non serve.
+Nessuno dei due e' ridondante, ed e' la risposta al problema emerso in conversazione: un attributo
+che li alzasse entrambi avrebbe due effetti distinti, non uno duplicato.
+
+Conseguenza gratis: **le formule assurde si escludono da sole.** Combattere una materia su tutti gli
+assi da' carico ~21, cioe' 11 secondi e 330 di mana. Non serve vietarlo: il serbatoio non lo
+finanzia.
+
+## 7. Rilascio anticipato
+
+Stacchi prima della fine: non parte niente, mana restituito.
 
 ---
 
-## Passa al 06
+## Da tarare, non da difendere
 
-Gli stati resi diventano **quattro**, non cinque: pulita, deriva, inversione spontanea, collasso.
-L'asse fantasma resta il dispositivo di leggibilita' della deriva.
-
-## Passa al 11
-
-Da tarare col pollice, non da difendere: `carico²/40`, il drenaggio a 30/s e la ricarica a 12/s.
-La domanda della demo non e' piu' «quanto e' lunga la pressione giusta» — quella era la domanda del
-modello scartato — ma **se tap / 1 s / 3 s si sentono come tre spell diverse invece che come tre
-attese diverse**.
+`carico²/40`, la base 2, il drenaggio a 30/s, la ricarica a 12/s, i pesi degli assi e i valori di
+riposo delle materie. Sono la prima ipotesi coerente, non la verita': il ticket 11 esiste per
+metterli alla prova col pollice.

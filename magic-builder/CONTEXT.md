@@ -23,43 +23,49 @@ La materia dell'immagine. Quattro: **fuoco, acqua, terra, vento**. Una sola per 
 Traduce il **sigillo** di WHA, che sta al centro del glifo e ne definisce l'elemento. Le materie
 derivate dalle combinazioni sono previste ma non ancora definite.
 
-## Qualita'
+## Assi
 
-I modificatori dell'immagine, sei. Traducono i **segni** di WHA.
+Le otto grandezze **continue** (−1..+1) che descrivono il moto dell'immagine. Traducono i **segni**
+di Witch Hat Atelier.
 
-Sono **tipizzate**: la classe decide cosa la qualita' espone, e da li' discendono il controllo che
-la presenta, il costo che la calcola e la uniform che la rende.
+Sono **tipizzati**: la classe decide il peso nel carico e la forma del controllo che lo presenta.
 
-- **Direzionale** — espone un vettore, angolo e intensita': *direzione*
-- **Semi-direzionale** — invertibile, senza direzione propria: *convergenza ↔ dispersione*,
-  *forza ↔ cedevolezza*, *durata ↔ istantaneita'*
-- **Non-direzionale** — presente o assente: *stabilita'*, *levitazione*
+- **Direzionale** (peso 3) — un vettore: *direzione*
+- **Semi-direzionali** (peso 2), bipolari — *convergenza ↔ dispersione*, *forza ↔ cedevolezza*,
+  *durata ↔ istantaneita'*, *rotazione ↔ controrotazione*
+- **Non-direzionali** (peso 1) — *stabilita'*, *levitazione ↔ peso*, *ritmo*
 
-Non esiste una qualita' "forma": la forma **emerge** da direzione, convergenza e levitazione
-applicate al nucleo.
+Continui e non discreti: e' da qui che nasce lo spazio infinito di spell. Le formule con nome sono
+punti di riferimento, e interpolare fra due spell salvate e' un'operazione sui numeri.
+
+Non esiste un asse "forma": la forma **emerge**.
 
 ## Inversione
 
 Il ribaltamento di una qualita' semi-direzionale, che ne inverte la funzione. Da WHA, dove
 ribaltare un segno inverte cio' che fa. Raddoppia il vocabolario senza allungarlo.
 
-## Carica
+## Evocazione
 
-Il rilascio dell'immagine: si tiene premuto, e la durata della pressione **e'** il mana investito.
-Traduce l'**anello** di WHA, che chiudendosi attiva il glifo.
+Il tempo che una formula impiega a uscire: `carico² / 40` secondi, moltiplicato per la dose. Si
+tiene premuto per quel tempo e parte. **Nessun moltiplicatore di potenza**: tenere oltre non fa
+nulla, e staccare prima annulla.
 
-Rimette il costo temporale dove il canone di MT lo teneva — li' il rango si pagava in lunghezza del
-canto.
+Traduce l'**anello** di WHA, che chiudendosi attiva il glifo, e rimette il costo temporale dove il
+canone di MT lo teneva — li' il rango si pagava in lunghezza del canto.
 
 ## Mana
 
-Riserva finita che alimenta l'immagine. Limita l'**intensita'** e si spende caricando. Non e' una
+Il serbatoio. Si svuota mentre evochi, a ritmo costante — quindi il costo non e' una formula, e' una
+conseguenza. Decide **cosa riesci a completare**: se finisce a meta' evocazione, la formula
+collassa. Non e' una
 statistica che cresce: la progressione e' fuori scope.
 
 ## Controllo
 
-Quanto nitida si tiene l'immagine. Limita la **complessita'** — quante qualita' si reggono insieme.
-Distinto dal mana: si puo' avere molta riserva e poca tenuta.
+Quanto nitida si tiene l'immagine. Decide **cosa reggi pulito**: `nitidezza = controllo / (carico ×
+dose)`. Distinto dal mana, e con un lavoro diverso — il serbatoio dice cosa completi, il controllo
+cosa non degrada.
 
 ## Degradazione
 
@@ -74,8 +80,27 @@ dipende da come rendiamo le quattro di base. In nebbia, non fuori scope.
 
 ## Carico
 
-Quanto una composizione pesa sul controllo. Ogni qualita' contribuisce secondo la sua **classe**:
-direzionale 3, semi-direzionale 2, non-direzionale 1.
+La **distanza dalla natura della materia**, e quindi il prezzo della formula:
+
+    carico = 2 + 3·|direzione| + Σ peso · |valore scelto − valore di riposo|
+
+Assecondare la materia e' economico, combatterla e' caro.
+
+## Valori di riposo
+
+I valori che ogni materia assume sugli assi che **non** hai impostato. La materia non scavalca mai
+una scelta: riempie solo i vuoti. **Sono gratis** — non pagano carico. La materia regala il suo
+carattere; le scelte sono cio' che paghi.
+
+## Affinita'
+
+La conseguenza dei valori di riposo: la stessa formula costa meno nella materia che gia' la fa da
+se'. Una "lancia" compatta e pesante costa 6,8 nella terra e 12,0 nel vento.
+
+## Dose
+
+Il moltiplicatore di mana scelto **costruendo** la formula, non lanciandola. Moltiplica tempo, mana,
+potenza e carico effettivo. Da cui: **dose massima pulita = controllo ÷ carico**.
 
 ## Nitidezza
 

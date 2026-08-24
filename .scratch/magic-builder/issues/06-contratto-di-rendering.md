@@ -108,3 +108,16 @@ si esaurisce a meta' evocazione. Va reso come tale: le due barre che corrono, e 
 arriva a zero per prima.
 
 Substrato, regola anti-fango, contratto e budget restano invariati.
+
+## Aggiornamento (04/05 terza stesura)
+
+Gli assi diventano **continui** e passano da sei a otto. Per il rendering questo **semplifica**: le
+uniform sono continue e spariscono i rami nell'uber-shader. Restano quattro programmi, uno per
+materia.
+
+Due termini nuovi nell'equazione di moto: **momento angolare** (asse rotazione) e **ritmo di
+emissione** (asse ritmo, continuo ↔ a raffiche).
+
+Il substrato, la regola anti-fango, il contratto e il budget restano invariati. Anzi la regola
+anti-fango si rafforza: i **valori di riposo** danno alle materie un'identita' meccanica *senza* che
+la materia tocchi il moto scelto — riempie solo i vuoti.
