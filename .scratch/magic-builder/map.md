@@ -71,6 +71,8 @@ scartate e il perche'**, cosi' resta ribaltabile. Il tipo originale resta scritt
 
 - [07 — Layout orizzontale dell'editor](issues/07-layout-orizzontale-editor.md): risolto misurando. **Otto assi in colonna singola non entrano** in un telefono orizzontale — intestazione e letture prendono 249px su 390, restano quattro righe. **Due colonne**: 8 assi su 8 visibili senza scroll. Arena a sinistra per il pollice che lancia, pannello a destra per quello che compone.
 
+- [12 — Corpi e campi: il secondo substrato](issues/12-corpi-e-campi.md): **il 06 aveva risolto il problema sbagliato** — il real-time usa 3-5 sistemi sovrapposti, non uno. Tre substrati: **campo**, **nastro**, **corpo**, coi pesi **derivati dagli assi** e non scelti. La Frusta esce nastro all'80% da sola. Soft particles esclusi per banda; Canvas 2D si' per generare texture, no per la geometria.
+
 ## Not yet specified
 
 Nebbia in scope, non ancora abbastanza nitida per un ticket:

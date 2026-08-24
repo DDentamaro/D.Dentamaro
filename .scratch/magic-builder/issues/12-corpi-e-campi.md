@@ -1,7 +1,7 @@
 # 12 — Corpi e campi: il secondo substrato
 
 Type: research
-Status: claimed
+Status: resolved
 
 ## Question
 
@@ -25,3 +25,72 @@ Da rispondere:
 
 Una raccomandazione motivata, con le tecniche ammesse e quelle escluse per budget, e la regola che
 decide corpo o campo a partire dalla formula.
+
+## Answer
+
+Risolto. Ricerca completa in
+[`magic-builder/docs/12-corpi-e-campi.md`](../../../magic-builder/docs/12-corpi-e-campi.md).
+
+**Il ticket 06 aveva risolto il problema sbagliato.** La ricerca e' esplicita: «i migliori VFX non
+sono mai un solo emettitore, ma **3-5 sistemi sovrapposti**». Il fango nasce da qualita' che si
+contendono l'aspetto, non da substrati diversi: tre substrati che ricevono gli *stessi* parametri di
+moto non impastano, si sovrappongono.
+
+### Tre substrati
+
+- **Campo** — particelle istanziate. Nuvole, spruzzi, vampe.
+- **Nastro** — triangle strip fra le posizioni. Raggi, fruste, fulmini. Non era stato chiesto, ma
+  la ricerca lo impone: i ribbon danno curve continue **con pochissime particelle**.
+- **Corpo** — mesh solida istanziata. Schegge, blocchi, masse. E' la richiesta dell'utente, ed e'
+  fondata: una scheggia come nuvola di puntini non convince.
+
+### Il substrato si deriva, non si sceglie
+
+Se fosse una scelta a mano sarebbe un nono asse mascherato e romperebbe «spell infinite».
+
+```
+peso_corpo  = clamp(radiale,0,1) × clamp(massa,0,1)
+peso_nastro = clamp(radiale,0,1) × (1 − clamp(massa,0,1)) × clamp(vita,0,1)
+peso_campo  = 1 − max(peso_corpo, peso_nastro)
+```
+
+Pesi **continui**, non un interruttore. Verificato sui casi reali: fuoco e vento a riposo danno campo
+puro, la terra gia' 24% di corpo, l'Ariete corpo pieno, il Muro 0,64 — e la **Frusta 0,80 di
+nastro**, che e' la conferma migliore: una frusta *e'* un nastro e la formula lo sapeva gia'.
+
+Non l'ho imposto: cade fuori dai valori di riposo del ticket 04.
+
+### La regola anti-fango, riformulata
+
+> Le qualita' muovono **e decidono il peso dei substrati**. La materia dipinge. Il substrato sceglie
+> la geometria.
+
+Tre spazi invece di due, nessuno invade gli altri.
+
+### Budget
+
+**Dentro**: nastro nel vertex shader (costo quasi nullo); corpo come mesh istanziata — e' **opaco**,
+quindi non consuma il budget di overdraw trasparente, paradosso utile per cui aggiungere corpi
+*alleggerisce* il frame; rumore procedurale in ALU e non da texture, perche' sul tiler la banda e' la
+risorsa scarsa.
+
+**Fuori**: **soft particles**. Richiedono la profondita' della scena in texture, cioe' scrivere il
+depth buffer in memoria esterna e rileggerlo per frammento — esattamente la banda che il 03 vieta.
+L'estensione Mali che lo evita non e' WebGL2 di base. Il depth test da' gia' l'occlusione netta e
+costa zero: rinunciamo al taglio morbido.
+
+### Canvas 2D
+
+**No per la geometria**: niente z-buffer, i due canvas non si compenetrano in profondita', ed e'
+lavoro CPU. **Si per generare le texture**: disegnare una volta in un canvas fuori schermo e caricare
+come texture WebGL e' confermato dalla ricerca, e da' forme migliori del cerchio sfumato analitico
+di adesso senza un solo asset su disco.
+
+**Alternative scartate**: restare a un substrato solo (contraddetto dalla pratica del settore e dal
+limite visto nella sandbox); scegliere il substrato a mano (nono asse mascherato); soft particles
+(banda).
+
+### Ordine di lavoro
+
+Prima il **corpo** — pipeline gia' pronta col manichino, e risponde alla richiesta esplicita. Poi il
+**nastro**. Infine l'atlante procedurale.
