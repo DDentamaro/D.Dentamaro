@@ -1,7 +1,7 @@
 # 06 — Contratto di rendering per stadio
 
 Type: grilling (declassato ad AFK — vedi Notes della mappa)
-Status: open
+Status: resolved
 Blocked by: 02, 03, 04
 
 ## Question
@@ -24,3 +24,70 @@ grigio. In un progetto sulla magia, lo spettacolo *e'* il punto.
 ## Output atteso
 
 Il contratto scritto, piu' l'elenco delle tecniche ammesse e di quelle escluse per budget.
+
+## Answer
+
+Risolto. Contratto completo in
+[`magic-builder/docs/06-contratto-di-rendering.md`](../../../magic-builder/docs/06-contratto-di-rendering.md).
+
+### Il substrato
+
+Ogni immagine e' **un campo di particelle istanziate**, mosse da un modello di forze e ombreggiate
+dall'uber-shader della materia. Le forme non esistono come oggetti: **emergono dal moto**.
+
+Le sei qualita' del 04 sono **sei termini della stessa equazione di moto**: direzione = asse e
+velocita' iniziale; convergenza/dispersione = segno della forza radiale; forza/cedevolezza = massa;
+durata/istantaneita' = vita della particella; stabilita' = ampiezza del rumore; levitazione =
+moltiplicatore di gravita'. Sei qualita', sei termini, nessun residuo — conferma che il vocabolario
+del 04 era della dimensione giusta.
+
+### La regola anti-fango
+
+**Le qualita' muovono, la materia dipinge, non si scambiano mai di ruolo.** Nessuna qualita' tocca
+colore, alfa o dimensione; nessuna materia tocca il moto.
+
+E' la risposta alla domanda del ticket: i contributi compongono senza diventare fango perche'
+**compongono in spazi diversi**. Il moto si somma, che e' cio' che le forze fanno. L'aspetto non si
+compone affatto: una materia, un look, deciso a mano.
+
+E' anche il motivo per cui quattro uber-shader bastano: uno shader deve dipingere *una* materia, non
+prevedere le combinazioni. La combinatoria vive nella simulazione, che e' aritmetica, non pixel.
+
+### Il contratto
+
+**Simulazione → shader**, per particella: posizione, velocita', eta' normalizzata in [0,1],
+**coerenza** in [0,1] (la nitidezza propagata alla particella).
+
+**Shader → simulazione**: dipinge qualunque particella per qualunque parametro senza uscire dalla
+palette della materia e senza superare il budget d'alfa. Nessun diritto di veto.
+
+La `coerenza` e' l'unico canale visivo globale, dedicata a una cosa sola: **la nitidezza del bordo**.
+Immagini nitide hanno bordi netti, sfocate li hanno sbavati — la nitidezza si legge a colpo d'occhio
+senza un numero in un angolo.
+
+### Budget verificato
+
+Tetto **2.000 particelle attive, lato medio massimo 37 px**: e' il prodotto numero × area a vincolare,
+come stabilito dal 03. La simulazione **rimpicciolisce le particelle quando il numero sale**, cosi'
+il budget e' rispettato per costruzione invece che sperato.
+
+Draw call: 7-10 per frame (una istanziata per immagine, suolo, bersaglio, quattro passi di bloom a
+1/4) contro un budget di 30. Margine larghissimo.
+
+### La degradazione resa
+
+| Stato | Come si vede |
+|---|---|
+| pulita | particelle strette sull'asse, bordi netti, palette satura |
+| deriva | l'asse scarta, e un **asse fantasma** tenue mostra dove volevi tirare |
+| inversione spontanea | pulsazione cromatica nell'istante del ribaltamento, poi il moto fa l'opposto |
+| instabilita' | le vite si sfrangiano, la scia si spegne a chiazze |
+| collasso | l'emissione si rovescia sull'origine, lampo nel colore della materia, scossa di camera |
+
+L'**asse fantasma** e' il pezzo che conta: senza, una spell che sbaglia bersaglio sembra solo mirata
+male; con, il sistema ti dice *quanto* hai sbagliato e da che parte.
+
+**Alternative scartate**: qualita' che modulano anche il colore (era la strada diretta al fango, ed
+e' ciò che la regola del §2 vieta); un uber-shader unico per tutte le materie (ogni spell avrebbe
+pagato il ramo piu' caro); geometrie dedicate per forma (rimette in piedi lo stadio "forma" che il
+04 ha eliminato, e moltiplica i programmi).

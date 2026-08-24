@@ -86,3 +86,14 @@ Quanto l'immagine e' fedele a cio' che volevi: `min(controllo / carico, 1)`, rid
 
 La penalita' di nitidezza che subentra sotto il 20% di riserva. E' l'unico punto in cui mana e
 controllo si parlano: tenere premuto fino all'ultima goccia costa qualcosa oltre al mana.
+
+## Coerenza
+
+La nitidezza dell'immagine propagata alla singola particella, in `[0,1]`. E' l'unico canale visivo
+globale del rendering e governa una cosa sola: **la nitidezza del bordo**. Bordi netti = immagine
+fedele, bordi sbavati = immagine degradata.
+
+## Asse fantasma
+
+La traccia tenue che, quando l'immagine deriva, mostra dove **volevi** tirare. Senza, una spell che
+sbaglia bersaglio sembra solo mirata male; con, si legge quanto e da che parte si e' sbagliato.
