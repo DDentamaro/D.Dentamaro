@@ -122,3 +122,48 @@ i rapporti, non i valori):
 
 Il nucleo solido e' ancora un box non orientato e senza materiale: va allineato all'asse e deve
 ricevere lo stesso profilo di rumore delle particelle.
+
+## Seconda passata: dalla nuvola alla mesh
+
+L'utente: «sono ancora rese malissimo, partiamo dal proiettile di fuoco e modificando quella mesh
+produciamo tutte le altre».
+
+Aveva ragione sulla diagnosi di fondo, e il difetto era architetturale: **stavo disegnando nuvole di
+billboard, e una nuvola di billboard non sara' mai un proiettile.** I profili di rumore del passo
+precedente cambiavano il colore e la grana della nebbia, non la *cosa*.
+
+### La mesh
+
+Un'**icosfera procedurale** (3 suddivisioni, 1.280 triangoli) generata a codice, deformata nel vertex
+shader:
+
+- **goccia**: fronte pieno, coda che si assottiglia e si allunga lungo l'asse di volo (`uCoda`)
+- **rumore sul raggio**: lo stesso profilo di pesi della materia, ma in **3D** — `fbm3`, `rid3`,
+  `vor3` — con ampiezza, frequenza e velocita' per materia
+- **consumo**: il raggio cala invecchiando
+
+Il fragment fa fresnel, rampa di temperatura a tre colori (nucleo caldo davanti, coda e bordi
+freddi), bordo che si accende e scintille.
+
+**Le altre materie non sono altre mesh: sono la stessa, deformata diversamente.**
+
+| Materia | amp | freq | vel | coda | opacita' | Cosa produce |
+|---|---:|---:|---:|---:|---:|---|
+| fuoco | 0,62 | 2,4 | **2,6** | **1,5** | 0,95 | bitorzoluto, in movimento, con la scia |
+| acqua | 0,48 | 1,5 | 0,35 | 0,45 | 0,88 | compatto, quasi fermo, bordo netto |
+| terra | **0,70** | 1,1 | **0,05** | 0,15 | 1,00 | grossi bozzi, immobile, opaco |
+| vento | 0,34 | **3,2** | **4,5** | **2,6** | **0,42** | minuto, frenetico, trasparente |
+
+### Un errore ripetuto
+
+**L'additivo puro bruciava di nuovo a bianco**, come gia' successo con le particelle: la mesh usciva
+come una lampadina. Passata ad **alfa premoltiplicato**, e la rampa di temperatura e' comparsa. Da
+segnare come regola: in questo progetto l'additivo va usato solo per il bordo e per le scintille, mai
+per il corpo.
+
+### Cosa resta debole
+
+- **Le sagome si somigliano ancora troppo**: `amp` e `coda` vanno spinte a valori piu' estremi.
+- **La scia di particelle domina la lettura** rispetto alla mesh.
+- **L'acqua dovrebbe essere sfaccettata** (voronoi) ma legge liscia: `vor3` a frequenza 1,5 e'
+  troppo dolce sul raggio.
