@@ -1,0 +1,20 @@
+{
+  "name": "@poker/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Contratti del protocollo v1: JSON Schema e fixture golden condivise con il client Dart.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schemas/*": "./schemas/*",
+    "./fixtures/*": "./fixtures/*"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.0"
+  }
+}

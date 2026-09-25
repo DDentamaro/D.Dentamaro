@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.poker.local/v1/table-snapshot.schema.json",
+  "title": "Snapshot personalizzato del tavolo match.snapshot (§11.6)",
+  "description": "Allowlist: nessun mazzo, burn o carta nascosta altrui. Nessun campo HUMAN/BOT (§9.4).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocolVersion", "type", "matchId", "stateVersion", "serverTime", "matchStatus", "modeId", "rulesVersion",
+    "hand"
+  ],
+  "properties": {
+    "protocolVersion": { "const": 1 },
+    "type": { "const": "match.snapshot" },
+    "matchId": { "$ref": "defs.schema.json#/$defs/uuid" },
+    "stateVersion": { "$ref": "defs.schema.json#/$defs/version" },
+    "serverTime": { "type": "string", "format": "date-time" },
+    "matchStatus": { "enum": ["FORMING", "READY_CHECK", "RUNNING", "PAUSED", "FINISHING", "COMPLETED", "CANCELLED", "ABORTED"] },
+    "modeId": { "type": "string", "pattern": "^[a-z0-9_]{1,64}$" },
+    "rulesVersion": { "type": "integer", "minimum": 1 },
+    "hand": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "handId", "handNumber", "status", "street", "board", "buttonSeatId", "smallBlindSeatId", "bigBlindSeatId",
+            "smallBlind", "bigBlind", "currentBet", "potTotal", "seats", "actorSeatId", "turnId", "turnDeadline",
+            "legalActions", "result"
+          ],
+          "properties": {
+            "handId": { "$ref": "defs.schema.json#/$defs/uuid" },
+            "handNumber": { "type": "integer", "minimum": 1 },
+            "status": { "enum": ["BETTING", "COMPLETE"] },
+            "street": { "$ref": "defs.schema.json#/$defs/street" },
+            "board": { "type": "array", "maxItems": 5, "items": { "$ref": "defs.schema.json#/$defs/card" } },
+            "buttonSeatId": { "$ref": "defs.schema.json#/$defs/seatId" },
+            "smallBlindSeatId": { "$ref": "defs.schema.json#/$defs/seatId" },
+            "bigBlindSeatId": { "$ref": "defs.schema.json#/$defs/seatId" },
+            "smallBlind": { "$ref": "defs.schema.json#/$defs/chips" },
+            "bigBlind": { "$ref": "defs.schema.json#/$defs/chips" },
+            "currentBet": { "$ref": "defs.schema.json#/$defs/chips" },
+            "potTotal": { "$ref": "defs.schema.json#/$defs/chips" },
+            "seats": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 10,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["seatId", "stack", "streetContribution", "handContribution", "status", "hasCards", "holeCards"],
+                "properties": {
+                  "seatId": { "$ref": "defs.schema.json#/$defs/seatId" },
+                  "stack": { "$ref": "defs.schema.json#/$defs/chips" },
+                  "streetContribution": { "$ref": "defs.schema.json#/$defs/chips" },
+                  "handContribution": { "$ref": "defs.schema.json#/$defs/chips" },
+                  "status": { "enum": ["ACTIVE", "FOLDED", "ALL_IN"] },
+                  "hasCards": { "type": "boolean" },
+                  "holeCards": {
+                    "oneOf": [
+                      { "type": "null" },
+                      { "type": "array", "minItems": 2, "maxItems": 4, "items": { "$ref": "defs.schema.json#/$defs/card" } }
+                    ]
+                  }
+                }
+              }
+            },
+            "actorSeatId": { "oneOf": [{ "type": "null" }, { "$ref": "defs.schema.json#/$defs/seatId" }] },
+            "turnId": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 128 }] },
+            "turnDeadline": { "oneOf": [{ "type": "null" }, { "type": "string", "format": "date-time" }] },
+            "legalActions": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["canFold", "canCheck", "canCall", "callAmount", "canRaise", "minRaiseTo", "maxRaiseTo", "allInOnly"],
+                  "properties": {
+                    "canFold": { "type": "boolean" },
+                    "canCheck": { "type": "boolean" },
+                    "canCall": { "type": "boolean" },
+                    "callAmount": { "$ref": "defs.schema.json#/$defs/chips" },
+                    "canRaise": { "type": "boolean" },
+                    "minRaiseTo": { "oneOf": [{ "type": "null" }, { "$ref": "defs.schema.json#/$defs/chips" }] },
+                    "maxRaiseTo": { "oneOf": [{ "type": "null" }, { "$ref": "defs.schema.json#/$defs/chips" }] },
+                    "allInOnly": { "type": "boolean" }
+                  }
+                }
+              ]
+            },
+            "result": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "uncalled", "awards", "showdown"],
+                  "properties": {
+                    "kind": { "enum": ["UNCONTESTED", "SHOWDOWN"] },
+                    "uncalled": {
+                      "oneOf": [
+                        { "type": "null" },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": ["seatId", "amount"],
+                          "properties": {
+                            "seatId": { "$ref": "defs.schema.json#/$defs/seatId" },
+                            "amount": { "$ref": "defs.schema.json#/$defs/chips" }
+                          }
+                        }
+                      ]
+                    },
+                    "awards": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["potIndex", "amount", "winners"],
+                        "properties": {
+                          "potIndex": { "type": "integer", "minimum": 0 },
+                          "amount": { "$ref": "defs.schema.json#/$defs/chips" },
+                          "winners": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": ["seatId", "amount"],
+                              "properties": {
+                                "seatId": { "$ref": "defs.schema.json#/$defs/seatId" },
+                                "amount": { "$ref": "defs.schema.json#/$defs/chips" }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "showdown": {
+                      "oneOf": [
+                        { "type": "null" },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["seatId", "holeCards", "category", "bestCards"],
+                            "properties": {
+                              "seatId": { "$ref": "defs.schema.json#/$defs/seatId" },
+                              "holeCards": { "type": "array", "items": { "$ref": "defs.schema.json#/$defs/card" } },
+                              "category": {
+                                "enum": ["HIGH_CARD", "PAIR", "TWO_PAIR", "THREE_OF_A_KIND", "STRAIGHT", "FLUSH", "FULL_HOUSE", "FOUR_OF_A_KIND", "STRAIGHT_FLUSH"]
+                              },
+                              "bestCards": { "type": "array", "minItems": 5, "maxItems": 5, "items": { "$ref": "defs.schema.json#/$defs/card" } }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

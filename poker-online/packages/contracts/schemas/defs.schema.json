@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.poker.local/v1/defs.schema.json",
+  "title": "Definizioni comuni del protocollo v1",
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "chips": {
+      "description": "Fiches/punti come stringa decimale senza separatori (BIGINT, mai Number).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,18})$"
+    },
+    "version": { "$ref": "#/$defs/chips" },
+    "card": {
+      "description": "Rank (23456789TJQKA) + seme (c d h s).",
+      "type": "string",
+      "pattern": "^[2-9TJQKA][cdhs]$"
+    },
+    "seatId": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "street": { "enum": ["PREFLOP", "FLOP", "TURN", "RIVER"] },
+    "errorCode": {
+      "enum": [
+        "UNAUTHENTICATED", "FORBIDDEN", "ACCOUNT_RESTRICTED", "INVALID_PAYLOAD", "NOT_YOUR_TURN",
+        "STALE_HAND", "STALE_TURN", "STALE_STATE", "ILLEGAL_ACTION", "INSUFFICIENT_FUNDS",
+        "IDEMPOTENCY_CONFLICT", "RATE_LIMITED", "MATCH_PAUSED", "MATCH_ALREADY_STARTED",
+        "MATCH_FINISHED", "SERVICE_UNAVAILABLE"
+      ]
+    }
+  }
+}

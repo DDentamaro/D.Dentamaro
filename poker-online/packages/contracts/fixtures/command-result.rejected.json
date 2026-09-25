@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 1,
+  "type": "command.result",
+  "commandId": "00000000-0000-4000-8000-000000000001",
+  "status": "REJECTED",
+  "code": "STALE_STATE",
+  "retryable": false,
+  "currentVersion": "44"
+}

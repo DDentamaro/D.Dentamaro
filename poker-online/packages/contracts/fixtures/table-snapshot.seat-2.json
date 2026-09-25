@@ -1,0 +1,70 @@
+{
+  "protocolVersion": 1,
+  "type": "match.snapshot",
+  "matchId": "00000000-0000-4000-8000-000000000002",
+  "stateVersion": "42",
+  "serverTime": "2026-09-25T10:00:00.000Z",
+  "matchStatus": "RUNNING",
+  "modeId": "holdem_casual_6",
+  "rulesVersion": 1,
+  "hand": {
+    "handId": "00000000-0000-4000-8000-000000000003",
+    "handNumber": 7,
+    "status": "BETTING",
+    "street": "PREFLOP",
+    "board": [],
+    "buttonSeatId": "seat-1",
+    "smallBlindSeatId": "seat-2",
+    "bigBlindSeatId": "seat-3",
+    "smallBlind": "5",
+    "bigBlind": "10",
+    "currentBet": "30",
+    "potTotal": "45",
+    "seats": [
+      {
+        "seatId": "seat-1",
+        "stack": "970",
+        "streetContribution": "30",
+        "handContribution": "30",
+        "status": "ACTIVE",
+        "hasCards": true,
+        "holeCards": null
+      },
+      {
+        "seatId": "seat-2",
+        "stack": "995",
+        "streetContribution": "5",
+        "handContribution": "5",
+        "status": "ACTIVE",
+        "hasCards": true,
+        "holeCards": [
+          "Kc",
+          "Kd"
+        ]
+      },
+      {
+        "seatId": "seat-3",
+        "stack": "990",
+        "streetContribution": "10",
+        "handContribution": "10",
+        "status": "ACTIVE",
+        "hasCards": true,
+        "holeCards": null
+      }
+    ],
+    "actorSeatId": "seat-2",
+    "turnId": "00000000-0000-4000-8000-000000000003:2",
+    "turnDeadline": "2026-09-25T10:00:15.000Z",
+    "legalActions": {
+      "canFold": true,
+      "canCheck": false,
+      "canCall": true,
+      "callAmount": "25",
+      "canRaise": true,
+      "minRaiseTo": "50",
+      "maxRaiseTo": "1000",
+      "allInOnly": false
+    },
+    "result": null
+  }
+}

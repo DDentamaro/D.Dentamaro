@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+# Flutter / Android (apps/mobile, fasi successive)
+.dart_tool/
+build/
+*.jks
+*.keystore
+key.properties
+google-services.json

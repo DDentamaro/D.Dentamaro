@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.poker.local/v1/command-result.schema.json",
+  "title": "Messaggio server command.result (§11.5)",
+  "type": "object",
+  "required": ["protocolVersion", "type", "commandId", "status"],
+  "properties": {
+    "protocolVersion": { "const": 1 },
+    "type": { "const": "command.result" },
+    "commandId": { "$ref": "defs.schema.json#/$defs/uuid" },
+    "status": { "enum": ["ACCEPTED", "REJECTED"] }
+  },
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "required": ["committedVersion"],
+      "properties": {
+        "protocolVersion": true, "type": true, "commandId": true,
+        "status": { "const": "ACCEPTED" },
+        "committedVersion": { "$ref": "defs.schema.json#/$defs/version" }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "required": ["code", "retryable"],
+      "properties": {
+        "protocolVersion": true, "type": true, "commandId": true,
+        "status": { "const": "REJECTED" },
+        "code": { "$ref": "defs.schema.json#/$defs/errorCode" },
+        "retryable": { "type": "boolean" },
+        "currentVersion": { "$ref": "defs.schema.json#/$defs/version" }
+      }
+    }
+  ]
+}
