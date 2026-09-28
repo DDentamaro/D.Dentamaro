@@ -36,6 +36,8 @@
   .bar{height:10px;padding:2px;background:#030708;border:1px solid #ccded955;box-shadow:0 2px #0009;margin-bottom:6px}
   .bar i{display:block;width:100%;height:100%;background:linear-gradient(90deg,#bd533f,#e1b56b 45%,#a1e3c6);box-shadow:inset 0 -2px #0005}
   .bar.kin i{background:linear-gradient(90deg,#3d5f7a,#8fc2e0 60%,#fff2c8)}
+  .bar.rail i{background:linear-gradient(90deg,#2d6e80,#8fe0ff)}
+  .bar.rail.hot i{background:linear-gradient(90deg,#8a2f22,#ff8564)}
   .bar.foe i{background:linear-gradient(90deg,#5b3d66,#c9a3d6)}
   .pips{display:flex;gap:3px;align-items:center;font-size:8px;color:var(--muted)}
   .pips i{width:10px;height:6px;border:1px solid #ccded977;background:#1a2226}
@@ -74,7 +76,7 @@
   #result section{text-align:center;max-width:380px}
   #result p{white-space:pre-line;font-size:13px;line-height:1.8}
   @media(max-width:720px){
-    .build{display:none}.hint{font-size:7px}
+    .build{display:none}.hint{font-size:7px;white-space:normal;width:92vw;line-height:1.5}
     #mine{bottom:max(40px,calc(env(safe-area-inset-bottom) + 40px));width:52vw}
     .match b{font-size:15px}.brand small{display:none}.brand-mark{height:24px}
   }
@@ -99,11 +101,13 @@
     <div class="bar"><i id="spinBar"></i></div>
     <div class="meter-head"><b>CARICA CINETICA</b><span id="kinText">0</span></div>
     <div class="bar kin"><i id="kinBar"></i></div>
+    <div class="meter-head"><b>XTREME RAIL</b><span id="railText">PRONTO</span></div>
+    <div class="bar rail"><i id="railBar"></i></div>
     <div class="pips" id="myPips"></div>
   </section>
 
   <section class="hud build" id="buildPanel"></section>
-  <div class="hud hint"><em>TRASCINA / WASD</em> INCLINA · <em>TIENI RUSH / SPAZIO</em> CARICA · <em>RILASCIA</em> SCATTA</div>
+  <div class="hud hint"><em>TRASCINA / WASD</em> INCLINA · <em>TIENI RUSH / SPAZIO</em> CARICA · <em>RILASCIA</em> SCATTA · <em>SOLCO AZZURRO</em> RICARICA</div>
   <button id="act" aria-label="Azione">RUSH</button>
   <div id="notice"></div>
 
@@ -125,6 +129,7 @@
       <div class="choices" data-group="tip"></div>
       <div class="rules">
         <p><b>Movimento</b>: non guidi il top, lo <i>inclini</i>. L'inclinazione fa rotolare la punta e il giroscopio reagisce con ritardo e precessione: più spin = più stabile ma più lento a cambiare direzione.</p>
+        <p><b>Recuperare spin</b>: corri sul <b>solco azzurro</b> nel verso della tua rotazione (le tacche indicano il verso): l'ingranaggio della punta si aggancia e ricarica lo spin finché non si surriscalda. Contro un top che gira al contrario, i contatti ti fanno <b>rubare spin</b> se ne hai meno di lui. Stare dritto e fermo consuma meno.</p>
         <p><b>Rinculo</b>: ogni impatto è risolto dalla carica cinetica (½mv² + energia di rotazione del bordo). Stesso verso = SPIN CLASH, forte rinculo. Verso opposto = SPIN STEAL, poco rinculo e scambio di spin.</p>
       </div>
       <button class="primary" id="start">PRONTI!</button>
@@ -154,6 +159,11 @@
     SPIN_XFER:.06,            // quanto l'attrito tra le lame modifica lo spin
     CLASH:.35,                // conversione slittamento tangenziale -> rinculo normale
     TILT_KICK:.32,            // quanto un impatto sbilancia l'asse
+    STEAL_XFER:.16,           // scambio di spin tra bordi in verso opposto (spin steal)
+    RAIL_R:.55,RAIL_W:.09,    // solco Xtreme: anello inciso nella conca (non è un bordo)
+    RAIL_MIN:.35,             // velocità tangenziale minima per agganciare l'ingranaggio
+    RAIL_GAIN:7,              // spin recuperato al secondo a pieno aggancio (punta FLAT)
+    HEAT_MAX:2.5,             // secondi di grind prima del surriscaldamento
     BURST:2.0,                // soglia d'impulso per far scattare un dente del blocco
     ROUND_TIME:60,
     WIN_POINTS:4
@@ -189,7 +199,7 @@
   let player=null,enemy=null,state='setup',elapsed=0,roundTime=PHY.ROUND_TIME,round=1,points=[0,0];
   let launch=null,roundEnd=null,actHeld=false;
 
-  const ui={spinBar:$('#spinBar'),spinText:$('#spinText'),kinBar:$('#kinBar'),kinText:$('#kinText'),myPips:$('#myPips'),
+  const ui={spinBar:$('#spinBar'),spinText:$('#spinText'),kinBar:$('#kinBar'),railBar:$('#railBar'),railText:$('#railText'),kinText:$('#kinText'),myPips:$('#myPips'),
     foeBar:$('#foeBar'),foeSpin:$('#foeSpin'),foePips:$('#foePips'),foeName:$('#foeName'),
     score:$('#score'),round:$('#round'),timer:$('#timer'),goal:$('#goal'),notice:$('#notice'),act:$('#act'),needle:$('#needle')};
 
@@ -204,7 +214,7 @@
       ex:0,ez:0,          // inclinazione effettiva (con nutazione)
       prec:Math.random()*TAU,
       charge:0,charging:false,cooldown:0,rush:0,
-      clicks:0,dead:null,deadT:0,flash:0,
+      clicks:0,dead:null,deadT:0,flash:0,heat:0,grinding:false,
       ai:{hold:0,mood:0}};
   }
   const mass=t=>t.blade.mass;
@@ -231,6 +241,13 @@
     let mode=b.blade.id;
     if(mode==='balance')mode=b.spin>=p.spin+8?'attack':'stamina';
     if(p.dead)mode='stamina';
+    if(b.blade.id==='balance'&&!p.dead&&b.spin<p.spin-6&&b.heat<.5&&dist>.3)mode='rail';
+    if(b.heat>=PHY.HEAT_MAX-.1&&mode==='rail')mode='stamina';
+    if(mode==='rail'){
+      // punta un punto più avanti sul solco, nel proprio verso di rotazione
+      const a=Math.atan2(b.z,b.x)+b.dir*.6;ux=Math.cos(a)*PHY.RAIL_R-b.x;uz=Math.sin(a)*PHY.RAIL_R-b.z;
+      const l=Math.hypot(ux,uz)||1;ux/=l;uz/=l;return{x:ux,z:uz};
+    }
     if(mode==='attack'){ux=tx/tl;uz=tz/tl;wantRush=dist<.6&&dist>.2}
     else if(mode==='defense'){ux=cx*1.6;uz=cz*1.6;if(dist<.4){ux+=dx/dist*.5;uz+=dz/dist*.5}wantRush=dist<.3&&Math.random()<.3}
     else{ux=cx*1.2;uz=cz*1.2;if(dist<.3){ux-=dx/dist*.6;uz-=dz/dist*.6}if(cr<.12){ux*=.2;uz*=.2}}
@@ -293,7 +310,27 @@
     const sp=Math.hypot(t.vx,t.vz),tilt=t.ex*t.ex+t.ez*t.ez;
     t.spin-=dt*(1.8*t.tip.drain*t.blade.drain+sp*.35*t.tip.drain+tilt*1.4);
     t.angle+=dt*d*(3+t.spin*.32);
+    grind(t,dt);
     if(t.spin<=0){t.spin=0;finish(t,'spin')}
+  }
+
+  /* Solco Xtreme: la punta ha un ingranaggio. Correndo lungo il solco nel
+     verso della propria rotazione, l'ingranaggio rotola sulla cremagliera e
+     restituisce spin. Il contatto scalda la punta: dopo HEAT_MAX secondi
+     si sgancia e deve raffreddarsi. */
+  function grind(t,dt){
+    const d=t.dir,r=Math.hypot(t.x,t.z);
+    t.grinding=false;t.heat=Math.max(0,t.heat-dt*.5);
+    if(t.charging||r<.01||Math.abs(r-PHY.RAIL_R)>PHY.RAIL_W||t.heat>=PHY.HEAT_MAX)return;
+    const tx=-t.z/r*d,tz=t.x/r*d,vt=t.vx*tx+t.vz*tz;   // tangente nel verso di rotazione
+    if(vt<PHY.RAIL_MIN)return;
+    const eng=Math.min(1,(vt-PHY.RAIL_MIN)*1.6);
+    t.grinding=true;t.heat+=dt*1.5;
+    t.spin=Math.min(100,t.spin+dt*PHY.RAIL_GAIN*eng*(.4+.6*t.tip.grip));   // più aderenza = ingranaggio più efficace
+    t.vx+=tx*dt*.8;t.vz+=tz*dt*.8;                      // l'ingranaggio trascina anche in avanti
+    const pull=(PHY.RAIL_R-r)*6*dt;t.vx+=t.x/r*pull;t.vz+=t.z/r*pull;   // il solco tiene la punta dentro
+    if(Math.random()<dt*25)emit(t.x,t.z,'#8fe0ff',1);
+    if(t.isPlayer&&t.heat>=PHY.HEAT_MAX)showNotice('RAIL SURRISCALDATO');
   }
 
   /* ============================================================
@@ -326,7 +363,8 @@
     const Jn=Jlin+Jspin;
     if(Jn<.04)return;
 
-    const qA=PHY.SPIN_XFER/(A.blade.k*mA),qB=PHY.SPIN_XFER/(B.blade.k*mB);
+    const xf=sameSpin?PHY.SPIN_XFER:PHY.STEAL_XFER;
+    const qA=xf/(A.blade.k*mA),qB=xf/(B.blade.k*mB);
     const mu=(A.blade.mu+B.blade.mu)/2;
     let Jt=-slip/(invM+qA+qB);Jt=Math.max(-mu*Jn,Math.min(mu*Jn,Jt));
 
@@ -336,8 +374,10 @@
 
     // scambio di spin dai bordi
     const nwA=wA-Jt*qA,nwB=wB-Jt*qB;
-    if(!A.dead)A.spin=Math.max(0,nwA*A.dir)/PHY.RIM*100;
-    if(!B.dead)B.spin=Math.max(0,nwB*B.dir)/PHY.RIM*100;
+    const sA=A.spin,sB=B.spin;
+    if(!A.dead)A.spin=Math.min(100,Math.max(0,nwA*A.dir)/PHY.RIM*100);
+    if(!B.dead)B.spin=Math.min(100,Math.max(0,nwB*B.dir)/PHY.RIM*100);
+    const stolen=A.isPlayer?A.spin-sA:B.spin-sB;
     // energia dissipata nell'urto
     if(!A.dead)A.spin-=Jn*1.2/mA;if(!B.dead)B.spin-=Jn*1.2/mB;
 
@@ -351,10 +391,10 @@
     if(A.isPlayer||B.isPlayer)camera.shake=Math.min(4,1+Jn*1.4);
 
     // messaggio: chi ha portato più carica cinetica è l'attaccante
-    if(Jn>.9){
+    if(!sameSpin&&Math.abs(stolen)>=.5)showNotice(stolen>0?'SPIN STEAL +'+stolen.toFixed(1)+'%':'SPIN RUBATO '+stolen.toFixed(1)+'%');
+    else if(Jn>.9){
       const atk=keA>=keB?A:B,rec=atk===A?Jn*iA:Jn*iB;
       if(sameSpin&&Jspin>Jlin*.6)showNotice('SPIN CLASH!');
-      else if(!sameSpin&&Math.abs(Jt)>.05)showNotice('SPIN STEAL!');
       else showNotice((atk.isPlayer?'IMPATTO ':'SUBITO ')+(Math.max(keA,keB)+Jn).toFixed(1)+'J · RINCULO '+rec.toFixed(1));
     }
     // il blocco subisce la coppia trasmessa dalla lama avversaria
@@ -405,7 +445,7 @@
     const mk=(el,n)=>{el.innerHTML='BURST ';for(let i=0;i<n;i++)el.appendChild(document.createElement('i'))};
     mk(ui.myPips,player.blade.lock);mk(ui.foePips,enemy.blade.lock);
   }
-  function resetTop(t,x,z){Object.assign(t,{x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,dead:null,deadT:0,flash:0})}
+  function resetTop(t,x,z){Object.assign(t,{x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,dead:null,deadT:0,flash:0,heat:0,grinding:false})}
   function startLaunch(){
     state='launch';roundEnd=null;particles.length=debris.length=trails.length=0;
     resetTop(player,-.62,.3);resetTop(enemy,.62,-.3);
@@ -523,6 +563,10 @@
       if(i%5===0&&i){ctx.strokeStyle='#e1b56b';ctx.globalAlpha=fade*.12;ctx.lineWidth=.6;ctx.stroke()}
     }
     ctx.globalAlpha=1;
+    // solco Xtreme: tacche che indicano il verso di aggancio del giocatore
+    const rd=player?player.dir:1,hot=player&&player.grinding;
+    for(let i=0;i<48;i++){const a=i/48*TAU,a2=a+rd*.07,p0=project(Math.cos(a)*PHY.RAIL_R,Math.sin(a)*PHY.RAIL_R),p1=project(Math.cos(a2)*PHY.RAIL_R,Math.sin(a2)*PHY.RAIL_R);
+      pixelLine(p0.x,p0.y,p1.x,p1.y,hot?'#bff0ff':i%2?'#8fe0ff55':'#8fe0ff99')}
     // punto più basso della conca
     ctx.strokeStyle='#b0ae7b44';ellipsePath(AR.x,AR.y,14,5);ctx.lineWidth=1;ctx.stroke();pixelLine(AR.x-4,AR.y,AR.x+4,AR.y,'#b0ae7b66');
     for(let i=0;i<110;i++){const a=(i*2.17)%TAU,r=1.2*Math.sqrt(((i*47)%101)/101);const p=project(Math.cos(a)*r,Math.sin(a)*r);ctx.globalAlpha=r>1?Math.max(0,1-(r-1)*4):1;pxRect(p.x,p.y,1,1,i%5===0?'#b19a704d':'#0b12143d')}
@@ -595,6 +639,9 @@
     ui.spinBar.style.width=Math.max(0,player.spin).toFixed(1)+'%';ui.spinText.textContent=Math.ceil(Math.max(0,player.spin))+'%';
     const ke=kinetic(player)+(player.charging?player.charge*1.2:0);
     ui.kinBar.style.width=Math.min(100,ke/2.4*100).toFixed(1)+'%';ui.kinText.textContent=ke.toFixed(2)+'J · ROT '+rotEnergy(player).toFixed(2);
+    const cool=1-player.heat/PHY.HEAT_MAX,over=player.heat>=PHY.HEAT_MAX-.01||(!player.grinding&&player.heat>PHY.HEAT_MAX*.6);
+    ui.railBar.style.width=(cool*100).toFixed(1)+'%';ui.railBar.parentElement.classList.toggle('hot',over);
+    ui.railText.textContent=player.grinding?'GRIND +SPIN':over?'RAFFREDDA…':'PRONTO';
     ui.foeBar.style.width=Math.max(0,enemy.spin).toFixed(1)+'%';ui.foeSpin.textContent=Math.ceil(Math.max(0,enemy.spin))+'%';
     [...ui.myPips.querySelectorAll('i')].forEach((e,i)=>e.classList.toggle('on',i<player.clicks));
     [...ui.foePips.querySelectorAll('i')].forEach((e,i)=>e.classList.toggle('on',i<enemy.clicks));
