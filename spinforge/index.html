@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b151a">
+<title>Spinforge · Beyblade Arena</title>
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#081115;--panel:#0b151add;--ink:#e8f0ea;--muted:#84989a;
+    --mint:#a1e3c6;--rust:#ff8564;--gold:#e1b56b;--line:#b4d4cf36;--violet:#c9a3d6;
+    font-family:"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
+  body{touch-action:none;overscroll-behavior:none}
+  #app{position:relative;width:100%;height:100%;height:100dvh;isolation:isolate}
+  #view{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;outline:0;touch-action:none}
+  [hidden]{display:none!important}
+  button{font-family:"Courier New",monospace;cursor:pointer}
+  .scanlines{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.14;background:repeating-linear-gradient(0deg,#0000 0 3px,#000 4px);mix-blend-mode:multiply}
+  .vignette{position:absolute;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,#0000 42%,#02090cb8 100%)}
+  .hud{position:absolute;z-index:4;pointer-events:none;text-shadow:0 2px #000;letter-spacing:.08em}
+  .brand{left:max(16px,env(safe-area-inset-left));top:max(15px,env(safe-area-inset-top));display:flex;align-items:flex-start;gap:10px}
+  .brand-mark{width:9px;height:37px;background:var(--rust);box-shadow:4px 0 #7a3f33,8px 0 #351e1d;transform:skewY(-28deg)}
+  .brand strong{display:block;font-size:clamp(13px,2.2vw,22px);line-height:1}
+  .brand small{display:block;margin-top:6px;color:var(--mint);font-size:9px}
+  .match{right:max(16px,env(safe-area-inset-right));top:max(15px,env(safe-area-inset-top));text-align:right}
+  .match b{font-size:18px;color:var(--gold)}
+  .match span{display:block;color:var(--muted);font-size:9px;margin-top:4px}
+  #goal{position:absolute;top:66px;left:12px;right:12px;text-align:center;z-index:4;pointer-events:none;font-size:10px;color:#ffe1a7;text-shadow:1px 2px #000;letter-spacing:.08em}
+  .meter{width:min(250px,50vw)}
+  .meter-head{display:flex;justify-content:space-between;font-size:9px;margin:0 0 4px}
+  .meter-head b{color:var(--mint)}
+  .bar{height:10px;padding:2px;background:#030708;border:1px solid #ccded955;box-shadow:0 2px #0009;margin-bottom:6px}
+  .bar i{display:block;width:100%;height:100%;background:linear-gradient(90deg,#bd533f,#e1b56b 45%,#a1e3c6);box-shadow:inset 0 -2px #0005}
+  .bar.kin i{background:linear-gradient(90deg,#3d5f7a,#8fc2e0 60%,#fff2c8)}
+  .bar.foe i{background:linear-gradient(90deg,#5b3d66,#c9a3d6)}
+  .pips{display:flex;gap:3px;align-items:center;font-size:8px;color:var(--muted)}
+  .pips i{width:10px;height:6px;border:1px solid #ccded977;background:#1a2226}
+  .pips i.on{background:var(--rust);border-color:#ffd1c2}
+  #mine{left:max(16px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom))}
+  #foe{left:50%;transform:translateX(-50%);top:max(86px,calc(env(safe-area-inset-top) + 86px));width:min(200px,44vw)}
+  #foe .meter-head b{color:var(--violet)}
+  .build{right:max(16px,env(safe-area-inset-right));top:max(58px,calc(env(safe-area-inset-top) + 58px));display:grid;grid-template-columns:auto auto;gap:3px 8px;padding:8px 10px;border:1px solid var(--line);background:var(--panel);font-size:8px;box-shadow:3px 3px #0008}
+  .build span{color:var(--muted)}.build b{text-align:right}
+  .hint{left:50%;bottom:max(17px,env(safe-area-inset-bottom));transform:translateX(-50%);font-size:8px;color:#c8d4cf;text-align:center;white-space:nowrap}
+  .hint em{font-style:normal;color:var(--rust)}
+  #act{position:absolute;right:max(18px,env(safe-area-inset-right));bottom:max(60px,calc(env(safe-area-inset-bottom) + 60px));z-index:5;width:72px;height:72px;border-radius:50%;border:2px solid #ff856488;background:#231614d9;color:#ffd7cc;font:bold 10px "Courier New",monospace;letter-spacing:.08em;box-shadow:0 0 0 3px #05090aa8,inset 0 0 0 2px #ff856426;touch-action:none;user-select:none;-webkit-user-select:none}
+  #act.on{background:#7a3026;transform:translateY(1px);box-shadow:0 0 18px #ff856466,inset 0 0 0 2px #ffd1c266}
+  #act:disabled{opacity:.5}
+  #notice{position:absolute;left:50%;top:24%;z-index:5;transform:translate(-50%,-8px);font:bold 14px "Courier New",monospace;color:#fff1cf;text-shadow:2px 2px #391d17;opacity:0;pointer-events:none;letter-spacing:.16em;white-space:nowrap}
+  #notice.show{animation:pop .9s steps(6,end)}
+  @keyframes pop{0%{opacity:0;transform:translate(-50%,4px) scale(.8)}20%,75%{opacity:1;transform:translate(-50%,-8px) scale(1)}100%{opacity:0;transform:translate(-50%,-18px)}}
+  #launchPanel{position:absolute;z-index:6;bottom:24%;left:50%;transform:translateX(-50%);width:min(320px,88vw);padding:12px;background:#111719ee;border:2px solid var(--gold);text-align:center;pointer-events:none;box-shadow:0 4px 20px #000a}
+  #launchPanel strong{color:#ffe0a0;font-size:16px}#launchPanel p{font-size:11px;line-height:1.5;margin:6px 0}
+  .timing{height:22px;background:#442923;position:relative;border:1px solid #b5b4a2}
+  .timing .zone{position:absolute;left:62%;width:30%;height:100%;background:#518766}
+  .timing .perfect{position:absolute;left:82%;width:7%;height:100%;background:#c2eed1}
+  #needle{position:absolute;top:-3px;bottom:-3px;width:4px;background:white;box-shadow:1px 0 #000}
+  .overlay{position:absolute;inset:0;z-index:9;background:#061015e6;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto}
+  .overlay section{margin:auto;padding:18px;max-width:560px;width:100%;border:2px solid var(--gold);background:#182221;box-shadow:6px 6px #000a}
+  .overlay h1{font-size:22px;color:var(--gold);margin:0 0 6px;letter-spacing:.1em}
+  .overlay h2{font-size:11px;color:var(--mint);margin:14px 0 6px;letter-spacing:.12em}
+  .overlay p{font-size:11px;line-height:1.6;margin:4px 0;color:#c8d4cf}
+  .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
+  .choices button{min-height:52px;padding:6px;border:1px solid #b4d4cf55;background:#0f1a1c;color:var(--ink);text-align:left;font-size:10px;line-height:1.35}
+  .choices button b{display:block;font-size:11px;color:var(--gold)}
+  .choices button small{color:var(--muted)}
+  .choices button.sel{border-color:var(--rust);background:#3a1f19;box-shadow:inset 0 0 0 1px #ff856466}
+  .primary{margin-top:14px;min-height:48px;width:100%;padding:12px 24px;border:1px solid var(--rust);background:#713b2b;color:white;font:bold 14px "Courier New",monospace;letter-spacing:.12em}
+  .rules{margin-top:10px;padding:8px;border:1px dashed #b4d4cf44;font-size:10px}
+  #result section{text-align:center;max-width:380px}
+  #result p{white-space:pre-line;font-size:13px;line-height:1.8}
+  @media(max-width:720px){
+    .build{display:none}.hint{font-size:7px}
+    #mine{bottom:max(40px,calc(env(safe-area-inset-bottom) + 40px));width:52vw}
+    .match b{font-size:15px}.brand small{display:none}.brand-mark{height:24px}
+  }
+</style>
+</head>
+<body>
+<main id="app" aria-label="Arena Beyblade pixel art">
+  <canvas id="view" tabindex="0" aria-label="Arena interattiva"></canvas>
+  <div class="scanlines"></div><div class="vignette"></div>
+  <header class="hud brand"><i class="brand-mark"></i><div><strong>SPINFORGE</strong><small>STADIUM 1V1 // PROTOTYPE 04</small></div></header>
+  <div class="hud match"><b id="score">0 – 0</b><span>TU · CPU &nbsp;·&nbsp; ROUND <i id="round">1</i> · <i id="timer">60</i>s</span></div>
+  <div id="goal"></div>
+
+  <section class="hud meter" id="foe">
+    <div class="meter-head"><b id="foeName">CPU</b><span id="foeSpin">100%</span></div>
+    <div class="bar foe"><i id="foeBar"></i></div>
+    <div class="pips" id="foePips"></div>
+  </section>
+
+  <section class="hud meter" id="mine">
+    <div class="meter-head"><b>SPIN</b><span id="spinText">100%</span></div>
+    <div class="bar"><i id="spinBar"></i></div>
+    <div class="meter-head"><b>CARICA CINETICA</b><span id="kinText">0</span></div>
+    <div class="bar kin"><i id="kinBar"></i></div>
+    <div class="pips" id="myPips"></div>
+  </section>
+
+  <section class="hud build" id="buildPanel"></section>
+  <div class="hud hint"><em>TRASCINA / WASD</em> INCLINA · <em>TIENI RUSH / SPAZIO</em> CARICA · <em>RILASCIA</em> SCATTA</div>
+  <button id="act" aria-label="Azione">RUSH</button>
+  <div id="notice"></div>
+
+  <section id="launchPanel" hidden>
+    <strong>3 · 2 · 1 · LANCIO!</strong>
+    <p>Premi LANCIA nella zona verde.<br>Più potenza = più spin iniziale.</p>
+    <div class="timing"><i class="zone"></i><i class="perfect"></i><i id="needle"></i></div>
+  </section>
+
+  <div id="setup" class="overlay" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <section>
+      <h1 id="setupTitle">ASSEMBLA IL TUO TOP</h1>
+      <p>Nessun bordo: lo stadio è una conca senza sponde. La pendenza riporta sempre al centro. Si vince solo per <b>SPIN FINISH</b> (+1) o <b>BURST FINISH</b> (+2). Primo a 4 punti.</p>
+      <h2>ROTAZIONE</h2>
+      <div class="choices" data-group="dir"></div>
+      <h2>LAMA (BLADE)</h2>
+      <div class="choices" data-group="blade"></div>
+      <h2>PUNTA (BIT)</h2>
+      <div class="choices" data-group="tip"></div>
+      <div class="rules">
+        <p><b>Movimento</b>: non guidi il top, lo <i>inclini</i>. L'inclinazione fa rotolare la punta e il giroscopio reagisce con ritardo e precessione: più spin = più stabile ma più lento a cambiare direzione.</p>
+        <p><b>Rinculo</b>: ogni impatto è risolto dalla carica cinetica (½mv² + energia di rotazione del bordo). Stesso verso = SPIN CLASH, forte rinculo. Verso opposto = SPIN STEAL, poco rinculo e scambio di spin.</p>
+      </div>
+      <button class="primary" id="start">PRONTI!</button>
+    </section>
+  </div>
+
+  <div id="result" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="resultTitle"><section><h1 id="resultTitle"></h1><p id="resultScores"></p><button class="primary" id="restart">NUOVA PARTITA</button></section></div>
+</main>
+<script>
+(()=>{
+  'use strict';
+  const $=s=>document.querySelector(s);
+  const canvas=$('#view'),ctx=canvas.getContext('2d',{alpha:false});
+  let W=480,H=270;
+  const TAU=Math.PI*2;
+
+  /* ============================================================
+     PARAMETRI FISICI
+     Lo stadio è una conca: a(r) = -G·r·(1+STEEP·r²). Nessun bordo,
+     nessun ring-out: più ti allontani, più la pendenza ti riporta giù.
+     ============================================================ */
+  const PHY={
+    G:1.3,STEEP:1.2,          // pendenza della conca
+    RIM:1.4,                  // velocità del bordo a spin 100 (unità mondo/s)
+    MAX_LEAN:.6,              // inclinazione massima comandabile
+    DRIVE:2.3,                // spinta della punta inclinata
+    SPIN_XFER:.06,            // quanto l'attrito tra le lame modifica lo spin
+    CLASH:.35,                // conversione slittamento tangenziale -> rinculo normale
+    TILT_KICK:.32,            // quanto un impatto sbilancia l'asse
+    BURST:2.0,                // soglia d'impulso per far scattare un dente del blocco
+    ROUND_TIME:60,
+    WIN_POINTS:4
+  };
+
+  /* Parti: la lama decide massa, geometria d'impatto e resistenza al burst,
+     la punta decide aderenza, attrito e consumo di stamina. */
+  const BLADES={
+    attack :{id:'attack', name:'RAPTOR', type:'ATTACCO',    mass:1.00,R:.082,smash:1.00,e:.85,mu:.45,k:.45,lock:3,burst:1.00,drain:1.15,shape:[3,.42],colors:['#b95843','#ff8564','#ffd2a0'],desc:'Lame a uncino: grande rinculo inflitto, ma lo subisce anche.'},
+    defense:{id:'defense',name:'BASTION',type:'DIFESA',     mass:1.35,R:.078,smash:.35, e:.50,mu:.30,k:.55,lock:4,burst:1.25,drain:1.00,shape:[8,.9], colors:['#476a70','#72a2a4','#b8d5cf'],desc:'Pesante e tondo: assorbe gli urti, difficile da far burstare.'},
+    stamina:{id:'stamina',name:'HALO',   type:'RESISTENZA', mass:1.10,R:.086,smash:.25, e:.60,mu:.25,k:.80,lock:3,burst:.80, drain:.70, shape:[12,.88],colors:['#6b663f','#aaa05b','#e0d29a'],desc:'Peso sul bordo: gira a lungo e ruba spin in verso opposto.'},
+    balance:{id:'balance',name:'ORBIT',  type:'EQUILIBRIO', mass:1.15,R:.080,smash:.60, e:.70,mu:.38,k:.60,lock:3,burst:1.10,drain:.90, shape:[5,.62],colors:['#6b4a75','#a177aa','#dbc7df'],desc:'Via di mezzo: nessun punto debole, nessun picco.'}
+  };
+  const TIPS={
+    flat :{id:'flat', name:'FLAT', grip:1.00,fric:2.2,drain:1.15,stab:.80,desc:'Tanta aderenza: veloce e reattiva, consuma molto.'},
+    ball :{id:'ball', name:'BALL', grip:.60, fric:1.4,drain:1.00,stab:1.0,desc:'Rotola bene: bilanciata tra controllo e durata.'},
+    sharp:{id:'sharp',name:'SHARP',grip:.30, fric:.75,drain:.60, stab:1.2,desc:'Attrito minimo: resta al centro e dura, ma scivola dopo un colpo.'}
+  };
+  const DIRS={right:{id:'right',name:'DESTRA',v:1,desc:'Orario. Contro un destro = SPIN CLASH.'},left:{id:'left',name:'SINISTRA',v:-1,desc:'Antiorario. Contro un destro = SPIN STEAL.'}};
+
+  const choice={dir:'right',blade:'attack',tip:'flat'};
+
+  /* ============================================================
+     PROIEZIONE ISOMETRICA DELLA CONCA
+     ============================================================ */
+  const AR={x:0,y:0,sx:122,sy:42,hy:14};
+  const bowlH=r2=>.35*r2+.2*r2*r2;
+  function project(x,z,lift=0){const r2=x*x+z*z;return{x:AR.x+x*AR.sx,y:AR.y+z*AR.sy-(bowlH(r2)+lift)*AR.hy,scale:.92+z*.08}}
+
+  const camera={x:0,y:0,zoom:2,shake:0};
+  const keys=new Set(),pointer={active:false,id:null,x:0,y:0,ox:0,oy:0};
+  const particles=[],debris=[],trails=[];
+  let player=null,enemy=null,state='setup',elapsed=0,roundTime=PHY.ROUND_TIME,round=1,points=[0,0];
+  let launch=null,roundEnd=null,actHeld=false;
+
+  const ui={spinBar:$('#spinBar'),spinText:$('#spinText'),kinBar:$('#kinBar'),kinText:$('#kinText'),myPips:$('#myPips'),
+    foeBar:$('#foeBar'),foeSpin:$('#foeSpin'),foePips:$('#foePips'),foeName:$('#foeName'),
+    score:$('#score'),round:$('#round'),timer:$('#timer'),goal:$('#goal'),notice:$('#notice'),act:$('#act'),needle:$('#needle')};
+
+  /* ============================================================
+     TOP
+     ============================================================ */
+  function makeTop(build,isPlayer){
+    const blade=BLADES[build.blade],tip=TIPS[build.tip];
+    return{isPlayer,build,blade,tip,dir:DIRS[build.dir].v,name:isPlayer?'TU':blade.name,
+      x:0,z:0,vx:0,vz:0,spin:100,angle:Math.random()*TAU,
+      lx:0,lz:0,          // inclinazione dell'asse (vettore)
+      ex:0,ez:0,          // inclinazione effettiva (con nutazione)
+      prec:Math.random()*TAU,
+      charge:0,charging:false,cooldown:0,rush:0,
+      clicks:0,dead:null,deadT:0,flash:0,
+      ai:{hold:0,mood:0}};
+  }
+  const mass=t=>t.blade.mass;
+  const rimSpeed=t=>t.dir*PHY.RIM*Math.max(0,t.spin)/100;
+  const kinetic=t=>.5*mass(t)*(t.vx*t.vx+t.vz*t.vz);
+  const rotEnergy=t=>{const w=rimSpeed(t);return .5*t.blade.k*mass(t)*w*w};
+
+  /* Input giocatore -> vettore nel piano mondo (0..1) */
+  function playerInput(){
+    let ax=0,az=0;
+    if(keys.has('a')||keys.has('arrowleft'))ax--;if(keys.has('d')||keys.has('arrowright'))ax++;
+    if(keys.has('w')||keys.has('arrowup'))az--;if(keys.has('s')||keys.has('arrowdown'))az++;
+    if(pointer.active){ax=(pointer.x-pointer.ox)/22;az=(pointer.y-pointer.oy)/22}
+    const m=Math.min(1,Math.hypot(ax,az));if(m<.08)return{x:0,z:0};
+    // correzione prospettica: lo stesso tratto verticale sullo schermo vale più profondità
+    const wx=ax/AR.sx,wz=az/AR.sy,l=Math.hypot(wx,wz)||1;return{x:wx/l*m,z:wz/l*m};
+  }
+
+  /* IA: ogni tipo di lama ha un piano diverso */
+  function enemyInput(b,p){
+    const dx=p.x-b.x,dz=p.z-b.z,dist=Math.hypot(dx,dz)||1,cx=-b.x,cz=-b.z,cr=Math.hypot(cx,cz);
+    const lead=.35;const tx=p.x+p.vx*lead-b.x,tz=p.z+p.vz*lead-b.z,tl=Math.hypot(tx,tz)||1;
+    let ux=0,uz=0,wantRush=false;
+    let mode=b.blade.id;
+    if(mode==='balance')mode=b.spin>=p.spin+8?'attack':'stamina';
+    if(p.dead)mode='stamina';
+    if(mode==='attack'){ux=tx/tl;uz=tz/tl;wantRush=dist<.6&&dist>.2}
+    else if(mode==='defense'){ux=cx*1.6;uz=cz*1.6;if(dist<.4){ux+=dx/dist*.5;uz+=dz/dist*.5}wantRush=dist<.3&&Math.random()<.3}
+    else{ux=cx*1.2;uz=cz*1.2;if(dist<.3){ux-=dx/dist*.6;uz-=dz/dist*.6}if(cr<.12){ux*=.2;uz*=.2}}
+    const m=Math.hypot(ux,uz);if(m>1){ux/=m;uz/=m}
+    // gestione carica
+    if(b.charging){b.ai.hold-=1/120;if(b.ai.hold<=0)releaseRush(b,{x:tx/tl,z:tz/tl})}
+    else if(wantRush&&b.cooldown<=0&&b.spin>15&&Math.random()<.006){b.charging=true;b.charge=0;b.ai.hold=.25+Math.random()*.55}
+    return{x:ux,z:uz};
+  }
+
+  function releaseRush(t,aim){
+    if(!t.charging)return;t.charging=false;
+    let ax=aim.x,az=aim.z,l=Math.hypot(ax,az);
+    if(l<.1){const o=t===player?enemy:player;ax=o.x-t.x;az=o.z-t.z;l=Math.hypot(ax,az)||1}
+    ax/=l;az/=l;
+    // la carica converte energia di rotazione in energia cinetica
+    const c=t.charge,imp=(.8+1.9*c)*(.6+.4*t.tip.grip);
+    t.vx+=ax*imp;t.vz+=az*imp;t.rush=.35;t.cooldown=t.isPlayer?.7:1.3;t.spin-=1.5+4*c;t.charge=0;
+    // la spinta inclina l'asse all'indietro (reazione giroscopica)
+    t.lx-=ax*.25;t.lz-=az*.25;
+    emit(t.x,t.z,t.isPlayer?'#ff8564':'#c9a3d6',10+c*14);
+    if(t===player){camera.shake=.8+c;if(c>.9)showNotice('MAX RUSH!')}
+  }
+
+  /* ============================================================
+     DINAMICA DEL SINGOLO TOP
+     1. input -> inclinazione desiderata (ruotata di 90°: la punta rotola
+        perpendicolarmente all'inclinazione, nel verso di rotazione)
+     2. l'asse insegue l'obiettivo con precessione e rigidità giroscopica
+     3. la punta inclinata spinge, l'attrito smorza, la conca richiama
+     ============================================================ */
+  function stepTop(t,input,dt){
+    t.cooldown=Math.max(0,t.cooldown-dt);t.rush=Math.max(0,t.rush-dt);t.flash=Math.max(0,t.flash-dt*3);
+    if(t.dead){t.deadT+=dt;t.vx*=Math.exp(-4*dt);t.vz*=Math.exp(-4*dt);t.x+=t.vx*dt;t.z+=t.vz*dt;return}
+    const sf=Math.max(0,t.spin)/100,d=t.dir;
+    let ux=input.x,uz=input.z;
+    if(t.charging){t.charge=Math.min(1,t.charge+dt/.8);t.spin-=dt*3*t.charge;ux*=.3;uz*=.3}
+
+    // 1. inclinazione obiettivo = input ruotato di -90° nel verso di spin
+    const Lx=d*uz*PHY.MAX_LEAN,Lz=-d*ux*PHY.MAX_LEAN;
+    // 2. giroscopio: più spin = cambi d'asse più lenti; la correzione precede di ~30°
+    const rate=3.2*t.tip.stab/(.35+.9*sf),pa=d*.5,cs=Math.cos(pa),sn=Math.sin(pa);
+    const ddx=Lx-t.lx,ddz=Lz-t.lz,k=Math.min(1,rate*dt);
+    t.lx+=(ddx*cs-ddz*sn)*k;t.lz+=(ddx*sn+ddz*cs)*k;
+    const lm=Math.hypot(t.lx,t.lz),lmax=PHY.MAX_LEAN*1.5;if(lm>lmax){t.lx*=lmax/lm;t.lz*=lmax/lm}
+    // nutazione: con poco spin l'asse traballa e la punta vaga
+    t.prec+=dt*d*(5+9*(1-sf));
+    const wob=(1-sf)*(1-sf)*.5/t.tip.stab;
+    t.ex=t.lx+Math.cos(t.prec)*wob;t.ez=t.lz+Math.sin(t.prec)*wob;
+
+    // 3. forze
+    const drive=PHY.DRIVE*t.tip.grip*Math.sqrt(sf)/PHY.MAX_LEAN;
+    const fx=-d*t.ez*drive,fz=d*t.ex*drive;            // punta che rotola: inclinazione ruotata di +90°
+    const r2=t.x*t.x+t.z*t.z,slope=PHY.G*(1+PHY.STEEP*r2);
+    const fric=t.tip.fric*(t.charging?2.4:1)*(t.rush>0?.35:1);
+    t.vx+=(fx-slope*t.x-fric*t.vx)*dt;t.vz+=(fz-slope*t.z-fric*t.vz)*dt;
+    t.x+=t.vx*dt;t.z+=t.vz*dt;
+
+    // stamina: attrito della punta + velocità + asse inclinato
+    const sp=Math.hypot(t.vx,t.vz),tilt=t.ex*t.ex+t.ez*t.ez;
+    t.spin-=dt*(1.8*t.tip.drain*t.blade.drain+sp*.35*t.tip.drain+tilt*1.4);
+    t.angle+=dt*d*(3+t.spin*.32);
+    if(t.spin<=0){t.spin=0;finish(t,'spin')}
+  }
+
+  /* ============================================================
+     COLLISIONE LAMA-LAMA
+     Impulso normale = rimbalzo della carica cinetica traslazionale
+                       + spin clash (slittamento dei bordi convertito
+                         in rinculo dalla geometria della lama)
+     Impulso tangenziale = attrito tra i bordi: devia i top e
+                           scambia spin (steal se versi opposti)
+     ============================================================ */
+  let pairCD=0;
+  function collide(A,B,dt){
+    pairCD=Math.max(0,pairCD-dt);
+    if(A.dead==='burst'||B.dead==='burst')return;
+    const dx=B.x-A.x,dz=B.z-A.z,d=Math.hypot(dx,dz),min=A.blade.R+B.blade.R;
+    if(d>=min)return;
+    const nx=d?dx/d:1,nz=d?dz/d:0,tx=-nz,tz=nx,mA=mass(A),mB=mass(B),iA=1/mA,iB=1/mB,invM=iA+iB;
+    const ov=min-d;A.x-=nx*ov*iA/invM;A.z-=nz*ov*iA/invM;B.x+=nx*ov*iB/invM;B.z+=nz*ov*iB/invM;
+    if(pairCD>0)return;
+
+    const rvx=B.vx-A.vx,rvz=B.vz-A.vz,vn=rvx*nx+rvz*nz;
+    const wA=rimSpeed(A),wB=rimSpeed(B);
+    const slip=rvx*tx+rvz*tz-(wA+wB);                   // velocità relativa dei bordi al contatto
+    const sameSpin=A.dir===B.dir;
+    const keA=kinetic(A),keB=kinetic(B);
+
+    const e=(A.blade.e+B.blade.e)/2,smash=(A.blade.smash+B.blade.smash)/2;
+    const Jlin=vn<0?-(1+e)*vn/invM:0;
+    const Jspin=smash*Math.abs(slip)*PHY.CLASH/invM*(Math.min(A.spin,B.spin)>0?1:0);
+    const Jn=Jlin+Jspin;
+    if(Jn<.04)return;
+
+    const qA=PHY.SPIN_XFER/(A.blade.k*mA),qB=PHY.SPIN_XFER/(B.blade.k*mB);
+    const mu=(A.blade.mu+B.blade.mu)/2;
+    let Jt=-slip/(invM+qA+qB);Jt=Math.max(-mu*Jn,Math.min(mu*Jn,Jt));
+
+    // impulso lineare (rinculo): stessa intensità, massa diversa -> Δv diverso
+    const Ix=Jn*nx+Jt*tx,Iz=Jn*nz+Jt*tz;
+    A.vx-=Ix*iA;A.vz-=Iz*iA;B.vx+=Ix*iB;B.vz+=Iz*iB;
+
+    // scambio di spin dai bordi
+    const nwA=wA-Jt*qA,nwB=wB-Jt*qB;
+    if(!A.dead)A.spin=Math.max(0,nwA*A.dir)/PHY.RIM*100;
+    if(!B.dead)B.spin=Math.max(0,nwB*B.dir)/PHY.RIM*100;
+    // energia dissipata nell'urto
+    if(!A.dead)A.spin-=Jn*1.2/mA;if(!B.dead)B.spin-=Jn*1.2/mB;
+
+    // l'urto sbilancia l'asse: più spin = più resistenza
+    const tkA=PHY.TILT_KICK*Jn/(mA*(.4+A.spin/100*A.tip.stab)),tkB=PHY.TILT_KICK*Jn/(mB*(.4+B.spin/100*B.tip.stab));
+    A.lx-=nx*tkA;A.lz-=nz*tkA;B.lx+=nx*tkB;B.lz+=nz*tkB;
+
+    A.flash=B.flash=.9;pairCD=.12;
+    const cx=(A.x+B.x)/2,cz=(A.z+B.z)/2;
+    emit(cx,cz,sameSpin?'#ffd08a':'#a1e3c6',Math.min(30,6+Jn*10));
+    if(A.isPlayer||B.isPlayer)camera.shake=Math.min(4,1+Jn*1.4);
+
+    // messaggio: chi ha portato più carica cinetica è l'attaccante
+    if(Jn>.9){
+      const atk=keA>=keB?A:B,rec=atk===A?Jn*iA:Jn*iB;
+      if(sameSpin&&Jspin>Jlin*.6)showNotice('SPIN CLASH!');
+      else if(!sameSpin&&Math.abs(Jt)>.05)showNotice('SPIN STEAL!');
+      else showNotice((atk.isPlayer?'IMPATTO ':'SUBITO ')+(Math.max(keA,keB)+Jn).toFixed(1)+'J · RINCULO '+rec.toFixed(1));
+    }
+    // il blocco subisce la coppia trasmessa dalla lama avversaria
+    burstCheck(A,Jn*(.5+.7*B.blade.smash));burstCheck(B,Jn*(.5+.7*A.blade.smash));
+    for(const t of[A,B])if(!t.dead&&t.spin<=0){t.spin=0;finish(t,'spin')}
+  }
+
+  /* Burst: il blocco (ratchet) scatta di un dente quando l'impulso supera
+     la soglia; con poco spin la soglia crolla. */
+  function burstCheck(t,Jn){
+    if(t.dead)return;
+    const thr=PHY.BURST*t.blade.burst*(.35+.65*t.spin/100);
+    if(Jn<thr)return;
+    if(Math.random()>.35+(Jn-thr)*.5)return;
+    t.clicks++;
+    if(t.clicks>=t.blade.lock){finish(t,'burst');return}
+    if(t.isPlayer)showNotice('CLICK! '+(t.blade.lock-t.clicks)+' AL BURST');
+  }
+
+  function finish(t,how){
+    if(t.dead)return;
+    t.dead=how;t.deadT=0;t.charging=false;
+    if(how==='burst'){
+      const c=t.blade.colors;
+      for(let i=0;i<7;i++){const a=Math.random()*TAU,s=.5+Math.random()*1.1;debris.push({x:t.x,z:t.z,vx:Math.cos(a)*s+t.vx*.5,vz:Math.sin(a)*s+t.vz*.5,h:0,vh:1.6+Math.random()*1.8,rot:Math.random()*TAU,vr:(Math.random()-.5)*20,color:c[i%3],size:3+Math.random()*4,life:2.5})}
+      emit(t.x,t.z,'#fff2c8',30);camera.shake=5;
+    }
+  }
+
+  /* ============================================================
+     FLUSSO DEL MATCH
+     ============================================================ */
+  function newMatch(){
+    const bladeIds=Object.keys(BLADES),tipIds=Object.keys(TIPS);
+    const eb=bladeIds[Math.floor(Math.random()*bladeIds.length)];
+    const et=eb==='attack'?'flat':eb==='stamina'?'sharp':tipIds[Math.floor(Math.random()*tipIds.length)];
+    const ed=Math.random()<.7?'right':'left';
+    player=makeTop({...choice},true);enemy=makeTop({dir:ed,blade:eb,tip:et},false);
+    points=[0,0];round=1;
+    ui.foeName.textContent=enemy.blade.name+' '+enemy.tip.name+' '+(enemy.dir>0?'↻':'↺');
+    $('#buildPanel').innerHTML=
+      '<span>TU</span><b>'+player.blade.name+'/'+player.tip.name+' '+(player.dir>0?'DX':'SX')+'</b>'+
+      '<span>CPU</span><b>'+enemy.blade.name+'/'+enemy.tip.name+' '+(enemy.dir>0?'DX':'SX')+'</b>'+
+      '<span>SCONTRO</span><b>'+(player.dir===enemy.dir?'SPIN CLASH':'SPIN STEAL')+'</b>';
+    buildPips();startLaunch();
+  }
+  function buildPips(){
+    const mk=(el,n)=>{el.innerHTML='BURST ';for(let i=0;i<n;i++)el.appendChild(document.createElement('i'))};
+    mk(ui.myPips,player.blade.lock);mk(ui.foePips,enemy.blade.lock);
+  }
+  function resetTop(t,x,z){Object.assign(t,{x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,dead:null,deadT:0,flash:0})}
+  function startLaunch(){
+    state='launch';roundEnd=null;particles.length=debris.length=trails.length=0;
+    resetTop(player,-.62,.3);resetTop(enemy,.62,-.3);
+    launch={t:0,needle:0,power:null,foePower:.55+Math.random()*.42,go:0};
+    $('#launchPanel').hidden=false;showNotice('ROUND '+round);
+  }
+  function doLaunch(power){
+    launch.power=power;$('#launchPanel').hidden=true;
+    const shoot=(t,p,sx)=>{
+      t.spin=70+30*p;
+      // lancio: il top entra scivolando lungo la conca nel verso di rotazione
+      const inp=t.isPlayer?playerInput():{x:0,z:0};
+      t.vx=(-t.z*t.dir*1.2+inp.x*.8)*(.5+.6*p);t.vz=(t.x*t.dir*.6+inp.z*.8)*(.5+.6*p);
+    };
+    shoot(player,power);shoot(enemy,launch.foePower);
+    state='battle';roundTime=PHY.ROUND_TIME;
+    showNotice(power>.93?'LANCIO PERFETTO!':'GO SHOOT!');emit(player.x,player.z,'#ff8564',16);emit(enemy.x,enemy.z,'#c9a3d6',16);
+  }
+  function endRound(){
+    if(roundEnd)return;
+    player.charging=enemy.charging=false;
+    let text,pts=[0,0];
+    const pd=player.dead,ed=enemy.dead;
+    const val=h=>h==='burst'?2:1;
+    if(pd&&ed&&pd===ed){text='PAREGGIO';}
+    else if(pd&&ed){if(pd==='burst'){pts[1]=2;text='BURST FINISH · CPU +2'}else{pts[0]=2;text='BURST FINISH! +2'}}
+    else if(ed){pts[0]=val(ed);text=(ed==='burst'?'BURST FINISH! +2':'SPIN FINISH! +1')}
+    else if(pd){pts[1]=val(pd);text=(pd==='burst'?'SEI ESPLOSO · CPU +2':'TI SEI FERMATO · CPU +1')}
+    else{ // tempo scaduto: decisione sullo spin residuo
+      if(Math.abs(player.spin-enemy.spin)<3)text='TEMPO · PAREGGIO';
+      else if(player.spin>enemy.spin){pts[0]=1;text='DECISIONE · +1'}else{pts[1]=1;text='DECISIONE · CPU +1'}
+    }
+    points[0]+=pts[0];points[1]+=pts[1];
+    roundEnd={t:0,text};showNotice(text);
+  }
+  function endMatch(){
+    state='over';
+    const win=points[0]>points[1];
+    $('#resultTitle').textContent=win?'VITTORIA!':'SCONFITTA';
+    $('#resultScores').textContent='TU '+points[0]+' – '+points[1]+' CPU\n'+
+      player.blade.name+'/'+player.tip.name+' vs '+enemy.blade.name+'/'+enemy.tip.name+
+      '\n\nSpin finish +1 · Burst finish +2';
+    $('#result').hidden=false;$('#restart').focus();pointer.active=false;keys.clear();
+  }
+
+  /* ============================================================
+     INPUT AZIONE (lancio / carica / rush)
+     ============================================================ */
+  function actDown(){
+    actHeld=true;
+    if(state==='launch'&&launch.power===null){
+      const n=launch.needle,q=n>=.82&&n<=.89?1:n>=.62&&n<=.92?.7+.3*(1-Math.abs(n-.855)/.235):Math.max(.25,n*.7);
+      doLaunch(Math.min(1,q));return;
+    }
+    if(state==='battle'&&!player.dead&&player.cooldown<=0&&player.spin>8){player.charging=true;player.charge=0}
+  }
+  function actUp(){actHeld=false;if(state==='battle'&&player.charging)releaseRush(player,playerInput())}
+
+  /* ============================================================
+     UPDATE
+     ============================================================ */
+  function update(dt){
+    elapsed+=dt;
+    if(state==='launch'){launch.t+=dt;launch.needle=(1-Math.cos(launch.t*Math.PI*1.6))*.5;}
+    if(state==='battle'){
+      if(!roundEnd)roundTime=Math.max(0,roundTime-dt);
+      const pi=player.dead||roundEnd?{x:0,z:0}:playerInput();
+      const ei=enemy.dead||roundEnd?{x:0,z:0}:enemyInput(enemy,player);
+      stepTop(player,pi,dt);stepTop(enemy,ei,dt);
+      collide(player,enemy,dt);
+      if(!roundEnd&&(player.dead||enemy.dead)){
+        // piccola finestra: se anche l'altro cade subito è pareggio
+        if(!roundEnd&&(player.deadT>.25||enemy.deadT>.25||(player.dead&&enemy.dead)))endRound();
+      }
+      if(!roundEnd&&roundTime<=0)endRound();
+      if(roundEnd){roundEnd.t+=dt;if(roundEnd.t>2.4){if(points[0]>=PHY.WIN_POINTS||points[1]>=PHY.WIN_POINTS)endMatch();else{round++;startLaunch()}}}
+      for(const t of[player,enemy])if(!t.dead&&Math.hypot(t.vx,t.vz)>.3)trails.push({x:t.x,z:t.z,life:t.rush>0?.25:.12,hot:t.isPlayer});
+    }
+    for(let i=trails.length-1;i>=0;i--){trails[i].life-=dt;if(trails[i].life<=0)trails.splice(i,1)}
+    for(let i=particles.length-1;i>=0;i--){const e=particles[i];e.life-=dt;e.x+=e.vx*dt;e.z+=e.vz*dt;e.vx*=.93;e.vz*=.93;if(e.life<=0)particles.splice(i,1)}
+    for(let i=debris.length-1;i>=0;i--){const b=debris[i];b.life-=dt;b.x+=b.vx*dt;b.z+=b.vz*dt;b.vh-=6*dt;b.h+=b.vh*dt;b.rot+=b.vr*dt;if(b.h<0){b.h=0;b.vh*=-.35;b.vx*=.6;b.vz*=.6;b.vr*=.5}if(b.life<=0)debris.splice(i,1)}
+    // camera: inquadra entrambi i top
+    if(!player)return;
+    const a=project(player.x,player.z),b=project(enemy.x,enemy.z);
+    const tx=(a.x+b.x)/2,ty=(a.y+b.y)/2-6;
+    const fit=Math.min(W/(Math.abs(a.x-b.x)+130),H/(Math.abs(a.y-b.y)+90));
+    const zt=state==='battle'?Math.max(.7,Math.min(5,fit)):Math.max(.7,Math.min(W/300,H/130));
+    const ease=1-Math.exp(-4*dt);
+    camera.x+=(tx-camera.x)*ease;camera.y+=(ty-camera.y)*ease;camera.zoom+=(zt-camera.zoom)*ease;
+    camera.shake=Math.max(0,camera.shake-dt*8);
+  }
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
+  function ellipsePath(x,y,rx,ry){ctx.beginPath();ctx.ellipse(Math.round(x),Math.round(y),Math.max(.5,Math.round(rx)),Math.max(.5,Math.round(ry)),0,0,TAU)}
+  function pxRect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
+  function pixelLine(x0,y0,x1,y1,c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(Math.round(x0)+.5,Math.round(y0)+.5);ctx.lineTo(Math.round(x1)+.5,Math.round(y1)+.5);ctx.stroke()}
+  function polygon(pts,fill,stroke='#101719'){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(Math.round(p[0]),Math.round(p[1])):ctx.moveTo(Math.round(p[0]),Math.round(p[1])));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}}
+  function ringPoints(cx,cy,r,n,angle,alt){const p=[];for(let i=0;i<n*2;i++){const rr=i%2?r:r*alt,a=angle+i*Math.PI/n;p.push([cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*.58])}return p}
+  const mix=(c0,c1,t)=>{const a=parseInt(c0.slice(1),16),b=parseInt(c1.slice(1),16);const r=((a>>16)&255)+(((b>>16)&255)-((a>>16)&255))*t,g=((a>>8)&255)+(((b>>8)&255)-((a>>8)&255))*t,bl=(a&255)+((b&255)-(a&255))*t;return`rgb(${r|0},${g|0},${bl|0})`};
+
+  function sky(){
+    const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#111727');g.addColorStop(.5,'#2a2d38');g.addColorStop(1,'#081115');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    for(let y=6;y<H;y+=5)for(let x=(y%10);x<W;x+=10){if(((x*3+y*5)%23)<2)pxRect(x,y,1,1,'#f2d4ae10')}
+  }
+  // Conca senza bordi: anelli concentrici che salgono e sfumano nel buio.
+  function drawBowl(){
+    const N=30,RMAX=1.8;
+    for(let i=N;i>=0;i--){
+      const r=RMAX*i/N,h=bowlH(r*r),cy=AR.y-h*AR.hy;
+      const t=Math.min(1,r/1.1),fade=r<1.05?1:Math.max(0,1-(r-1.05)/(RMAX-1.05));
+      ctx.globalAlpha=fade;
+      ctx.fillStyle=mix('#6f6d57','#2c3632',t);ellipsePath(AR.x,cy,r*AR.sx,r*AR.sy);ctx.fill();
+      if(i%5===0&&i){ctx.strokeStyle='#e1b56b';ctx.globalAlpha=fade*.12;ctx.lineWidth=.6;ctx.stroke()}
+    }
+    ctx.globalAlpha=1;
+    // punto più basso della conca
+    ctx.strokeStyle='#b0ae7b44';ellipsePath(AR.x,AR.y,14,5);ctx.lineWidth=1;ctx.stroke();pixelLine(AR.x-4,AR.y,AR.x+4,AR.y,'#b0ae7b66');
+    for(let i=0;i<110;i++){const a=(i*2.17)%TAU,r=1.2*Math.sqrt(((i*47)%101)/101);const p=project(Math.cos(a)*r,Math.sin(a)*r);ctx.globalAlpha=r>1?Math.max(0,1-(r-1)*4):1;pxRect(p.x,p.y,1,1,i%5===0?'#b19a704d':'#0b12143d')}
+    ctx.globalAlpha=1;
+  }
+
+  function drawTop(t){
+    if(t.dead==='burst'&&t.deadT>0)return drawBurstBase(t);
+    const p=project(t.x,t.z),s=.42*p.scale,sf=Math.max(0,t.spin)/100;
+    let lx=t.ex,lz=t.ez;
+    if(t.dead==='spin'){const k=Math.min(1,t.deadT*3);const m=Math.hypot(lx,lz)||1;lx=lx/m*(.4+1.2*k);lz=lz/m*(.4+1.2*k)}
+    const ox=lx*9*s,oy=lz*4*s-(t.dead==='spin'?Math.min(1,t.deadT*3)*-4*s:0);
+    const x=Math.round(p.x),y=Math.round(p.y),bx=x+ox,by=y+oy;
+    const q=t.dead?t.angle:Math.round(t.angle/(Math.PI/12))*(Math.PI/12);
+    const c=t.blade.colors,[n,alt]=t.blade.shape;
+    ctx.globalAlpha=.38;ctx.fillStyle='#020708';ellipsePath(x+2*s,y+7*s,18*s,5*s);ctx.fill();ctx.globalAlpha=1;
+    // punta (bit)
+    const tipW=t.tip.id==='flat'?4:t.tip.id==='ball'?3:1.5;
+    polygon([[x-4*s+ox*.4,y+2*s+oy*.4],[x+4*s+ox*.4,y+2*s+oy*.4],[x+tipW*s,y+10*s],[x-tipW*s,y+10*s]],t.isPlayer?'#8e5a3c':'#454c49','#0b1112');
+    // ratchet
+    polygon(ringPoints(bx,by+s,14*s,8,q,.84),t.isPlayer?'#773e34':'#394746','#101517');
+    // lama
+    polygon(ringPoints(bx,by-3*s,21*s,n,q,alt),c[0],'#0a1012');
+    polygon(ringPoints(bx,by-4*s,17*s,n,q+.2,Math.min(.95,alt+.08)),c[1],'#311e1a');
+    for(let i=0;i<n;i++){const a=q+i*TAU/n;pixelLine(bx+Math.cos(a)*7*s,by-4*s+Math.sin(a)*4*s,bx+Math.cos(a)*16*s,by-4*s+Math.sin(a)*9*s,c[2])}
+    ctx.fillStyle='#151c1d';ellipsePath(bx,by-5*s,8*s,4.5*s);ctx.fill();
+    ctx.fillStyle=t.isPlayer?'#e1b56b':c[2];ellipsePath(bx,by-6*s,4.5*s,2.6*s);ctx.fill();
+    // indicatore del verso di rotazione
+    const ia=t.angle*.25;pxRect(bx+Math.cos(ia)*3*s-1,by-6*s+Math.sin(ia)*1.6*s,2,1,'#fff0c0');
+    // ali di movimento: sfocatura quando gira forte
+    if(sf>.35&&!t.dead){ctx.globalAlpha=.12*sf;ctx.strokeStyle=c[2];ctx.lineWidth=1;ellipsePath(bx,by-3*s,22*s,11*s);ctx.stroke();ctx.globalAlpha=1}
+    if(t.charging){ctx.globalAlpha=.3+.5*t.charge;ctx.strokeStyle='#8fc2e0';ctx.lineWidth=1+t.charge*2;ellipsePath(x,y,(18+t.charge*10)*s,(7+t.charge*4)*s);ctx.stroke();ctx.globalAlpha=1}
+    if(t.isPlayer&&!t.dead){ctx.globalAlpha=.14+.1*Math.sin(elapsed*10);ctx.strokeStyle='#ff8564';ctx.lineWidth=1;ellipsePath(x,y+2*s,24*s,8*s);ctx.stroke();ctx.globalAlpha=1}
+    if(t.flash>0){ctx.globalAlpha=t.flash*.8;ctx.strokeStyle='#fff8da';ctx.lineWidth=2;ellipsePath(bx,by-3*s,24*s,12*s);ctx.stroke();ctx.globalAlpha=1}
+  }
+  function drawBurstBase(t){
+    const p=project(t.x,t.z),s=.42*p.scale;
+    polygon([[p.x-4*s,p.y+2*s],[p.x+4*s,p.y+2*s],[p.x+2*s,p.y+10*s],[p.x-2*s,p.y+10*s]],'#454c49','#0b1112');
+  }
+  function drawDebris(){
+    for(const b of debris){const p=project(b.x,b.z,b.h);ctx.globalAlpha=Math.min(1,b.life);const s=b.size;polygon([[p.x+Math.cos(b.rot)*s,p.y+Math.sin(b.rot)*s*.6],[p.x+Math.cos(b.rot+2.2)*s*.6,p.y+Math.sin(b.rot+2.2)*s*.4],[p.x+Math.cos(b.rot+4)*s*.8,p.y+Math.sin(b.rot+4)*s*.5]],b.color,'#0a1012')}
+    ctx.globalAlpha=1;
+  }
+  function emit(x,z,color,n=8){for(let i=0;i<n;i++){const a=Math.random()*TAU,sp=.3+Math.random()*.9;particles.push({x,z,vx:Math.cos(a)*sp,vz:Math.sin(a)*sp,life:.3+Math.random()*.3,color})}}
+  function drawParticles(){for(const e of particles){const p=project(e.x,e.z,.3);ctx.globalAlpha=Math.max(0,e.life*2.5);pxRect(p.x,p.y,2,1,e.color)}ctx.globalAlpha=1}
+
+  function render(){
+    ctx.imageSmoothingEnabled=false;sky();
+    ctx.save();
+    ctx.translate(Math.round(W*.5-camera.x*camera.zoom+Math.sin(elapsed*90)*camera.shake),Math.round(H*.52-camera.y*camera.zoom));
+    ctx.scale(camera.zoom,camera.zoom);
+    drawBowl();
+    for(const tr of trails){const p=project(tr.x,tr.z);ctx.globalAlpha=Math.min(.35,tr.life*1.6);ctx.fillStyle=tr.hot?'#ff8564':'#c9a3d6';ellipsePath(p.x,p.y,5,2);ctx.fill()}ctx.globalAlpha=1;
+    if(player){const list=[player,enemy].sort((a,b)=>project(a.x,a.z).y-project(b.x,b.z).y);for(const t of list)drawTop(t)}
+    drawDebris();drawParticles();
+    ctx.restore();
+    // minimappa della conca
+    if(player){const mx=W-30,my=H-44;ctx.fillStyle='#081115c0';ellipsePath(mx,my,22,11);ctx.fill();ctx.strokeStyle='#a1e3c633';ctx.lineWidth=1;ellipsePath(mx,my,14,7);ctx.stroke();
+      if(!enemy.dead)pxRect(mx+enemy.x*14-1,my+enemy.z*7-1,2,2,'#c9a3d6');if(!player.dead)pxRect(mx+player.x*14-1,my+player.z*7-1,3,3,'#ff8564');}
+    if(pointer.active){const dx=pointer.x-pointer.ox,dy=pointer.y-pointer.oy,l=Math.hypot(dx,dy)||1,k=Math.min(22,l);ctx.strokeStyle='#a1e3c680';ctx.lineWidth=1;ellipsePath(pointer.ox,pointer.oy,24,24);ctx.stroke();ctx.fillStyle='#a1e3c680';ellipsePath(pointer.ox+dx/l*k,pointer.oy+dy/l*k,9,9);ctx.fill()}
+  }
+
+  /* ============================================================
+     HUD
+     ============================================================ */
+  let noticeLock=0;
+  function showNotice(text){if(elapsed<noticeLock&&!/FINISH|ROUND|GO|PERFETTO|ESPLOSO|FERMATO|DECISIONE|PAREGGIO/.test(text))return;ui.notice.textContent=text;ui.notice.classList.remove('show');void ui.notice.offsetWidth;ui.notice.classList.add('show');noticeLock=elapsed+.5}
+  function syncHUD(){
+    if(!player)return;
+    ui.spinBar.style.width=Math.max(0,player.spin).toFixed(1)+'%';ui.spinText.textContent=Math.ceil(Math.max(0,player.spin))+'%';
+    const ke=kinetic(player)+(player.charging?player.charge*1.2:0);
+    ui.kinBar.style.width=Math.min(100,ke/2.4*100).toFixed(1)+'%';ui.kinText.textContent=ke.toFixed(2)+'J · ROT '+rotEnergy(player).toFixed(2);
+    ui.foeBar.style.width=Math.max(0,enemy.spin).toFixed(1)+'%';ui.foeSpin.textContent=Math.ceil(Math.max(0,enemy.spin))+'%';
+    [...ui.myPips.querySelectorAll('i')].forEach((e,i)=>e.classList.toggle('on',i<player.clicks));
+    [...ui.foePips.querySelectorAll('i')].forEach((e,i)=>e.classList.toggle('on',i<enemy.clicks));
+    ui.score.textContent=points[0]+' – '+points[1];ui.round.textContent=round;ui.timer.textContent=Math.ceil(roundTime);
+    if(state==='launch')ui.needle.style.left=(launch.needle*98)+'%';
+    const launching=state==='launch'&&launch.power===null;
+    ui.act.textContent=launching?'LANCIA':player.charging?'RILASCIA':player.cooldown>0?player.cooldown.toFixed(1):'RUSH';
+    ui.act.disabled=!(launching||(state==='battle'&&!player.dead&&!roundEnd));
+    ui.act.classList.toggle('on',player.charging||launching);
+    ui.goal.textContent=launching?'PREPARA IL LANCIO · TIENI UNA DIREZIONE PER ANGOLARLO':
+      roundEnd?roundEnd.text:
+      player.charging?'CARICA CINETICA '+Math.round(player.charge*100)+'% · RILASCIA PER SCATTARE':
+      'PRIMO A '+PHY.WIN_POINTS+' PUNTI · SPIN FINISH +1 · BURST +2';
+  }
+
+  /* ============================================================
+     SETUP UI
+     ============================================================ */
+  function buildSetup(){
+    const groups={dir:DIRS,blade:BLADES,tip:TIPS};
+    for(const [g,list] of Object.entries(groups)){
+      const box=document.querySelector('.choices[data-group="'+g+'"]');box.innerHTML='';
+      for(const item of Object.values(list)){
+        const b=document.createElement('button');b.type='button';
+        b.innerHTML='<b>'+item.name+(item.type?' · '+item.type:'')+'</b><small>'+item.desc+'</small>';
+        b.classList.toggle('sel',choice[g]===item.id);
+        b.addEventListener('click',()=>{choice[g]=item.id;box.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+        box.appendChild(b);
+      }
+    }
+  }
+  $('#start').addEventListener('click',()=>{$('#setup').hidden=true;canvas.focus();newMatch()});
+  $('#restart').addEventListener('click',()=>{$('#result').hidden=true;$('#setup').hidden=false;state='setup';player=enemy=null;buildSetup()});
+
+  /* ============================================================
+     LOOP & INPUT
+     ============================================================ */
+  function resize(){const r=canvas.getBoundingClientRect();W=Math.max(160,Math.round(r.width/2));H=Math.max(120,Math.round(r.height/2));canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;pointer.active=false;pointer.id=null}
+  let last=performance.now(),acc=0;
+  function frame(now){acc+=Math.min(.1,Math.max(0,(now-last)/1000));last=now;while(acc>=1/120){update(1/120);acc-=1/120}render();syncHUD();requestAnimationFrame(frame)}
+  function mapPointer(e){const r=canvas.getBoundingClientRect();pointer.x=(e.clientX-r.left)/r.width*W;pointer.y=(e.clientY-r.top)/r.height*H}
+  canvas.addEventListener('pointerdown',e=>{if(pointer.active||state==='setup'||state==='over')return;canvas.setPointerCapture(e.pointerId);pointer.active=true;pointer.id=e.pointerId;mapPointer(e);pointer.ox=pointer.x;pointer.oy=pointer.y});
+  canvas.addEventListener('pointermove',e=>{if(pointer.active&&e.pointerId===pointer.id)mapPointer(e)});
+  function release(e){if(e.pointerId===pointer.id){pointer.active=false;pointer.id=null}}
+  canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('lostpointercapture',release);
+  addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(state==='setup'||state==='over')return;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();keys.add(k);if(k===' '&&!e.repeat)actDown()});
+  addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(k===' ')actUp()});
+  addEventListener('blur',()=>{keys.clear();pointer.active=false;pointer.id=null;if(actHeld)actUp()});
+  ui.act.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();ui.act.setPointerCapture(e.pointerId);actDown()});
+  ui.act.addEventListener('pointerup',e=>{e.preventDefault();actUp()});
+  ui.act.addEventListener('pointercancel',()=>actUp());
+  ui.act.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.repeat)actDown()});ui.act.addEventListener('keyup',e=>{if(e.key==='Enter')actUp()});
+
+  buildSetup();addEventListener('resize',resize);resize();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
