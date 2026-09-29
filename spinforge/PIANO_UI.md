@@ -184,3 +184,9 @@ Crediti Higgsfield residui: circa 0.7.
   oro, anello di carica (blu, oro da MAX), stato MAX dorato e anello grigio di
   ricarica. Su mobile i suggerimenti si nascondono e le etichette si accorciano.
   Mancano ancora le icone delle 6 statistiche (servono al garage, tappa 3).
+
+- **HUD minimal (su richiesta).** Rimossi i pannelli con cornice: barre di 2–3 px con
+  leggero bagliore, testo 7 px, emblemi 26 px, punteggio in testo semplice a destra,
+  pulsante RUSH da 60 px con anello sottile, minimappa piccola sotto il punteggio.
+  Solco, suggerimenti e obiettivo compaiono solo quando servono. Lo stile a
+  pannelli oro resta nel sistema UI per garage e menu.

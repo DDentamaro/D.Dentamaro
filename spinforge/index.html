@@ -221,6 +221,62 @@
     .hrow b .long{display:none}
     #goal{bottom:max(112px,calc(env(safe-area-inset-bottom) + 112px))}
   }
+
+  /* ============ HUD MINIMAL ============
+     Niente cornici: barre sottili, testo piccolo, emblemi ridotti.
+     Solco, suggerimenti e obiettivo compaiono solo quando servono. */
+  .hudbox.ui-panel,#scorebox.ui-panel{background:none;clip-path:none;padding:0}
+  .hudbox.ui-panel::before,#scorebox.ui-panel::before{display:none}
+  .hudbox{gap:8px;text-shadow:0 1px 2px #000c}
+  #foe.hudbox{top:max(14px,env(safe-area-inset-top));width:min(250px,54vw);padding:0;background:none}
+  #mine.hudbox{left:max(18px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));width:min(230px,50vw)}
+  .emblem{width:26px;height:28px;background:#e8f0ea33}
+  .emblem canvas{width:24px;height:26px;background:#0b1a1dcc}
+  .emblem.foe{background:#ff6a3d55}
+  .hbody{gap:4px}
+  .hrow{font-size:7px;letter-spacing:.12em;color:#9fb6b4}
+  .hrow b{color:#e8f0eab3}
+  .hrow>span{color:#f3e6c8}
+  #foe .hrow b{color:#ffcfbfb3}
+  .ico{display:none}
+  .gbar{height:3px;border:0;box-shadow:none;background:#e8f0ea1f;clip-path:none}
+  .gbar::after{display:none}
+  .gbar i{background:var(--ui-energy2);box-shadow:0 0 6px #ffc14d66;transition:width .12s linear}
+  .gbar.kin{height:2px}.gbar.kin i{background:var(--ui-charge2);box-shadow:0 0 6px #8fe0ff66}
+  .gbar.foe i{background:var(--ui-foe2);box-shadow:0 0 6px #ff6a3d66}
+  .gbar.rail{height:2px;width:46px}
+  .pips::before{display:none}
+  .pips{gap:2px}
+  .pips i{width:6px;height:7px;background:#e8f0ea40}
+  .pips i::after{inset:1px}
+  .railwrap{opacity:0;transition:opacity .3s}
+  .railwrap.show{opacity:1}
+  .railwrap em{min-width:0;font-size:6px}
+  #scorebox{top:max(12px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right));text-align:right;min-width:0;gap:2px;text-shadow:0 1px 2px #000c}
+  #scorebox b{font-size:16px;color:#f3e6c8;letter-spacing:.1em}
+  #scorebox span{font-size:6px;color:#9fb6b4}
+  #scorebox em{font-size:9px;color:#e1a93b}
+  #goal{font-size:7px;letter-spacing:.14em;color:#ffe1a7cc;transition:opacity .25s}
+  #goal:empty{opacity:0}
+  .hint{transition:opacity .4s;opacity:.7}
+  .hint.off{opacity:0}
+  #labBtn{top:auto;bottom:max(18px,env(safe-area-inset-bottom));right:auto;left:50%;transform:translateX(-50%);padding:3px 7px;font-size:7px;opacity:.35;background:none;border-color:#8fe0ff44}
+  #labBtn:hover{opacity:1}
+  #act{width:60px;height:60px;right:max(22px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));
+    background:#0b1012b3;color:var(--ui-gold2);font-size:9px;letter-spacing:.12em;text-shadow:none;
+    box-shadow:0 0 0 1px #e1a93baa,inset 0 0 12px #e1a93b22}
+  #act::before{inset:-6px;-webkit-mask:radial-gradient(closest-side,#0000 90%,#000 91%,#000 99%,#0000 100%);mask:radial-gradient(closest-side,#0000 90%,#000 91%,#000 99%,#0000 100%)}
+  #act small{font-size:6px;color:#9fb6b4;letter-spacing:.08em}
+  #act.on{transform:none;box-shadow:0 0 0 1px var(--ui-gold2),0 0 16px #ffc14d44,inset 0 0 12px #e1a93b33}
+  #act.max{background:#e1a93b;color:#1a1000}
+  #notice{font-size:13px;letter-spacing:.2em;text-shadow:0 2px 6px #000,0 0 1px #000}
+  @media(max-width:720px){
+    #foe.hudbox{left:18px;transform:none;width:min(220px,58vw)}
+    #mine.hudbox{width:calc(100vw - 130px)}
+    #act{width:58px;height:58px}
+    #goal{bottom:max(96px,calc(env(safe-area-inset-bottom) + 96px))}
+    #labBtn{top:max(112px,calc(env(safe-area-inset-top) + 112px));bottom:auto;left:auto;right:18px;transform:none}
+  }
 </style>
 </head>
 <body>
@@ -245,9 +301,9 @@
   <section class="hud ui-panel hudbox" id="mine" aria-label="Il tuo Blade">
     <div class="emblem"><canvas id="myEmblem" width="40" height="40"></canvas></div>
     <div class="hbody">
-      <div class="hrow"><b><i class="ico" data-ico="spin"></i>SPIN ENERGY</b><span id="spinText">100%</span></div>
+      <div class="hrow"><b><i class="ico" data-ico="spin"></i>SPIN</b><span id="spinText">100%</span></div>
       <div class="gbar"><i id="spinBar"></i></div>
-      <div class="hrow"><b><i class="ico" data-ico="bolt"></i>CARICA<span class="long"> CINETICA</span></b><span id="kinText">0</span></div>
+      <div class="hrow"><b><i class="ico" data-ico="bolt"></i>CARICA</b><span id="kinText">0</span></div>
       <div class="gbar kin"><i id="kinBar"></i></div>
       <div class="hrow low"><span class="pips" id="myPips"></span><span class="railwrap"><i class="ico" data-ico="rail"></i><span class="gbar rail"><i id="railBar"></i></span><em id="railText">PRONTO</em></span></div>
     </div>
@@ -1079,7 +1135,7 @@
     updateBuildPanel();buildPips();drawEmblems();startLaunch();
   }
   // emblemi: il fotogramma 0 della lama dentro l'esagono (si ridisegnano quando arrivano gli sprite cotti)
-  let emblemVer=-1;
+  let emblemVer=-1;const railWrap=$('.railwrap'),hintEl=$('.hint');
   function drawEmblems(){
     emblemVer=bakedVer;
     for(const [id,t] of [['#myEmblem',player],['#foeEmblem',enemy]]){
@@ -1302,8 +1358,8 @@
     drawDebris();drawParticles();drawFloats();
     ctx.restore();
     // minimappa della conca
-    if(player){const mx=W-30,my=H-44;ctx.fillStyle='#081115c0';ellipsePath(mx,my,22,11);ctx.fill();ctx.strokeStyle='#a1e3c633';ctx.lineWidth=1;ellipsePath(mx,my,14,7);ctx.stroke();
-      if(!enemy.dead)pxRect(mx+enemy.x*14-1,my+enemy.z*7-1,2,2,'#c9a3d6');if(!player.dead)pxRect(mx+player.x*14-1,my+player.z*7-1,3,3,'#ff8564');}
+    if(player){const mx=W-22,my=40;ctx.strokeStyle='#e8f0ea26';ctx.lineWidth=1;ellipsePath(mx,my,14,7);ctx.stroke();ctx.strokeStyle='#8fe0ff33';ellipsePath(mx,my,8,4);ctx.stroke();
+      if(!enemy.dead)pxRect(mx+enemy.x*9-1,my+enemy.z*4.5-1,2,2,'#ff6a3d');if(!player.dead)pxRect(mx+player.x*9-1,my+player.z*4.5-1,2,2,'#ffc14d');}
     if(pointer.active){const dx=pointer.x-pointer.ox,dy=pointer.y-pointer.oy,l=Math.hypot(dx,dy)||1,k=Math.min(22,l);ctx.strokeStyle='#a1e3c680';ctx.lineWidth=1;ellipsePath(pointer.ox,pointer.oy,24,24);ctx.stroke();ctx.fillStyle='#a1e3c680';ellipsePath(pointer.ox+dx/l*k,pointer.oy+dy/l*k,9,9);ctx.fill()}
   }
 
@@ -1320,7 +1376,9 @@
     ui.kinBar.style.width=Math.min(100,ke/2.4*100).toFixed(1)+'%';ui.kinText.textContent=ke.toFixed(2)+' J';
     const cool=1-player.heat/PHY.HEAT_MAX,over=player.heat>=PHY.HEAT_MAX-.01||(!player.grinding&&player.heat>PHY.HEAT_MAX*.6);
     ui.railBar.style.width=(cool*100).toFixed(1)+'%';ui.railBar.parentElement.classList.toggle('hot',over);
-    ui.railText.textContent=player.grinding?'GRIND +SPIN':over?'RAFFREDDA…':'PRONTO';
+    ui.railText.textContent=player.grinding?'SOLCO +SPIN':over?'RAFFREDDA':'';
+    railWrap.classList.toggle('show',player.grinding||player.heat>.05);
+    hintEl.classList.toggle('off',state!=='launch');
     ui.foeBar.style.width=Math.max(0,enemy.spin).toFixed(1)+'%';ui.foeSpin.textContent=Math.ceil(Math.max(0,enemy.spin))+'%';
     const pip=(el,t)=>[...el.querySelectorAll('i')].forEach((e,i)=>{const f=cl((t.bdmg||0)-i,0,1);e.style.setProperty('--f',(f*100).toFixed(0)+'%');e.classList.toggle('on',f>=1)});
     pip(ui.myPips,player);pip(ui.foePips,enemy);
@@ -1339,10 +1397,10 @@
     ui.act.style.setProperty('--rc',player.charging?(player.charge>=PHY.BREAK_CHARGE?'#ffd37a':'#8fe0ff'):'#6f8487');
     ui.goal.textContent=launching?'PREPARA IL LANCIO · TIENI UNA DIREZIONE PER ANGOLARLO':
       roundEnd?roundEnd.text:
-      player.charging?(player.charge>=PHY.BREAK_CHARGE?'RUSH MAX · SFONDA LA GUARDIA · PUÒ DARE XTREME · RILASCIA!':'RUSH '+Math.round(player.charge*100)+'% · A '+Math.round(PHY.BREAK_CHARGE*100)+'% DIVENTA MAX · RILASCIA PER SCATTARE'):
+      player.charging?(player.charge>=PHY.BREAK_CHARGE?'RUSH MAX · RILASCIA':'RUSH '+Math.round(player.charge*100)+'% · MAX A '+Math.round(PHY.BREAK_CHARGE*100)+'%'):
       player.guard>0?'GUARDIA ATTIVA'+(player.guardT<=PHY.PARRY_WIN?' · FINESTRA PARATA':''):
-      player.spin<25?'SPIN BASSO! VAI SUL SOLCO AZZURRO O EVITA I COLPI':
-      'PRIMO A '+PHY.WIN_POINTS+' · SPIN +1 · BURST +2 · XTREME +3 · L = LAB';
+      player.spin<25?'SPIN BASSO · VAI SUL SOLCO':
+      '';
   }
 
   /* ============================================================
