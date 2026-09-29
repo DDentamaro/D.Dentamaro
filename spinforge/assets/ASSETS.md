@@ -113,6 +113,10 @@ UI di riferimento: **garage** e **HUD** (in `ui/`).
 | Pezzo | Modello | Crediti | Job Higgsfield | File |
 |---|---|---|---|---|
 | Lama RAPTOR (test) | Tripo H3.1 image→3D, texture PBR, 20k facce | 9 | `490de015-2695-4096-8965-10c8a4e7aa1a` | `models/blade_raptor.glb` |
+| Lama ORBIT | Tripo H3.1 image→3D, texture PBR, 20k facce | 9 | `c8ee8129-2b37-4fda-b445-9feb7d5d134b` | `models/blade_orbit.glb` (da caricare) |
+| Lama BASTION | idem | 9 | `205ce59c-5d04-45c2-bdac-2fc47bf19220` | `models/blade_bastion.glb` (da caricare) |
+| Lama HALO | idem | 9 | `430cdefd-fffe-415b-998a-4772c2b7ed14` | `models/blade_halo.glb` (da caricare) |
+| Lama CYCLONE | idem | 9 | `4f7b01f6-1fd6-4244-a80d-926cf5a35e0f` | `models/blade_cyclone.glb` (da caricare) |
 
 **Analisi di `blade_raptor.glb`** (anteprima in `models/blade_raptor_anteprima.png`):
 18 564 triangoli, 11 322 vertici, 3.9 MB; disco 1 × 0.19 × 1 con asse Y in alto e
