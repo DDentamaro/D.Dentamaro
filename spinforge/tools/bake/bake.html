@@ -8,7 +8,7 @@
    Parametri URL: model (percorso .glb), frames (36), R (raggio in pixel sprite, 18),
    elev (gradi, 36.87 = schiacciamento iso 0.6 del gioco), ss (supersampling, 8),
    colors (colori della tavolozza, 14), metal (metallo massimo, 0.45),
-   sat (saturazione extra, 1.25), mode (1 = colore più frequente del blocco invece della media). */
+   align (1 = raddrizza il disco con la PCA dei vertici), sat (saturazione extra, 1.25), mode (1 = colore più frequente del blocco invece della media). */
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 const q=new URLSearchParams(location.search),num=(k,d)=>q.has(k)?+q.get(k):d;
@@ -21,6 +21,29 @@ const gltf=await new GLTFLoader().loadAsync(q.get('model'));
 const model=gltf.scene;
 // materiali: niente cromatura ovunque, stile toon più leggibile
 model.traverse(o=>{if(o.isMesh){const m=o.material;m.metalness=Math.min(m.metalness,METAL);m.roughness=Math.max(m.roughness,.5);m.needsUpdate=true}});
+// raddrizzamento: il piano del disco è quello di minima varianza dei vertici (PCA);
+// la sua normale viene allineata all'asse Y così la lama gira in piano e non ondeggia
+if(num('align',1)){
+  const pts=[],v=new THREE.Vector3();model.updateMatrixWorld(true);
+  model.traverse(o=>{if(o.isMesh){const pa=o.geometry.attributes.position,st=Math.max(1,Math.floor(pa.count/4000));for(let i=0;i<pa.count;i+=st)pts.push(v.fromBufferAttribute(pa,i).applyMatrix4(o.matrixWorld).clone())}});
+  const m=new THREE.Vector3();pts.forEach(p=>m.add(p));m.divideScalar(pts.length);
+  const C=[[0,0,0],[0,0,0],[0,0,0]];
+  for(const p of pts){const d=[p.x-m.x,p.y-m.y,p.z-m.z];for(let i=0;i<3;i++)for(let j=0;j<3;j++)C[i][j]+=d[i]*d[j]}
+  // Jacobi per matrice simmetrica 3x3
+  const A=C.map(r=>r.slice()),V=[[1,0,0],[0,1,0],[0,0,1]];
+  for(let sweep=0;sweep<30;sweep++)for(const [p,q] of [[0,1],[0,2],[1,2]]){
+    if(Math.abs(A[p][q])<1e-12)continue;
+    const th=.5*Math.atan2(2*A[p][q],A[q][q]-A[p][p]),cs=Math.cos(th),sn=Math.sin(th);
+    for(let k=0;k<3;k++){const akp=A[k][p],akq=A[k][q];A[k][p]=cs*akp-sn*akq;A[k][q]=sn*akp+cs*akq}
+    for(let k=0;k<3;k++){const apk=A[p][k],aqk=A[q][k];A[p][k]=cs*apk-sn*aqk;A[q][k]=sn*apk+cs*aqk}
+    for(let k=0;k<3;k++){const vkp=V[k][p],vkq=V[k][q];V[k][p]=cs*vkp-sn*vkq;V[k][q]=sn*vkp+cs*vkq}
+  }
+  const ev=[0,1,2].sort((i,j)=>A[i][i]-A[j][j])[0];
+  const n=new THREE.Vector3(V[0][ev],V[1][ev],V[2][ev]).normalize();if(n.y<0)n.negate();
+  window.tilt=+(Math.acos(Math.min(1,n.y))*180/Math.PI).toFixed(2);
+  model.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(n,new THREE.Vector3(0,1,0)));
+  model.updateMatrixWorld(true);
+}
 const box=new THREE.Box3().setFromObject(model),c=box.getCenter(new THREE.Vector3()),sz=box.getSize(new THREE.Vector3());
 model.position.sub(c);
 const pivot=new THREE.Group();pivot.add(model);
@@ -72,5 +95,5 @@ sg.putImageData(img,0,0);
 // anteprima ingrandita per controllo a occhio
 const prev=document.createElement('canvas');prev.width=S*12*4;prev.height=H*3*4;const pg=prev.getContext('2d');pg.imageSmoothingEnabled=false;pg.fillStyle='#1a2226';pg.fillRect(0,0,prev.width,prev.height);
 for(let i=0;i<N;i++)pg.drawImage(sheet,i*S,0,S,H,(i%12)*S*4,Math.floor(i/12)*H*4,S*4,H*4);
-window.result={png:sheet.toDataURL('image/png'),preview:prev.toDataURL('image/png'),S,H,n:N,palette:cent.map(c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join(''))};
+window.result={tilt:window.tilt,png:sheet.toDataURL('image/png'),preview:prev.toDataURL('image/png'),S,H,n:N,palette:cent.map(c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join(''))};
 </script>

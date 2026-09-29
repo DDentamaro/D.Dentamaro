@@ -23,6 +23,6 @@ const srv=http.createServer((req,res)=>{
   const w=(f,d)=>fs.writeFileSync(path.join(out,f),Buffer.from(d.split(',')[1],'base64'));
   w(name+'.png',r.png);w(name+'_anteprima.png',r.preview);
   fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify({S:r.S,H:r.H,n:r.n,palette:r.palette},null,1));
-  console.log(JSON.stringify({S:r.S,H:r.H,n:r.n,palette:r.palette,bytes:Buffer.from(r.png.split(',')[1],'base64').length}));
+  console.log(JSON.stringify({inclinazione_corretta_gradi:r.tilt,S:r.S,H:r.H,n:r.n,palette:r.palette,bytes:Buffer.from(r.png.split(',')[1],'base64').length}));
   await b.close();srv.close();
 });

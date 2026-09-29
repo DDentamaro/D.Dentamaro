@@ -2,7 +2,7 @@
   window.__tour=(n,phy,patch)=>{
     if(phy)Object.assign(PHY,phy);
     if(patch)for(const slot in patch)for(const id in patch[slot])PARTS[slot][id].mod={...patch[slot][id]};
-    const prof=b=>window.__PROF||({raptor:'aggressive',cyclone:'aggressive',bastion:'defensive',orbit:'balanced',halo:'balanced'})[b.blade];
+    const prof=b=>window.__PROF||({raptor:'aggressive',cyclone:'aggressive',bastion:'defensive',orbit:'balanced',halo:'balanced'})[b.blade.replace('3d','')];
     const R=ROSTER,res=R.map(b=>({name:b.name,w:0,l:0,d:0,pts:0,burstW:0,burstL:0,dur:0,games:0,vs:{}}));
     for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){
       const A=R[i],B=R[j],fa=factorsOf(A),fb=factorsOf(B);let wi=0,wj=0;
