@@ -1,0 +1,76 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Spinforge · cottura sprite</title>
+<body style="margin:0;background:#1a2226">
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+/* Cottura di un modello 3D in sprite pixel art per Spinforge.
+   Parametri URL: model (percorso .glb), frames (36), R (raggio in pixel sprite, 18),
+   elev (gradi, 36.87 = schiacciamento iso 0.6 del gioco), ss (supersampling, 8),
+   colors (colori della tavolozza, 14), metal (metallo massimo, 0.45),
+   sat (saturazione extra, 1.25), mode (1 = colore più frequente del blocco invece della media). */
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const q=new URLSearchParams(location.search),num=(k,d)=>q.has(k)?+q.get(k):d;
+const N=num('frames',36),R=num('R',18),ELEV=num('elev',36.87)*Math.PI/180,SS=num('ss',8),K=num('colors',14),METAL=num('metal',.45);
+const SAT=num('sat',1.25),MODE=num('mode',1);
+const OUT=[11,16,18];
+// saturazione: allontana ogni canale dalla media per colori più netti
+const sat=p=>{const m=(p[0]+p[1]+p[2])/3;return p.map(v=>Math.max(0,Math.min(255,m+(v-m)*SAT)))};                                    // contorno #0b1012 come nel gioco
+const gltf=await new GLTFLoader().loadAsync(q.get('model'));
+const model=gltf.scene;
+// materiali: niente cromatura ovunque, stile toon più leggibile
+model.traverse(o=>{if(o.isMesh){const m=o.material;m.metalness=Math.min(m.metalness,METAL);m.roughness=Math.max(m.roughness,.5);m.needsUpdate=true}});
+const box=new THREE.Box3().setFromObject(model),c=box.getCenter(new THREE.Vector3()),sz=box.getSize(new THREE.Vector3());
+model.position.sub(c);
+const pivot=new THREE.Group();pivot.add(model);
+const rad=Math.max(sz.x,sz.z)/2,u=rad/R;                // unità mondo per pixel sprite
+// ingombro verticale proiettato: diametro·sin(elev) + spessore·cos(elev)
+const S=2*R+4,H=Math.ceil((2*rad*Math.sin(ELEV)+sz.y*Math.cos(ELEV))/u)+4;
+const scene=new THREE.Scene();scene.add(pivot);
+scene.add(new THREE.HemisphereLight(0xffffff,0x3a4a55,1.5));
+const key=new THREE.DirectionalLight(0xffffff,2.4);key.position.set(-2,4,2.5);scene.add(key);   // luce in alto a sinistra
+const rim=new THREE.DirectionalLight(0xffe0c0,.6);rim.position.set(2,1,-2);scene.add(rim);
+const cam=new THREE.OrthographicCamera(-S/2*u,S/2*u,H/2*u,-H/2*u,.01,100);
+cam.position.set(0,Math.sin(ELEV)*10,Math.cos(ELEV)*10);cam.lookAt(0,0,0);
+const ren=new THREE.WebGLRenderer({antialias:false,alpha:true,preserveDrawingBuffer:true});
+ren.setPixelRatio(1);ren.setSize(S*SS,H*SS);ren.setClearColor(0,0);ren.outputColorSpace=THREE.SRGBColorSpace;
+const grab=document.createElement('canvas');grab.width=S*SS;grab.height=H*SS;const gg=grab.getContext('2d',{willReadFrequently:true});
+// 1. render + riduzione a pixel: copertura >50% = pixel pieno, colore = media dei campioni
+const frames=[];
+for(let i=0;i<N;i++){
+  pivot.rotation.y=-i*2*Math.PI/N;                       // angolo crescente = orario a schermo, come gli sprite procedurali
+  ren.render(scene,cam);gg.clearRect(0,0,grab.width,grab.height);gg.drawImage(ren.domElement,0,0);
+  const d=gg.getImageData(0,0,grab.width,grab.height).data,px=new Array(S*H).fill(null);
+  for(let y=0;y<H;y++)for(let x=0;x<S;x++){
+    let n=0,r=0,g=0,b=0;const bins={};
+    for(let sy=0;sy<SS;sy++)for(let sx=0;sx<SS;sx++){const k=((y*SS+sy)*grab.width+(x*SS+sx))*4;if(d[k+3]>127){n++;r+=d[k];g+=d[k+1];b+=d[k+2];
+      if(MODE){const key=(d[k]>>5)+','+(d[k+1]>>5)+','+(d[k+2]>>5);const e=bins[key]||(bins[key]=[0,0,0,0]);e[0]+=d[k];e[1]+=d[k+1];e[2]+=d[k+2];e[3]++}}}
+    if(n>SS*SS/2){let c=[r/n,g/n,b/n];
+      if(MODE){let best=null;for(const e of Object.values(bins))if(!best||e[3]>best[3])best=e;c=[best[0]/best[3],best[1]/best[3],best[2]/best[3]]}
+      px[y*S+x]=sat(c)}
+  }
+  frames.push(px);
+}
+// 2. tavolozza comune a tutti i fotogrammi (k-means), così la rotazione non sfarfalla
+const all=[];frames.forEach(f=>f.forEach(p=>p&&all.push(p)));
+let cent=Array.from({length:K},(_,i)=>all[Math.floor(i*all.length/K)].slice());
+const near=p=>{let bi=0,bd=1e9;cent.forEach((c,i)=>{const d=(p[0]-c[0])**2+(p[1]-c[1])**2+(p[2]-c[2])**2;if(d<bd){bd=d;bi=i}});return bi};
+for(let it=0;it<10;it++){const acc=cent.map(()=>[0,0,0,0]);for(const p of all){const a=acc[near(p)];a[0]+=p[0];a[1]+=p[1];a[2]+=p[2];a[3]++}cent=acc.map((a,i)=>a[3]?[a[0]/a[3],a[1]/a[3],a[2]/a[3]]:cent[i])}
+cent=cent.map(c=>c.map(Math.round));
+// 3. spritesheet: colori della tavolozza + contorno di 1 pixel
+const sheet=document.createElement('canvas');sheet.width=S*N;sheet.height=H;const sg=sheet.getContext('2d');const img=sg.createImageData(S*N,H);
+frames.forEach((f,i)=>{
+  const at=(x,y)=>x<0||y<0||x>=S||y>=H?null:f[y*S+x];
+  for(let y=0;y<H;y++)for(let x=0;x<S;x++){
+    const p=at(x,y),k=(y*S*N+i*S+x)*4;let col=null;
+    if(p)col=cent[near(p)];else if(at(x-1,y)||at(x+1,y)||at(x,y-1)||at(x,y+1))col=OUT;
+    if(col){img.data[k]=col[0];img.data[k+1]=col[1];img.data[k+2]=col[2];img.data[k+3]=255}
+  }
+});
+sg.putImageData(img,0,0);
+// anteprima ingrandita per controllo a occhio
+const prev=document.createElement('canvas');prev.width=S*12*4;prev.height=H*3*4;const pg=prev.getContext('2d');pg.imageSmoothingEnabled=false;pg.fillStyle='#1a2226';pg.fillRect(0,0,prev.width,prev.height);
+for(let i=0;i<N;i++)pg.drawImage(sheet,i*S,0,S,H,(i%12)*S*4,Math.floor(i/12)*H*4,S*4,H*4);
+window.result={png:sheet.toDataURL('image/png'),preview:prev.toDataURL('image/png'),S,H,n:N,palette:cent.map(c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join(''))};
+</script>

@@ -130,3 +130,25 @@ Crediti disponibili dopo la fase 1b: 45.68.
 
 - **Stadio**: conca procedurale in Godot (la fisica dipende dalla curva esatta).
 - **Effetti, HUD, particelle**: nativi in Godot.
+
+
+## Pipeline di cottura 3D → pixel art (`tools/bake`)
+
+```
+cd spinforge/tools/bake && npm i
+node bake.js ../../assets/models/<modello>.glb <nome> 36 10 "sat=1.35&mode=1"
+```
+
+1. Render ortografico con la telecamera del gioco (elevazione 36.87° = schiacciamento
+   iso 0.6), luce in alto a sinistra, metallo limitato a 0.45 (niente cromature).
+2. 36 fotogrammi su un giro completo (10° l'uno, come gli sprite procedurali),
+   renderizzati 8× più grandi e ridotti: pixel pieno se copertura > 50%, colore
+   = colore più frequente del blocco (niente sfumature di bordo).
+3. Saturazione +35% e tavolozza comune a tutti i fotogrammi (k-means, 10 colori):
+   la rotazione non sfarfalla.
+4. Contorno #0b1012 di 1 pixel. Uscita: `assets/sprites/<nome>.png` (spritesheet),
+   `<nome>.json` (S, H, n, tavolozza), `<nome>_anteprima.png`.
+
+Nel gioco lo spritesheet è incorporato in `index.html` (`BAKED`, base64) e il pezzo
+usa `baked:'<nome>'`. RAPTOR 3D: 40×31 px per fotogramma, 21.7 KB. I pezzi cotti
+hanno i colori della texture (non ricolorabili dal garage).
