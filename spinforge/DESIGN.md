@@ -145,3 +145,62 @@ Cosa abbiamo imparato mentre si definivano i cardini:
   telemetria dal vivo (consumo, tempo residuo, ultimo urto, perdite per causa),
   esportazione della configurazione in JSON.
 - **Stile CPU** `MANICHINO`: resta al centro senza reagire, per provare i colpi.
+
+
+## Torneo del roster (bilanciamento dei pezzi)
+
+`node tools/torneo.js 80` fa giocare ogni coppia dei 10 Blade del roster per
+80 round, CPU contro CPU, con lo stile adatto alla lama (attacco = aggressiva,
+BASTION = difensiva, ORBIT/HALO = equilibrata) e verso di rotazione casuale.
+
+**Prima del bilanciamento** (40 round): BASTION WALL 76%, ORBIT EDGE 71%,
+Blade d'attacco 26–34%. Cause trovate:
+
+1. L'ingranaggio d'oro con 2 denti faceva esplodere i Blade d'attacco
+   (CYCLONE RUSH 161 burst subiti su 360 round).
+2. L'aggressività pesava troppo poco sul danno (+13% per RAPTOR) rispetto ai
+   costi in consumo, inerzia e massa.
+3. La punta SHARP dominava (i primi tre Blade la montavano).
+4. Lo stile della CPU non cambiava nulla: il problema erano i pezzi.
+
+**Correzioni:** danno = … × `SMASH_GAIN` (1.6) × smash della lama (prima
+0.6 + 0.6·smash); `GRIP_DRAIN` 0.4 → 0.25; ingranaggio 3 denti; BASTION
+massa 1.30 → 1.20; RAPTOR aggressività 1.45; CYCLONE 1.32; HALO inerzia
+1.40 → 1.30; SHARP aderenza 0.70 / stabilità 1.15; FLAT 1.30 / 0.90;
+RUBBER 1.50 / 0.75; 6 RINFORZATO con baricentro alto (stabilità 0.90);
+3 DENTI BASSO stabilità 1.15.
+
+**Dopo** (80 round per coppia):
+
+```
+BLADE           VITT% V S P PUNTI BURST+ BURST- DURATA
+ORBIT EDGE       59.9  431  289   0   460     18     45   42.4
+BASTION WALL     56.7  408  312   0   462     32     78   44.7
+HALO CROWN       56.5  407  313   0   415      5     30   45.8
+ORBIT VEIL         55  396  324   0   424     19     54   41.8
+HALO DRIFT       50.3  362  357   1   363      1    215   42.2
+RAPTOR FLARE     49.9  359  361   0   655    214     69   35.4
+CYCLONE RUSH     47.9  345  375   0   638    218     72   36.5
+CYCLONE SWEEP    41.9  302  418   0   449    104     74   38.8
+RAPTOR STRIKE    41.3  297  423   0   499    137     19   37.3
+BASTION CORE     40.6  292  427   1   345     33    125   42.7
+
+MATRICE (vittorie riga contro colonna su 80)
+                ORBIT  BASTIO HALO C ORBIT  HALO D RAPTOR CYCLON CYCLON RAPTOR BASTIO
+ORBIT EDGE           -     45     42     36     39     52     46     59     53     59
+BASTION WALL        35      -     42     47     35     39     41     54     64     51
+HALO CROWN          38     38      -     46     16     58     59     59     58     35
+ORBIT VEIL          44     33     34      -     37     51     45     55     51     46
+HALO DRIFT          41     45     64     43      -     25     21     40     32     51
+RAPTOR FLARE        28     41     22     29     55      -     43     43     43     55
+CYCLONE RUSH        34     39     21     35     59     37      -     35     38     47
+CYCLONE SWEEP       21     26     21     25     40     37     45      -     44     43
+RAPTOR STRIKE       27     16     22     29     48     37     42     36      -     40
+BASTION CORE        21     29     45     34     28     25     33     37     40      -
+```
+
+Tutti i Blade tra il 41% e il 60% di vittorie. I Blade d'attacco vincono meno
+round ma fanno più punti (burst e XTREME: RAPTOR FLARE 655 punti col 50% di
+vittorie), quelli da resistenza vincono di più ma quasi sempre per 1 punto.
+Ogni Blade ha avversari favorevoli e sfavorevoli (es. HALO DRIFT batte HALO
+CROWN 64–16 ma perde contro CYCLONE RUSH 21–59).

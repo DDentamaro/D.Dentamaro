@@ -279,6 +279,8 @@
     RAIL_GAIN:7,              // spin recuperato al secondo a pieno aggancio (punta FLAT)
     HEAT_MAX:2.5,             // secondi di grind prima del surriscaldamento
     IMPACT:.45,               // spin tolto per unità d'impulso (scalato dalla quota di carica cinetica)
+    SMASH_BASE:0,SMASH_GAIN:1.6,  // danno = ... × (BASE + GAIN × smash della lama): quanto conta l'aggressività
+    GRIP_DRAIN:.25,           // quanto l'aderenza della punta aumenta il consumo
     GUARD_TIME:.45,           // durata della guardia
     GUARD_CD:1.2,             // ricarica della guardia
     PARRY_WIN:.2,             // finestra della parata perfetta dall'inizio della guardia
@@ -321,7 +323,7 @@
     };
     const tip={
       name:'BIT',grip:.6*f.grip,fric:1.3*Math.pow(f.grip,.8),
-      drain:.6+.4*f.grip,stab:f.stab,
+      drain:1-PHY.GRIP_DRAIN+PHY.GRIP_DRAIN*f.grip,stab:f.stab,
       accel:1/Math.pow(f.mass,.7),                           // costo della massa
       turn:1/Math.pow(f.rim,.7),                             // costo dell'inerzia
       steer:1.2-.2*f.stab                                    // costo della stabilità
@@ -354,7 +356,7 @@
     blade:{
       raptor:{id:'raptor',name:'RAPTOR',type:'ATTACCO',sym:3,side:['p','s'],
         desc:'Anello a tre artigli d\'acciaio: colpi duri, poca inerzia.',
-        mod:{mass:.95,rim:.85,aggro:1.35},colors:{p:'#e2462b',s:'#f2c230',m:'#aab4c0'},
+        mod:{mass:1,rim:.95,aggro:1.45},colors:{p:'#e2462b',s:'#f2c230',m:'#aab4c0'},
         shape(r,a){
           if(r<.2)return 0;
           if(r<.33)return 's';
@@ -367,7 +369,7 @@
         }},
       orbit:{id:'orbit',name:'ORBIT',type:'EQUILIBRIO',sym:5,side:['p','s'],
         desc:'Cinque ali con bordo d\'argento: nessun punto debole.',
-        mod:{mass:1.1,rim:1.1,aggro:1},colors:{p:'#7a3fd0',s:'#b99af0',m:'#dfe4ea'},
+        mod:{mass:1.05,rim:1.05,aggro:1},colors:{p:'#7a3fd0',s:'#b99af0',m:'#dfe4ea'},
         shape(r,a){
           if(r<.2)return 0;
           if(r<.29)return 'p';
@@ -380,7 +382,7 @@
         }},
       bastion:{id:'bastion',name:'BASTION',type:'DIFESA',sym:8,side:['s','p'],
         desc:'Otto respingenti tondi: pesante, assorbe e non si smonta.',
-        mod:{mass:1.3,rim:1,aggro:.7},colors:{p:'#4b5358',s:'#1fb5a5',m:'#8a949c'},
+        mod:{mass:1.2,rim:.95,aggro:.75},colors:{p:'#4b5358',s:'#1fb5a5',m:'#8a949c'},
         shape(r,a){
           if(r<.17)return 0;
           if(r<.29)return 's';
@@ -391,7 +393,7 @@
         }},
       halo:{id:'halo',name:'HALO',type:'RESISTENZA',sym:12,side:['m','p'],
         desc:'Bordo d\'oro pesante e dodici alette: gira a lungo, colpisce piano.',
-        mod:{mass:1.05,rim:1.4,aggro:.7},colors:{p:'#f4efe1',s:'#c98b4a',m:'#e8b423'},
+        mod:{mass:1.05,rim:1.3,aggro:.72},colors:{p:'#f4efe1',s:'#c98b4a',m:'#e8b423'},
         shape(r,a){
           if(r<.2)return 0;
           if(r<.31)return 's';
@@ -401,7 +403,7 @@
         }},
       cyclone:{id:'cyclone',name:'CYCLONE',type:'ATTACCO',sym:4,side:['p','s'],
         desc:'Quattro falci a spirale: attacco pulito, rinculo contenuto.',
-        mod:{mass:1,rim:.95,aggro:1.2},colors:{p:'#3d5a45',s:'#8fd14f',m:'#dfe4ea'},
+        mod:{mass:1.02,rim:1.02,aggro:1.32},colors:{p:'#3d5a45',s:'#8fd14f',m:'#dfe4ea'},
         shape(r,a){
           if(r<.2)return 0;
           if(r<.5)return r<.3?'s':'p';
@@ -413,7 +415,7 @@
     ratchet:{
       r3:{id:'r3',name:'3 DENTI BASSO',type:'RESISTENZA',sym:3,side:['p','s'],
         desc:'Profilo basso: baricentro giù, più stabile, 3 denti.',
-        mod:{lock:1,stab:1.1,mass:.95},colors:{p:'#2a2f33',s:'#e2462b',m:'#8a949c'},
+        mod:{lock:1,stab:1.15,mass:1},colors:{p:'#2a2f33',s:'#e2462b',m:'#8a949c'},
         shape(r,a){
           if(r<.36)return 0;
           if(r<.5)return 'p';
@@ -431,8 +433,8 @@
           return Math.abs(a)<.3*(1.25-(r-.78)*2.2)?'p':0;
         }},
       r6:{id:'r6',name:'6 RINFORZATO',type:'DIFESA',sym:6,side:['p','m','m','p'],
-        desc:'Fascia d\'acciaio: 5 denti, più peso, lama un po\' meno aggressiva.',
-        mod:{lock:1.6,mass:1.08,aggro:.9},colors:{p:'#1e2226',s:'#5b646b',m:'#c9d1d8'},
+        desc:'Fascia d\'acciaio: 5 denti e più peso, ma baricentro alto e lama meno aggressiva.',
+        mod:{lock:1.6,mass:1.08,aggro:.88,stab:.9},colors:{p:'#1e2226',s:'#5b646b',m:'#c9d1d8'},
         shape(r,a){
           if(r<.32)return 0;
           if(r<.4)return 'm';
@@ -441,8 +443,8 @@
           return Math.abs(a)<.3?'p':(r<.74?'s':0);
         }},
       gear:{id:'gear',name:'INGRANAGGIO',type:'ATTACCO',sym:3,side:['p','p'],
-        desc:'Ingranaggio d\'oro: solo 2 denti, ma lama più aggressiva.',
-        mod:{lock:.7,aggro:1.08},colors:{p:'#e8b423',s:'#c98b4a',m:'#c7ced6'},
+        desc:'Ingranaggio d\'oro: 3 denti fragili, lama più aggressiva.',
+        mod:{lock:.9,aggro:1.1},colors:{p:'#e8b423',s:'#c98b4a',m:'#c7ced6'},
         shape(r,a){
           if(r<.32)return 0;
           if(r<.42)return 'p';
@@ -453,16 +455,16 @@
     },
     bit:{
       rubber:{id:'rubber',name:'RUBBER',type:'ATTACCO',desc:'Gomma larga: aderenza estrema, instabile e golosa di spin.',
-        mod:{grip:1.6,stab:.7},colors:{p:'#8fd14f',s:'#2a2f33',m:'#8a949c'},
+        mod:{grip:1.5,stab:.75},colors:{p:'#8fd14f',s:'#2a2f33',m:'#8a949c'},
         profile:[[2,'p',4],[5,'p',3],[7,'g',2],[5,'p',1],[7,'k',2],[8,'k',3]]},
       flat:{id:'flat',name:'FLAT',type:'ATTACCO',desc:'Disco di gomma: velocissima, consuma tanto.',
-        mod:{grip:1.4,stab:.8},colors:{p:'#ff7a1a',s:'#2a2f33',m:'#8a949c'},
+        mod:{grip:1.3,stab:.9},colors:{p:'#ff7a1a',s:'#2a2f33',m:'#8a949c'},
         profile:[[2,'p',4],[5,'p',3],[7,'g',2],[5,'p',2],[6,'k',1],[7,'k',3]]},
       ball:{id:'ball',name:'BALL',type:'EQUILIBRIO',desc:'Sfera liscia: controllo e durata bilanciati.',
         mod:{grip:1,stab:1},colors:{p:'#8b949c',s:'#f4efe1',m:'#dfe4ea'},
         profile:[[2,'p',4],[5,'p',4],[7,'g',2],[5,'p',2],[4,'w',1],[5,'w',1],[6,'w',4],[5,'w',1],[4,'w',1],[2,'w',1]]},
       sharp:{id:'sharp',name:'SHARP',type:'RESISTENZA',desc:'Cono appuntito: resta al centro, scivola dopo i colpi.',
-        mod:{grip:.55,stab:1.35},colors:{p:'#8b949c',s:'#f2c230',m:'#dfe4ea'},
+        mod:{grip:.7,stab:1.15},colors:{p:'#8b949c',s:'#f2c230',m:'#dfe4ea'},
         profile:[[2,'p',4],[5,'p',3],[7,'g',2],[5,'p',3],[5,'s',1],[4,'s',2],[3,'s',2],[2,'s',2],[1,'m',3]]},
       bullet:{id:'bullet',name:'BULLET',type:'ATTACCO',desc:'Ogiva rossa: spinta decisa senza perdere stabilità.',
         mod:{grip:1.2,stab:.95},colors:{p:'#e2462b',s:'#f2c230',m:'#dfe4ea'},
@@ -853,8 +855,8 @@
     [gB,bB]=guardOf(B,A,shA);[gA,bA]=guardOf(A,B,shB);
 
     // spin tolto dall'impatto: dipende dalla quota di carica cinetica e dalla lama avversaria
-    let lossA=Jn*PHY.IMPACT*(.4+1.6*shB)*(.6+.6*B.blade.smash)/mA*gA;
-    let lossB=Jn*PHY.IMPACT*(.4+1.6*shA)*(.6+.6*A.blade.smash)/mB*gB;
+    let lossA=Jn*PHY.IMPACT*(.4+1.6*shB)*(PHY.SMASH_BASE+PHY.SMASH_GAIN*B.blade.smash)/mA*gA;
+    let lossB=Jn*PHY.IMPACT*(.4+1.6*shA)*(PHY.SMASH_BASE+PHY.SMASH_GAIN*A.blade.smash)/mB*gB;
     if(parried&&!parried.isPlayer)parried.ai.counter=.6;
     if(parried===B){lossA*=2;A.vx-=nx*.7;A.vz-=nz*.7;A.lx-=nx*.5;A.lz-=nz*.5;B.stats.parry++}
     if(parried===A){lossB*=2;B.vx+=nx*.7;B.vz+=nz*.7;B.lx+=nx*.5;B.lz+=nz*.5;A.stats.parry++}
