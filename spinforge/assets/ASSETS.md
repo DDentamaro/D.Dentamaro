@@ -112,7 +112,15 @@ UI di riferimento: **garage** e **HUD** (in `ui/`).
 
 | Pezzo | Modello | Crediti | Job Higgsfield | File |
 |---|---|---|---|---|
-| Lama RAPTOR (test) | Tripo H3.1 image→3D, texture PBR, 20k facce | 9 | `490de015-2695-4096-8965-10c8a4e7aa1a` | `models/blade_raptor.glb` (da scaricare) |
+| Lama RAPTOR (test) | Tripo H3.1 image→3D, texture PBR, 20k facce | 9 | `490de015-2695-4096-8965-10c8a4e7aa1a` | `models/blade_raptor.glb` |
+
+**Analisi di `blade_raptor.glb`** (anteprima in `models/blade_raptor_anteprima.png`):
+18 564 triangoli, 11 322 vertici, 3.9 MB; disco 1 × 0.19 × 1 con asse Y in alto e
+origine al centro (pronto per ruotare su se stesso); materiale PBR con mappe colore,
+ORM e normali. Forma fedele al bozzetto (3 artigli, raggi dorati, anello con aperture).
+Difetti: superficie un po' ondulata tipica delle mesh IA, `metallicFactor` 1.0 su
+tutto (anche la plastica sembra cromata): in Godot va usato un materiale toon o
+abbassato il metallo sulle parti in plastica.
 
 Il roster ha 14 pezzi (5 lame, 4 blocchi, 5 punte). Tripo H3.1 image → 3D
 costa 9 crediti a pezzo (126 in tutto); Tripo text → 3D 5 crediti (70).
