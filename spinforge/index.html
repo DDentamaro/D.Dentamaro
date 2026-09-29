@@ -355,6 +355,8 @@
       <div class="choices" data-group="opp"></div>
       <h2>ROTAZIONE</h2>
       <div class="choices" data-group="dir"></div>
+      <h2>DIFFICOLTÀ</h2>
+      <div class="choices" data-group="diff"></div>
       <h2>STILE DELLA CPU</h2>
       <div class="choices" data-group="profile"></div>
       <div class="rules">
@@ -411,7 +413,10 @@
     PRECESS:.12,              // anticipo di precessione in radianti (prima .3)
     DRAIN_BASE:.9,            // consumo a riposo (%/s) del top base: ~110s senza combattere
     STALL_SPEED:.12,STALL_TIME:3,STALL_MULT:1.5,   // ristagno: sotto .12 di velocità per 3s il consumo base aumenta del 150%
-    RUSH_COST:1.2,            // spin speso da un rush: RUSH_COST·(1+2.5·carica)
+    RUSH_COST:1.2,
+    RUSH_REFUND:.5,           // quota del costo restituita se il rush va a vuoto
+    AIM_ASSIST:30,            // gradi (×difficoltà): entro questo cono il rush del giocatore punta l'avversario
+    CHARGE_DRAIN:1.5,         // spin/s consumato tenendo la carica al massimo            // spin speso da un rush: RUSH_COST·(1+2.5·carica)
     ABSORB:.35,               // quota dello spin tolto che l'attaccante recupera (scambio favorevole)
     MOVE_COST:.15,            // consumo extra per unità di velocità (muoversi deve convenire)
     TILT_COST:.6,             // consumo extra per asse inclinato
@@ -482,6 +487,13 @@
     defensive:{id:'defensive',name:'DIFENSIVA',desc:'Presidia il centro e para spesso.',guard:.7},
     dummy:{id:'dummy',name:'MANICHINO',desc:'Resta al centro senza reagire: per provare i colpi.',guard:0}
   };
+  /* Difficoltà CPU: parata, potenza di lancio, frequenza e precisione dei rush */
+  const DIFFS={
+    easy:{id:'easy',name:'FACILE',desc:'Para poco, lancia debole, mira imprecisa.',guard:.4,launch:[.45,.35],rush:.6,aim:.5,assist:1.5},
+    normal:{id:'normal',name:'NORMALE',desc:'Avversario leale: sbaglia ogni tanto.',guard:.7,launch:[.55,.35],rush:.85,aim:.25,assist:1},
+    hard:{id:'hard',name:'DIFFICILE',desc:'Para spesso, lancio forte, mira precisa.',guard:1.1,launch:[.65,.33],rush:1.1,aim:.05,assist:.5}
+  };
+  const diffOf=()=>DIFFS[cfg.diff]||DIFFS.normal;
   // configurazione della partita (modificabile dal LAB)
   /* Icone pixel 9×9 (# = pieno) generate in data URL e usate come --i sugli elementi .ico */
   const ICONS={
@@ -492,7 +504,7 @@
   };
   function iconURL(rows,color){const c=document.createElement('canvas');c.width=c.height=9;const g=c.getContext('2d');g.fillStyle=color;rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(ch==='#')g.fillRect(x,y,1,1)}));return c.toDataURL()}
   document.querySelectorAll('.ico[data-ico]').forEach(el=>el.style.setProperty('--i','url('+iconURL(ICONS[el.dataset.ico],'#ffd37a')+')'));
-  const cfg={you:{...BASE},cpu:{...BASE},mirror:true,dir:'right',cpuDir:'right',profile:'balanced',build:null,cpuBuild:null,opp:'random'};
+  const cfg={you:{...BASE},cpu:{...BASE},mirror:true,dir:'right',cpuDir:'right',profile:'balanced',diff:'normal',build:null,cpuBuild:null,opp:'random'};
 
   /* ============================================================
      PEZZI IN PIXEL ART
@@ -911,14 +923,14 @@
     if(dist>.45)b.ai.rolled=false;
     if(!b.ai.rolled&&incoming>.7&&dist<b.ai.gd&&b.gcd<=0&&!p.dead){
       b.ai.rolled=true;b.ai.gd=.2+Math.random()*.2;
-      const chance=PROFILES[prof].guard;
+      const chance=Math.min(.95,PROFILES[prof].guard*diffOf().guard);
       if(Math.random()<chance&&startGuard(b))return{x:0,z:0};
     }
     // contrattacco subito dopo una parata perfetta
     if(b.ai.counter>0){b.ai.counter-=1/120;if(!b.charging&&b.cooldown<=0){b.charging=true;b.charge=0;b.ai.hold=.35}}
     // gestione carica
-    if(b.charging){b.ai.hold-=1/120;if(b.ai.hold<=0)releaseRush(b,{x:tx/tl,z:tz/tl})}
-    else if(wantRush&&b.cooldown<=0&&b.spin>15&&Math.random()<.006){b.charging=true;b.charge=0;b.ai.hold=.25+Math.random()*.55}
+    if(b.charging){b.ai.hold-=1/120;if(b.ai.hold<=0){const e=(Math.random()-.5)*2*diffOf().aim,c=Math.cos(e),sn=Math.sin(e);releaseRush(b,{x:(tx*c-tz*sn)/tl,z:(tx*sn+tz*c)/tl})}}
+    else if(wantRush&&b.cooldown<=0&&b.spin>15&&Math.random()<.006*diffOf().rush){b.charging=true;b.charge=0;b.ai.hold=.25+Math.random()*.55}
     return{x:ux,z:uz};
   }
 
@@ -940,10 +952,15 @@
   }
   function releaseRush(t,aim){
     if(!t.charging)return;t.charging=false;
-    const am=aimOf(t,aim),ax=am.x,az=am.z;
+    const am=aimOf(t,aim);let ax=am.x,az=am.z;
+    // assistenza alla mira: se l'avversario è entro il cono, il rush lo punta (con anticipo)
+    if(t.isPlayer&&PHY.AIM_ASSIST>0){
+      const o=enemy,lx=o.x+o.vx*.2-t.x,lz=o.z+o.vz*.2-t.z,ll=Math.hypot(lx,lz)||1;
+      if((ax*lx+az*lz)/ll>=Math.cos(PHY.AIM_ASSIST*diffOf().assist*Math.PI/180)){ax=lx/ll;az=lz/ll}
+    }
     // la carica converte energia di rotazione in energia cinetica
     const c=t.charge,imp=(.8+1.9*c)*(.6+.4*t.tip.grip);t.rushPow=c;t.stats.rush++;
-    t.vx+=ax*imp;t.vz+=az*imp;t.rush=.35;t.cooldown=t.isPlayer?.7:1.3;t.spin-=PHY.RUSH_COST*(1+2.5*c);t.loss.rush+=PHY.RUSH_COST*(1+2.5*c);t.charge=0;
+    t.vx+=ax*imp;t.vz+=az*imp;t.rush=.35;t.cooldown=t.isPlayer?.7:1.3;t.rushCost=PHY.RUSH_COST*(1+2.5*c);t.rushHit=false;t.spin-=t.rushCost;t.loss.rush+=t.rushCost;t.charge=0;
     // la spinta inclina l'asse all'indietro (reazione giroscopica)
     t.lx-=ax*.25;t.lz-=az*.25;
     emit(t.x,t.z,t.isPlayer?'#ff8564':'#c9a3d6',10+c*14);
@@ -958,12 +975,12 @@
      3. la punta inclinata spinge, l'attrito smorza, la conca richiama
      ============================================================ */
   function stepTop(t,input,dt){
-    t.cooldown=Math.max(0,t.cooldown-dt);t.rush=Math.max(0,t.rush-dt);t.flash=Math.max(0,t.flash-dt*3);
+    t.cooldown=Math.max(0,t.cooldown-dt);if(t.rush>0&&t.rush<=dt&&!t.rushHit&&!t.dead){const r=t.rushCost*PHY.RUSH_REFUND;t.spin=Math.min(100,t.spin+r);t.loss.rush-=r;if(t.isPlayer)addFloat(t,'+'+Math.round(r)+' SPIN','#8fd6ff')}t.rush=Math.max(0,t.rush-dt);t.flash=Math.max(0,t.flash-dt*3);
     t.guard=Math.max(0,t.guard-dt);t.guardT+=dt;t.gcd=Math.max(0,t.gcd-dt);
     if(t.dead){t.deadT+=dt;t.vx*=Math.exp(-4*dt);t.vz*=Math.exp(-4*dt);t.x+=t.vx*dt;t.z+=t.vz*dt;return}
     const sf=Math.max(0,t.spin)/100,d=t.dir;
     let ux=input.x,uz=input.z;
-    if(t.charging){const was=t.charge;t.charge=Math.min(1,t.charge+dt/PHY.CHARGE_TIME);if(t.isPlayer&&was<PHY.BREAK_CHARGE&&t.charge>=PHY.BREAK_CHARGE)showNotice('RUSH MAX!');t.spin-=dt*3*t.charge;t.loss.charge+=dt*3*t.charge;ux*=.3;uz*=.3}
+    if(t.charging){const was=t.charge;t.charge=Math.min(1,t.charge+dt/PHY.CHARGE_TIME);if(t.isPlayer&&was<PHY.BREAK_CHARGE&&t.charge>=PHY.BREAK_CHARGE)showNotice('RUSH MAX!');t.spin-=dt*PHY.CHARGE_DRAIN*t.charge;t.loss.charge+=dt*PHY.CHARGE_DRAIN*t.charge;ux*=.3;uz*=.3}
     if(t.guard>0){ux=0;uz=0}
 
     // 1. inclinazione obiettivo = input ruotato di -90° nel verso di spin
@@ -1045,6 +1062,7 @@
     const nx=d?dx/d:1,nz=d?dz/d:0,tx=-nz,tz=nx,mA=mass(A),mB=mass(B),iA=1/mA,iB=1/mB,invM=iA+iB;
     const ov=min-d;A.x-=nx*ov*iA/invM;A.z-=nz*ov*iA/invM;B.x+=nx*ov*iB/invM;B.z+=nz*ov*iB/invM;
     if(pairCD>0)return;
+    A.rushHit=A.rushHit||A.rush>0;B.rushHit=B.rushHit||B.rush>0;
 
     const rvx=B.vx-A.vx,rvz=B.vz-A.vz,vn=rvx*nx+rvz*nz;
     const wA=rimSpeed(A),wB=rimSpeed(B);
@@ -1211,7 +1229,7 @@
   function startLaunch(){
     state='launch';roundEnd=null;particles.length=debris.length=trails.length=floats.length=0;
     resetTop(player,-.62,.3);resetTop(enemy,.62,-.3);
-    launch={t:0,needle:0,power:null,foePower:.55+Math.random()*.42,go:0};
+    launch={t:0,needle:0,power:null,foePower:diffOf().launch[0]+Math.random()*diffOf().launch[1],go:0};
     $('#launchPanel').hidden=false;showNotice('ROUND '+round);
   }
   function doLaunch(power){
@@ -1266,7 +1284,7 @@
   function actDown(){
     actHeld=true;
     if(state==='launch'&&launch.power===null){
-      const n=launch.needle,q=n>=.82&&n<=.89?1:n>=.62&&n<=.92?.7+.3*(1-Math.abs(n-.855)/.235):Math.max(.25,n*.7);
+      const n=launch.needle,q=n>=.82&&n<=.89?1:n>=.62&&n<=.92?.7+.3*(1-Math.abs(n-.855)/.235):Math.max(.45,.45+.3*n);
       doLaunch(Math.min(1,q));return;
     }
     if(state!=='battle'||player.dead||roundEnd)return;
@@ -1459,14 +1477,15 @@
      SETUP UI
      ============================================================ */
   function buildSetup(){
-    const groups={dir:[DIRS,'dir'],profile:[PROFILES,'profile']};
+    cfg.diff=DIFFS[store.get('spinforge.diff','normal')]?store.get('spinforge.diff','normal'):'normal';
+    const groups={dir:[DIRS,'dir'],diff:[DIFFS,'diff'],profile:[PROFILES,'profile']};
     for(const [g,[list,key]] of Object.entries(groups)){
       const box=document.querySelector('.choices[data-group="'+g+'"]');box.innerHTML='';
       for(const item of Object.values(list)){
         const b=document.createElement('button');b.type='button';
         b.innerHTML='<b>'+item.name+'</b><small>'+item.desc+'</small>';
         b.classList.toggle('sel',cfg[key]===item.id);
-        b.addEventListener('click',()=>{cfg[key]=item.id;if(key==='dir'&&cfg.mirror)cfg.cpuDir=item.id;box.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+        b.addEventListener('click',()=>{cfg[key]=item.id;if(key==='dir'&&cfg.mirror)cfg.cpuDir=item.id;if(key==='diff')store.set('spinforge.diff',item.id);box.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
         box.appendChild(b);
       }
     }

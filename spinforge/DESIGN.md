@@ -69,6 +69,27 @@ all'accelerazione massima `AMAX` (entrambe scalate da ADERENZA e MASSA).
 4. Dalla tacca bianca (`BREAK_CHARGE` = 80%) il rush è **MAX**: anello dorato,
    sfonda la guardia, e un burst provocato vale **XTREME (+3)**.
 5. Il danno dipende dalla velocità verso il contatto: serve rincorsa.
+6. **Assistenza mira** (`AIM_ASSIST`): se l'avversario è entro 30° dalla direzione
+   del rush (45° FACILE, 15° DIFFICILE) il rush lo punta con un leggero anticipo.
+7. **Rush a vuoto** (`RUSH_REFUND`): se il rush non tocca nulla, torna il 50% del costo.
+
+## Difficoltà CPU
+
+Diagnosi "finisco sempre lo spin": con mira perfetta il giocatore vinceva il 75–97%,
+con mira umana (errore 35–60°, reazione lenta) scendeva al 12–48%. Il 30% dello spin
+perso andava in rush mancati; in più il lancio anticipato poteva valere solo 25%.
+
+| | FACILE | NORMALE | DIFFICILE |
+|---|---|---|---|
+| Parata (× profilo) | 0.4 | 0.7 | 1.1 |
+| Lancio CPU | 45–80% | 55–90% | 65–98% |
+| Frequenza rush | ×0.6 | ×0.85 | ×1.1 |
+| Errore mira CPU | ±29° | ±14° | ±3° |
+| Assistenza mira tua | 45° | 30° | 15° |
+
+Il lancio del giocatore non scende più sotto il 45%. Giocatore simulato con mira umana
+(100 round, CPU equilibrata): FACILE 91%, NORMALE 70–79%, DIFFICILE 67%; chi resta
+passivo perde comunque (13%). Torneo CPU-vs-CPU invariato (38–62%).
 
 ## Burst (deterministico)
 
@@ -91,7 +112,8 @@ Ogni top ha N denti (BLOCCO). Ogni colpo con forza J riempie
 | Ristagno | consumo base ×2.5 dopo 3 s quasi fermo | `STALL_*` |
 | Colpo | impulso × 0.45 × quota cinetica (attaccante 0.4→2.0) | `IMPACT` |
 | Assorbimento | l'attaccante recupera fino al 35% dello spin tolto | `ABSORB` |
-| Rush | 1.2 × (1 + 2.5·carica) → da 1.2 a 4.2 % | `RUSH_COST` |
+| Rush | 1.2 × (1 + 2.5·carica) → da 1.2 a 4.2 %, metà rimborsata se va a vuoto | `RUSH_COST`, `RUSH_REFUND` |
+| Carica | 1.5 %/s × carica mentre tieni premuto | `CHARGE_DRAIN` |
 | Guardia | 1.5 %, parata perfetta = danno ×2 all'attaccante | `GUARD_*`, `PARRY_WIN` |
 | Solco | fino a +7 %/s per 2.5 s, poi raffreddamento | `RAIL_GAIN`, `HEAT_MAX` |
 | Attrito tra bordi (stesso verso) | quasi nullo, l'energia va nel colpo visibile | `SPIN_XFER` |
