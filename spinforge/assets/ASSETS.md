@@ -172,3 +172,32 @@ La cottura ora raddrizza ogni modello (`align=1`): la normale del piano di minim
 varianza dei vertici (PCA) viene allineata all'asse Y, così la lama gira in piano.
 Nel gioco le lame 3D hanno i nomi originali e sono usate dai preset; le lame
 procedurali restano come varianti **PX** ricolorabili.
+
+
+## Ricolorare le lame 3D (palette swap)
+
+Le lame cotte non sono più a colori fissi. Al caricamento il gioco analizza la
+tavolozza di ogni spritesheet e divide i colori in tre famiglie:
+
+| Famiglia | Regola | RAPTOR | CYCLONE | ORBIT | BASTION | HALO |
+|---|---|---|---|---|---|---|
+| **p** primario | tinta satura con più pixel | rosso | verde lime | viola | turchese | oro |
+| **s** secondario | seconda tinta satura, se distante ≥ 18° | oro | verde scuro | — | — | — |
+| **m** metallo | saturazione < 22% (grigi, argento, crema) | acciaio | argento | argento | grigio | crema |
+
+Scegliendo un colore, ogni tono della famiglia prende tinta e saturazione del
+nuovo colore e conserva lo scarto di luminosità dal tono medio della famiglia:
+luci, ombre e riflessi del modello restano. Il garage mostra solo le famiglie
+presenti nella lama.
+
+### Come generare le prossime mesh perché si ricolorino al meglio
+
+- **Due tinte ben separate + metallo neutro** (es. "red body, gold accents,
+  silver steel edges"): tre famiglie pulite. Evitare tinte vicine (rosso e
+  arancio) che finiscono nella stessa famiglia.
+- **Parti metalliche davvero grigie**, non dorate: l'oro satura viene letto come
+  colore, non come metallo.
+- **Niente decalcomanie, loghi o sfumature arcobaleno** sulla texture.
+- Per Godot il passo successivo è lo stesso principio in uno shader: una maschera
+  a 3 canali (primario, secondario, metallo) ricavata dalla texture con la stessa
+  classificazione, e tre colori uniformi scelti dal garage.
