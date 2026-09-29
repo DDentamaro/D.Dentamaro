@@ -378,7 +378,7 @@
           if(Math.abs(aa)>w)return r<.62?'p':0;
           return aa>w-.16?'m':'p';                          // bordo d'attacco argentato
         }},
-      bastion:{id:'bastion',name:'BASTION',type:'DIFESA',sym:8,side:['p','s','p'],
+      bastion:{id:'bastion',name:'BASTION',type:'DIFESA',sym:8,side:['s','p'],
         desc:'Otto respingenti tondi: pesante, assorbe e non si smonta.',
         mod:{mass:1.3,rim:1,aggro:.7},colors:{p:'#4b5358',s:'#1fb5a5',m:'#8a949c'},
         shape(r,a){
@@ -388,12 +388,42 @@
           const b=wrapA(a+Math.PI/8,TAU/8),u=(r-.86)/.13;
           if(Math.abs(u)<=1&&Math.abs(b)<.33*Math.sqrt(1-u*u))return 's';
           return r<.8?'p':0;
+        }},
+      halo:{id:'halo',name:'HALO',type:'RESISTENZA',sym:12,side:['m','p'],
+        desc:'Bordo d\'oro pesante e dodici alette: gira a lungo, colpisce piano.',
+        mod:{mass:1.05,rim:1.4,aggro:.7},colors:{p:'#f4efe1',s:'#c98b4a',m:'#e8b423'},
+        shape(r,a){
+          if(r<.2)return 0;
+          if(r<.31)return 's';
+          if(r<.76)return Math.abs(a+.25*(r-.3))<.06?'s':'p';
+          if(r<.8)return 's';
+          return Math.abs(a)<.04?'s':'m';
+        }},
+      cyclone:{id:'cyclone',name:'CYCLONE',type:'ATTACCO',sym:4,side:['p','s'],
+        desc:'Quattro falci a spirale: attacco pulito, rinculo contenuto.',
+        mod:{mass:1,rim:.95,aggro:1.2},colors:{p:'#3d5a45',s:'#8fd14f',m:'#dfe4ea'},
+        shape(r,a){
+          if(r<.2)return 0;
+          if(r<.5)return r<.3?'s':'p';
+          const tw=a+1.1*(r-.3),w=.55*(1-(r-.3)*.6);
+          if(r>.97||Math.abs(tw)>w)return r<.58?'p':0;
+          return tw>w-.12&&r>.55?'m':'s';
         }}
     },
     ratchet:{
+      r3:{id:'r3',name:'3 DENTI BASSO',type:'RESISTENZA',sym:3,side:['p','s'],
+        desc:'Profilo basso: baricentro giù, più stabile, 3 denti.',
+        mod:{lock:1,stab:1.1,mass:.95},colors:{p:'#2a2f33',s:'#e2462b',m:'#8a949c'},
+        shape(r,a){
+          if(r<.36)return 0;
+          if(r<.5)return 'p';
+          if(r<.58)return 's';
+          if(r<.8)return 'p';
+          return Math.abs(a)<.45*(1.3-(r-.8)*2.5)?'p':0;
+        }},
       r5:{id:'r5',name:'5 DENTI',type:'STANDARD',sym:5,side:['p','s','p'],
-        desc:'Blocco medio: 3 denti prima del burst.',
-        mod:{lock:1},colors:{p:'#3a3f44',s:'#ff8a1f',m:'#8a949c'},
+        desc:'Blocco medio: 4 denti prima del burst.',
+        mod:{lock:1.2},colors:{p:'#3a3f44',s:'#ff8a1f',m:'#8a949c'},
         shape(r,a){
           if(r<.36)return 0;
           if(r<.44)return Math.abs(a)<.13?'m':'p';
@@ -401,8 +431,8 @@
           return Math.abs(a)<.3*(1.25-(r-.78)*2.2)?'p':0;
         }},
       r6:{id:'r6',name:'6 RINFORZATO',type:'DIFESA',sym:6,side:['p','m','m','p'],
-        desc:'Fascia d\'acciaio: 4 denti, più peso, lama un po\' meno aggressiva.',
-        mod:{lock:1.35,mass:1.05,aggro:.93},colors:{p:'#1e2226',s:'#5b646b',m:'#c9d1d8'},
+        desc:'Fascia d\'acciaio: 5 denti, più peso, lama un po\' meno aggressiva.',
+        mod:{lock:1.6,mass:1.08,aggro:.9},colors:{p:'#1e2226',s:'#5b646b',m:'#c9d1d8'},
         shape(r,a){
           if(r<.32)return 0;
           if(r<.4)return 'm';
@@ -422,6 +452,9 @@
         }}
     },
     bit:{
+      rubber:{id:'rubber',name:'RUBBER',type:'ATTACCO',desc:'Gomma larga: aderenza estrema, instabile e golosa di spin.',
+        mod:{grip:1.6,stab:.7},colors:{p:'#8fd14f',s:'#2a2f33',m:'#8a949c'},
+        profile:[[2,'p',4],[5,'p',3],[7,'g',2],[5,'p',1],[7,'k',2],[8,'k',3]]},
       flat:{id:'flat',name:'FLAT',type:'ATTACCO',desc:'Disco di gomma: velocissima, consuma tanto.',
         mod:{grip:1.4,stab:.8},colors:{p:'#ff7a1a',s:'#2a2f33',m:'#8a949c'},
         profile:[[2,'p',4],[5,'p',3],[7,'g',2],[5,'p',2],[6,'k',1],[7,'k',3]]},
@@ -444,7 +477,11 @@
     {name:'ORBIT VEIL',blade:'orbit',ratchet:'r5',bit:'ball'},
     {name:'ORBIT EDGE',blade:'orbit',ratchet:'r6',bit:'sharp'},
     {name:'BASTION WALL',blade:'bastion',ratchet:'r6',bit:'sharp'},
-    {name:'BASTION CORE',blade:'bastion',ratchet:'r5',bit:'ball'}
+    {name:'BASTION CORE',blade:'bastion',ratchet:'r5',bit:'ball'},
+    {name:'HALO DRIFT',blade:'halo',ratchet:'r3',bit:'sharp'},
+    {name:'HALO CROWN',blade:'halo',ratchet:'r6',bit:'ball'},
+    {name:'CYCLONE RUSH',blade:'cyclone',ratchet:'gear',bit:'rubber'},
+    {name:'CYCLONE SWEEP',blade:'cyclone',ratchet:'r3',bit:'flat'}
   ];
   const SLOTS=[['blade','LAMA'],['ratchet','BLOCCO'],['bit','PUNTA']];
   const newBuild=b=>({name:b.name,blade:b.blade,ratchet:b.ratchet,bit:b.bit,colors:JSON.parse(JSON.stringify(b.colors||{blade:{},ratchet:{},bit:{}}))});
@@ -514,15 +551,15 @@
     const mk=(slot,R)=>{const part=PARTS[slot][b[slot]],cols=partCols(b,slot),sec=TAU/part.sym;
       return{part,cols,sec,frames:Array.from({length:FRAMES},(_,i)=>rasterRound(part,cols,R,i/FRAMES*sec))}};
     const bitPart=PARTS.bit[b.bit],bitCols=partCols(b,'bit');
-    const spr={blade:mk('blade',20),ratchet:mk('ratchet',13),bit:{part:bitPart,frames:[0,1,2,3].map(ph=>rasterBit(bitPart,bitCols,ph))}};
+    const spr={blade:mk('blade',18),ratchet:mk('ratchet',12),bit:{part:bitPart,frames:[0,1,2,3].map(ph=>rasterBit(bitPart,bitCols,ph))}};
     if(spriteCache.size>60)spriteCache.clear();
     spriteCache.set(key,spr);return spr;
   }
   const frameOf=(set,angle)=>set.frames[Math.floor((((angle%set.sec)+set.sec)%set.sec)/set.sec*FRAMES)%FRAMES];
   // pezzo tondo con spessore: silhouette ripetuta verso il basso nei colori del fianco, poi la faccia superiore
   function drawStack(g,set,fr,cx,cy,k){
-    // ogni voce di side è una fascia di 2 pixel; il fianco è pieno, disegnato pixel per pixel dal basso
-    const w=fr.S*k,h=fr.H*k,x0=cx-w/2,y0=cy-h/2,side=set.part.side,T=side.length*2;
+    // ogni voce di side è una fascia di 1 pixel: il fianco resta sottile come un vero anello
+    const w=fr.S*k,h=fr.H*k,x0=cx-w/2,y0=cy-h/2,side=set.part.side,T=side.length;
     g.drawImage(tint(fr.mask,OUTLINE),x0,y0+(T+1)*k,w,h);
     for(let i=T;i>=1;i--){const m=side[Math.floor((i-1)/2)],sh=shades(set.cols[m]||FIXED[m]);g.drawImage(tint(fr.mask,m==='p'?sh[0]:sh[1]),x0,y0+i*k,w,h)}
     g.drawImage(fr.top,x0,y0,w,h);
@@ -533,7 +570,7 @@
   function drawAssembled(g,spr,x,ground,k,angle,ox=0,oy=0){
     drawBitSprite(g,spr,x+ox*.35,ground,k,Math.floor(angle*2));
     const rb=frameOf(spr.ratchet,angle),bl=frameOf(spr.blade,angle);
-    const rcy=ground-17*k+oy,bcy=rcy-10*k;
+    const rcy=ground-13*k+oy,bcy=rcy-3*k;
     drawStack(g,spr.ratchet,rb,x+ox,rcy,k);
     drawStack(g,spr.blade,bl,x+ox,bcy,k);
     return{bx:x+ox,by:bcy};
@@ -1074,8 +1111,8 @@
     if(t.dead==='spin'){const k=Math.min(1,t.deadT*3);const m=Math.hypot(lx,lz)||1;lx=lx/m*(.4+1.2*k);lz=lz/m*(.4+1.2*k)}
     const ox=Math.round(lx*9*s),oy=Math.round(lz*4*s+(t.dead==='spin'?Math.min(1,t.deadT*3)*3:0));
     const x=Math.round(p.x),y=Math.round(p.y);
-    ctx.globalAlpha=.38;ctx.fillStyle='#020708';ellipsePath(x+2*s,y+5*s,18*s,5*s);ctx.fill();ctx.globalAlpha=1;
-    const {bx,by}=drawAssembled(ctx,spr,x,y+5*s,PXK*p.scale,t.angle,ox,oy);
+    ctx.globalAlpha=.38;ctx.fillStyle='#020708';ellipsePath(x+2*s,y+6*s,19*s,5*s);ctx.fill();ctx.globalAlpha=1;
+    const {bx,by}=drawAssembled(ctx,spr,x,y+6*s,PXK*p.scale,t.angle,ox,oy);
     // scia di rotazione: più spin = alone più visibile
     if(sf>.35&&!t.dead){ctx.globalAlpha=.14*sf;ctx.strokeStyle=partCols(t.build,'blade').s;ctx.lineWidth=1;ellipsePath(bx,by,22*s,12*s);ctx.stroke();ctx.globalAlpha=1}
     if(t.guard>0){const fresh=t.guardT<=PHY.PARRY_WIN;ctx.globalAlpha=.5+.4*Math.sin(elapsed*40);ctx.strokeStyle=fresh?'#fff2c8':'#a1e3c6';ctx.lineWidth=fresh?2:1.4;ellipsePath(bx,by,27*s,14*s);ctx.stroke();ctx.globalAlpha=1}
@@ -1094,7 +1131,7 @@
   }
   function drawBurstBase(t,spr){
     const p=project(t.x,t.z),s=.42*p.scale;
-    drawBitSprite(ctx,spr,Math.round(p.x),Math.round(p.y+5*s),PXK*p.scale,0);
+    drawBitSprite(ctx,spr,Math.round(p.x),Math.round(p.y+6*s),PXK*p.scale,0);
   }
   function drawDebris(){
     for(const b of debris){
@@ -1246,7 +1283,7 @@
     g.fillStyle='#0f1a1c';g.fillRect(0,0,c.width,c.height);
     g.fillStyle='#1a2a2c';g.beginPath();g.ellipse(60,100,44,11,0,0,TAU);g.fill();
     const spr=getSprites(cfg.build),ang=G.t*(cfg.dir==='right'?3:-3);
-    if(!G.explode){drawAssembled(g,spr,60,106,2,ang)}
+    if(!G.explode){drawAssembled(g,spr,60,92,2.2,ang)}
     else{
       drawBitSprite(g,spr,60,116,1.5,Math.floor(ang*2));
       drawStack(g,spr.ratchet,frameOf(spr.ratchet,ang),60,62,1.5);

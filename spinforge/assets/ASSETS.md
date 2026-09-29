@@ -19,13 +19,18 @@ rotazione e colori modificabili. Nessun file immagine, nessun credito.
 
 | Lame | Blocchi | Punte |
 |---|---|---|
-| RAPTOR (attacco) | 5 DENTI (3 denti di burst) | FLAT (aderenza 1.40) |
-| ORBIT (equilibrio) | 6 RINFORZATO (4 denti) | BALL (1.00) |
-| BASTION (difesa) | INGRANAGGIO d'oro (2 denti) | SHARP (0.55, stabile) |
-| | | BULLET (1.20) |
+| RAPTOR (attacco, 3 artigli) | INGRANAGGIO d'oro (2 denti di burst, +aggressività) | RUBBER (aderenza 1.60, stabilità 0.70) |
+| CYCLONE (attacco, 4 falci) | 3 DENTI BASSO (3 denti, +stabilità) | FLAT (1.40 / 0.80) |
+| ORBIT (equilibrio, 5 ali) | 5 DENTI (4 denti) | BULLET (1.20 / 0.95) |
+| BASTION (difesa, 8 respingenti) | 6 RINFORZATO (5 denti, +massa) | BALL (1.00 / 1.00) |
+| HALO (resistenza, bordo d'oro) | | SHARP (0.55 / 1.35) |
+
+5 × 4 × 5 = 100 combinazioni. Proporzioni in gioco: lama raggio 18 px (sprite
+2x), blocco 12 px, fianchi di 1 px per fascia, trottola bassa e schiacciata
+(fattore iso 0.6) come nella versione a poligoni.
 
 Preset: RAPTOR FLARE, RAPTOR STRIKE, ORBIT VEIL, ORBIT EDGE, BASTION WALL,
-BASTION CORE. Il garage salva nome, pezzi e colori; i Blade creati entrano nel
+BASTION CORE, HALO DRIFT, HALO CROWN, CYCLONE RUSH, CYCLONE SWEEP. Il garage salva nome, pezzi e colori; i Blade creati entrano nel
 roster (salvati nel browser) e la CPU può pescarli.
 
 Per aggiungere un pezzo: una voce in `PARTS` con `sym`, `side`, `mod`,
