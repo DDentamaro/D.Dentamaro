@@ -147,8 +147,8 @@ poi si porta in Godot con le stesse regole.
 
 | # | Tappa | Contenuto | Verifica |
 |---|---|---|---|
-| 1 | Sistema UI | Token di colore, font pixel, pannello a chevron, carta, barra a segmenti, emblema, pip esagonali, pulsante tondo, 10 icone | Pagina di prova con tutti i componenti |
-| 2 | HUD di battaglia | Layout di `hud.png` con i dati reali; stati del pulsante RUSH | Screenshot desktop e mobile a confronto con `hud.png` |
+| 1 ✅ | Sistema UI | Token di colore, font pixel, pannello a chevron, carta, barra a segmenti, emblema, pip esagonali, pulsante tondo, 10 icone | Pagina di prova con tutti i componenti |
+| 2 ✅ | HUD di battaglia | Layout di `hud.png` con i dati reali; stati del pulsante RUSH | Screenshot desktop e mobile a confronto con `hud.png` |
 | 3 | Garage | Schermata piena di `garage.png`, anteprima delle variazioni | Stesso confronto con `garage.png` |
 | 4 | Flusso e titolo | Scene separate, transizioni, menu, arena dimostrativa | Navigazione completa con tastiera e touch |
 | 5 | Stadi | Scelta stadio, 4 palette della conca, modificatori di fisica | Torneo simulato per stadio (nessuno stadio deve rompere il bilanciamento) |
@@ -168,3 +168,19 @@ poi si porta in Godot con le stesse regole.
 | Blocchi e punte in 3D | Higgsfield image→3D, 9 crediti l'uno (circa 81) | da ricaricare |
 
 Crediti Higgsfield residui: circa 0.7.
+
+
+## Stato
+
+- **Tappa 1 — fatto.** In `index.html` (blocco CSS "SISTEMA UI"): token di colore
+  `--ui-*`, pannello smussato `.ui-panel` (bordo oro con `clip-path`), emblema
+  esagonale `.emblem`, barra a tacche `.gbar` (energia, carica, avversario, solco),
+  pip esagonali del blocco con riempimento parziale, icone pixel 9×9 generate in
+  codice (`ICONS`, per ora spin / carica / solco / scudo), font pixel *Silkscreen*
+  (ripiego monospace se offline).
+- **Tappa 2 — fatto.** HUD secondo `ui/hud.png`: pannello CPU in alto con emblema
+  della sua lama e barra rossa; riquadro punteggio / round / tempo mm:ss; pannello
+  del giocatore con SPIN ENERGY, CARICA, blocco e solco; pulsante RUSH con anello
+  oro, anello di carica (blu, oro da MAX), stato MAX dorato e anello grigio di
+  ricarica. Su mobile i suggerimenti si nascondono e le etichette si accorciano.
+  Mancano ancora le icone delle 6 statistiche (servono al garage, tappa 3).

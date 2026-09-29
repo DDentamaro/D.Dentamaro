@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#0b151a">
 <title>Spinforge · Beyblade Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
 <style>
   :root{
     color-scheme:dark;
@@ -138,6 +140,87 @@
     #mine{bottom:max(40px,calc(env(safe-area-inset-bottom) + 40px));width:52vw}
     .match b{font-size:15px}.brand small{display:none}.brand-mark{height:24px}
   }
+
+  /* ============ SISTEMA UI (da ui/garage.png e ui/hud.png) ============ */
+  :root{
+    --ui-bg:#0e2226;--ui-bg2:#143238;--ui-gold:#e1a93b;--ui-gold2:#ffd37a;--ui-edge:#2f5a5e;
+    --ui-energy1:#f08a24;--ui-energy2:#ffc14d;--ui-charge1:#2f8fe0;--ui-charge2:#8fe0ff;
+    --ui-foe1:#b3261a;--ui-foe2:#ff6a3d;--ui-text:#f3e6c8;--ui-muted:#9fb6b4;
+    --ui-font:"Silkscreen","Courier New",monospace;
+    --cut:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px);
+    --hex:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  }
+  /* pannello smussato a 45°: bordo oro = sfondo esterno, interno = ::before */
+  .ui-panel{position:absolute;background:var(--ui-gold);clip-path:var(--cut);padding:8px 10px;color:var(--ui-text);font-family:var(--ui-font);text-shadow:0 1px #000}
+  .ui-panel::before{content:"";position:absolute;inset:2px;background:linear-gradient(180deg,var(--ui-bg2),var(--ui-bg));clip-path:var(--cut);z-index:0}
+  .ui-panel>*{position:relative;z-index:1}
+  .ui-panel.dim{background:var(--ui-edge)}
+  /* emblema esagonale */
+  .emblem{flex:none;width:44px;height:48px;background:var(--ui-gold);clip-path:var(--hex);display:grid;place-items:center}
+  .emblem canvas{width:40px;height:44px;clip-path:var(--hex);background:radial-gradient(circle at 50% 40%,#23484d,#0b1a1d 75%);image-rendering:pixelated}
+  .emblem.foe{background:var(--ui-foe2)}
+  /* barra a scatto con tacche ogni 10% e punta obliqua */
+  .gbar{display:block;height:11px;background:#061013;border:1px solid #000;box-shadow:inset 0 0 0 1px #2f5a5e;position:relative;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+  .gbar i{display:block;height:100%;width:100%;background:linear-gradient(180deg,var(--ui-energy2),var(--ui-energy1) 60%,#b95a14);box-shadow:inset 0 2px #fff5}
+  .gbar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,#0000 0 calc(10% - 1px),#0007 calc(10% - 1px) 10%);pointer-events:none}
+  .gbar.kin i{background:linear-gradient(180deg,var(--ui-charge2),var(--ui-charge1) 60%,#1b4f86)}
+  .gbar.foe i{background:linear-gradient(180deg,var(--ui-foe2),var(--ui-foe1) 70%,#5a0f09)}
+  .gbar.rail{height:6px;width:70px;display:inline-block;vertical-align:middle}
+  .gbar.rail i{background:linear-gradient(180deg,#bff0ff,#2d6e80)}
+  .gbar.rail.hot i{background:linear-gradient(180deg,#ffb3a0,#8a2f22)}
+  /* pip esagonali del blocco (riempimento parziale da --f) */
+  .pips{display:flex;gap:3px;align-items:center}
+  .pips::before{content:"BLOCCO";font:7px var(--ui-font);color:var(--ui-muted);margin-right:3px;letter-spacing:.06em}
+  #myPips.pips,#foePips.pips{font-size:0}
+  .pips i{width:11px;height:12px;background:var(--ui-gold);clip-path:var(--hex);position:relative;border:0}
+  .pips i::after{content:"";position:absolute;inset:1.5px;clip-path:var(--hex);background:linear-gradient(0deg,var(--ui-foe2) var(--f,0%),#0c1a1d var(--f,0%))}
+  .pips i.on{background:#fff}
+  /* icone pixel generate in codice (data URL in --ico-*) */
+  .ico{display:inline-block;width:9px;height:9px;margin-right:4px;vertical-align:-1px;background:var(--i) center/contain no-repeat;image-rendering:pixelated}
+
+  /* ============ HUD DI BATTAGLIA ============ */
+  .hudbox{display:flex;gap:9px;align-items:center}
+  .hbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:8px;letter-spacing:.06em}
+  .hrow b{font-weight:normal;color:var(--ui-text)}
+  .hrow>span{color:var(--ui-gold2)}
+  .hrow b span{color:inherit}
+  .hrow.low{margin-top:2px}
+  .railwrap{display:flex;align-items:center;gap:3px}
+  .railwrap em{font-style:normal;font-size:7px;color:var(--ui-muted);min-width:52px;text-align:right}
+  #foe.hudbox{left:50%;transform:translateX(-50%);top:max(10px,env(safe-area-inset-top));width:min(360px,70vw);padding:6px 12px 6px 8px;background:var(--ui-foe2)}
+  #foe .hrow b{color:#ffd1c2}
+  #mine.hudbox{left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));width:min(330px,60vw);top:auto}
+  #scorebox{right:max(14px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));text-align:center;padding:6px 16px;display:grid;gap:1px;min-width:92px}
+  #scorebox b{font-size:20px;color:var(--ui-gold2);letter-spacing:.06em}
+  #scorebox span{font-size:8px;color:var(--ui-muted);letter-spacing:.14em}
+  #scorebox span i{font-style:normal}
+  #scorebox em{font-style:normal;font-size:13px;color:var(--ui-text)}
+  #goal{top:auto;bottom:max(96px,calc(env(safe-area-inset-bottom) + 96px));font-family:var(--ui-font);font-size:8px}
+  .brand{top:auto;bottom:max(106px,calc(env(safe-area-inset-bottom) + 106px));opacity:.0;pointer-events:none}
+  #labBtn{top:max(92px,calc(env(safe-area-inset-top) + 92px));font-family:var(--ui-font)}
+  .hint{font-family:var(--ui-font);font-size:7px;bottom:max(4px,env(safe-area-inset-bottom))}
+  /* pulsante RUSH: anello oro, anello di carica conico (--c, --rc) */
+  #act{width:88px;height:88px;right:max(20px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));border:0;border-radius:50%;
+    background:radial-gradient(circle at 50% 38%,#b8412a,#6e1f15 55%,#2a0d09 80%);color:var(--ui-gold2);font:14px var(--ui-font);letter-spacing:.06em;text-shadow:0 2px #000;
+    box-shadow:0 0 0 3px #0b1012,0 0 0 6px var(--ui-gold),0 0 0 8px #0b1012,inset 0 0 0 3px #ffb13b44,inset 0 -6px 12px #0008}
+  #act::before{content:"";position:absolute;inset:-13px;border-radius:50%;background:conic-gradient(var(--rc,#8fe0ff) calc(var(--c,0)*1turn),#0000 0);
+    -webkit-mask:radial-gradient(closest-side,#0000 80%,#000 81%,#000 97%,#0000 98%);mask:radial-gradient(closest-side,#0000 80%,#000 81%,#000 97%,#0000 98%);pointer-events:none}
+  #act small{font:7px var(--ui-font);color:var(--ui-charge2)}
+  #act.on{transform:translateY(1px);box-shadow:0 0 0 3px #0b1012,0 0 0 6px var(--ui-gold2),0 0 0 8px #0b1012,0 0 22px #ff856488,inset 0 0 0 3px #ffd1c266}
+  #act.max{background:radial-gradient(circle at 50% 38%,#ffd37a,#e1a93b 45%,#7a4b10 80%);color:#2a1300;text-shadow:none}
+  #notice{font-family:var(--ui-font);font-size:16px;text-shadow:2px 2px #391d17,0 0 12px #000}
+  @media(max-width:720px){
+    #foe.hudbox{width:min(300px,64vw);left:12px;transform:none}
+    #mine.hudbox{width:calc(100vw - 150px)}
+    #scorebox{padding:5px 10px;min-width:74px}#scorebox b{font-size:16px}
+    #act{width:74px;height:74px;font-size:12px}
+    #goal{bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px))}
+    #labBtn{top:max(84px,calc(env(safe-area-inset-top) + 84px));bottom:auto}
+    .hint{display:none}
+    .hrow b .long{display:none}
+    #goal{bottom:max(112px,calc(env(safe-area-inset-bottom) + 112px))}
+  }
 </style>
 </head>
 <body>
@@ -145,28 +228,34 @@
   <canvas id="view" tabindex="0" aria-label="Arena interattiva"></canvas>
   <div class="scanlines"></div><div class="vignette"></div>
   <header class="hud brand"><i class="brand-mark"></i><div><strong>SPINFORGE</strong><small>STADIUM 1V1 // PROTOTYPE 04</small></div></header>
-  <div class="hud match"><b id="score">0 – 0</b><span>TU · CPU &nbsp;·&nbsp; ROUND <i id="round">1</i> · <i id="timer">60</i>s</span></div>
+  <div class="hud ui-panel" id="scorebox" role="status" aria-label="Punteggio">
+    <b id="score">0 – 0</b><span>ROUND <i id="round">1</i></span><em id="timer">01:30</em>
+  </div>
   <div id="goal"></div>
 
-  <section class="hud meter" id="foe">
-    <div class="meter-head"><b id="foeName">CPU</b><span id="foeSpin">100%</span></div>
-    <div class="bar foe"><i id="foeBar"></i></div>
-    <div class="pips" id="foePips"></div>
+  <section class="hud ui-panel hudbox" id="foe" aria-label="Avversario">
+    <div class="emblem foe"><canvas id="foeEmblem" width="40" height="40"></canvas></div>
+    <div class="hbody">
+      <div class="hrow"><b id="foeName">CPU</b><span id="foeSpin">100%</span></div>
+      <div class="gbar foe"><i id="foeBar"></i></div>
+      <div class="pips" id="foePips"></div>
+    </div>
   </section>
 
-  <section class="hud meter" id="mine">
-    <div class="meter-head"><b>SPIN</b><span id="spinText">100%</span></div>
-    <div class="bar"><i id="spinBar"></i></div>
-    <div class="meter-head"><b>CARICA CINETICA</b><span id="kinText">0</span></div>
-    <div class="bar kin"><i id="kinBar"></i></div>
-    <div class="meter-head"><b>XTREME RAIL</b><span id="railText">PRONTO</span></div>
-    <div class="bar rail"><i id="railBar"></i></div>
-    <div class="pips" id="myPips"></div>
+  <section class="hud ui-panel hudbox" id="mine" aria-label="Il tuo Blade">
+    <div class="emblem"><canvas id="myEmblem" width="40" height="40"></canvas></div>
+    <div class="hbody">
+      <div class="hrow"><b><i class="ico" data-ico="spin"></i>SPIN ENERGY</b><span id="spinText">100%</span></div>
+      <div class="gbar"><i id="spinBar"></i></div>
+      <div class="hrow"><b><i class="ico" data-ico="bolt"></i>CARICA<span class="long"> CINETICA</span></b><span id="kinText">0</span></div>
+      <div class="gbar kin"><i id="kinBar"></i></div>
+      <div class="hrow low"><span class="pips" id="myPips"></span><span class="railwrap"><i class="ico" data-ico="rail"></i><span class="gbar rail"><i id="railBar"></i></span><em id="railText">PRONTO</em></span></div>
+    </div>
   </section>
 
-  <section class="hud build" id="buildPanel"></section>
+  <section class="hud build" id="buildPanel" hidden></section>
   <div class="hud hint"><em>TRASCINA / WASD</em> INCLINA · <em>TIENI</em> CARICA RUSH · <em>TAP</em> GUARDIA · <em>SOLCO AZZURRO</em> RICARICA</div>
-  <button id="act" aria-label="Azione">RUSH</button>
+  <button id="act" aria-label="Azione: tieni premuto per il rush, tocca per la guardia">RUSH</button>
   <div id="notice"></div>
   <button id="labBtn" aria-label="Apri il laboratorio">LAB</button>
   <aside id="lab" hidden aria-label="Laboratorio di bilanciamento">
@@ -338,6 +427,15 @@
     dummy:{id:'dummy',name:'MANICHINO',desc:'Resta al centro senza reagire: per provare i colpi.',guard:0}
   };
   // configurazione della partita (modificabile dal LAB)
+  /* Icone pixel 9×9 (# = pieno) generate in data URL e usate come --i sugli elementi .ico */
+  const ICONS={
+    spin:['..#####..','.#.....#.','#..###..#','#.#...#.#','#.#.#.#.#','#.#..#..#','#..#....#','.#..###..','..#......'],
+    bolt:['.....##..','....##...','...##....','..#####..','....##...','...##....','..##.....','.##......','.#.......'],
+    rail:['..#####..','.#.....#.','#..###..#','#.#...#.#','#.#...#.#','#.#...#.#','#..###..#','.#.....#.','..#####..'],
+    shield:['#########','#.......#','#.#####.#','#.#...#.#','#.#...#.#','.#.#.#.#.','.#..#..#.','..#...#..','...###...']
+  };
+  function iconURL(rows,color){const c=document.createElement('canvas');c.width=c.height=9;const g=c.getContext('2d');g.fillStyle=color;rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(ch==='#')g.fillRect(x,y,1,1)}));return c.toDataURL()}
+  document.querySelectorAll('.ico[data-ico]').forEach(el=>el.style.setProperty('--i','url('+iconURL(ICONS[el.dataset.ico],'#ffd37a')+')'));
   const cfg={you:{...BASE},cpu:{...BASE},mirror:true,dir:'right',cpuDir:'right',profile:'balanced',build:null,cpuBuild:null,opp:'random'};
 
   /* ============================================================
@@ -978,7 +1076,16 @@
     enemy=makeTop(cfg.mirror?cfg.you:cfg.cpu,cfg.cpuDir,false,cfg.profile,cfg.cpuBuild);
     points=[0,0];round=1;floats.length=0;
     ui.foeName.textContent='CPU · '+cfg.cpuBuild.name+' '+(enemy.dir>0?'↻':'↺');
-    updateBuildPanel();buildPips();startLaunch();
+    updateBuildPanel();buildPips();drawEmblems();startLaunch();
+  }
+  // emblemi: il fotogramma 0 della lama dentro l'esagono (si ridisegnano quando arrivano gli sprite cotti)
+  let emblemVer=-1;
+  function drawEmblems(){
+    emblemVer=bakedVer;
+    for(const [id,t] of [['#myEmblem',player],['#foeEmblem',enemy]]){
+      const c=$(id),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,c.width,c.height);
+      const set=getSprites(t.build).blade;drawStack(g,set,set.frames[0],20,20,.95);
+    }
   }
   function updateBuildPanel(){
     const same=FACTORS.every(k=>player.f[k.id]===enemy.f[k.id]);
@@ -989,7 +1096,7 @@
       '<span>SCONTRO</span><b>'+(player.dir===enemy.dir?'SPIN CLASH':'SPIN STEAL')+'</b>';
   }
   function buildPips(){
-    const mk=(el,n)=>{el.innerHTML='BLOCCO ';for(let i=0;i<n;i++)el.appendChild(document.createElement('i'))};
+    const mk=(el,n)=>{el.innerHTML='';for(let i=0;i<n;i++)el.appendChild(document.createElement('i'))};
     mk(ui.myPips,player.blade.lock);mk(ui.foePips,enemy.blade.lock);
   }
   function resetTop(t,x,z){t.loss={base:0,move:0,tilt:0,charge:0,rush:0,guard:0,impact:0,rim:0,stall:0};t.still=0;Object.assign(t,{rate:0,prevSpin:100,x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,bdmg:0,stagger:0,dead:null,deadT:0,flash:0,heat:0,grinding:false,guard:0,guardT:9,gcd:0,rushPow:0,xtreme:false})}
@@ -1210,20 +1317,26 @@
     if(!$('#lab').hidden)syncLab();
     ui.spinBar.style.width=Math.max(0,player.spin).toFixed(1)+'%';ui.spinText.textContent=Math.ceil(Math.max(0,player.spin))+'%';
     const ke=kinetic(player)+(player.charging?player.charge*1.2:0);
-    ui.kinBar.style.width=Math.min(100,ke/2.4*100).toFixed(1)+'%';ui.kinText.textContent=ke.toFixed(2)+'J · ROT '+rotEnergy(player).toFixed(2);
+    ui.kinBar.style.width=Math.min(100,ke/2.4*100).toFixed(1)+'%';ui.kinText.textContent=ke.toFixed(2)+' J';
     const cool=1-player.heat/PHY.HEAT_MAX,over=player.heat>=PHY.HEAT_MAX-.01||(!player.grinding&&player.heat>PHY.HEAT_MAX*.6);
     ui.railBar.style.width=(cool*100).toFixed(1)+'%';ui.railBar.parentElement.classList.toggle('hot',over);
     ui.railText.textContent=player.grinding?'GRIND +SPIN':over?'RAFFREDDA…':'PRONTO';
     ui.foeBar.style.width=Math.max(0,enemy.spin).toFixed(1)+'%';ui.foeSpin.textContent=Math.ceil(Math.max(0,enemy.spin))+'%';
     const pip=(el,t)=>[...el.querySelectorAll('i')].forEach((e,i)=>{const f=cl((t.bdmg||0)-i,0,1);e.style.setProperty('--f',(f*100).toFixed(0)+'%');e.classList.toggle('on',f>=1)});
     pip(ui.myPips,player);pip(ui.foePips,enemy);
-    ui.score.textContent=points[0]+' – '+points[1];ui.round.textContent=round;ui.timer.textContent=Math.ceil(roundTime);
+    ui.score.textContent=points[0]+' – '+points[1];ui.round.textContent=round;{const sec=Math.ceil(roundTime);ui.timer.textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+    if(emblemVer!==bakedVer)drawEmblems();
     if(state==='launch')ui.needle.style.left=(launch.needle*98)+'%';
     const launching=state==='launch'&&launch.power===null;
     const lbl=launching?'LANCIA':player.charging?(player.charge>=PHY.BREAK_CHARGE?'MAX!':Math.round(player.charge*100)+'%')+'<small>RILASCIA</small>':player.guard>0?'GUARDIA':(player.cooldown>0?player.cooldown.toFixed(1):'RUSH')+'<small>TAP '+(player.gcd>0?player.gcd.toFixed(1):'GUARD')+'</small>';
     if(ui.act.dataset.l!==lbl){ui.act.innerHTML=lbl;ui.act.dataset.l=lbl}
     ui.act.disabled=!(launching||(state==='battle'&&!player.dead&&!roundEnd));
     ui.act.classList.toggle('on',player.charging||launching);
+    ui.act.classList.toggle('max',player.charging&&player.charge>=PHY.BREAK_CHARGE);
+    // anello: carica del rush (blu, oro da MAX) oppure ricarica del rush (grigio)
+    const ring=player.charging?player.charge:player.cooldown>0?1-player.cooldown/.7:0;
+    ui.act.style.setProperty('--c',cl(ring,0,1).toFixed(3));
+    ui.act.style.setProperty('--rc',player.charging?(player.charge>=PHY.BREAK_CHARGE?'#ffd37a':'#8fe0ff'):'#6f8487');
     ui.goal.textContent=launching?'PREPARA IL LANCIO · TIENI UNA DIREZIONE PER ANGOLARLO':
       roundEnd?roundEnd.text:
       player.charging?(player.charge>=PHY.BREAK_CHARGE?'RUSH MAX · SFONDA LA GUARDIA · PUÒ DARE XTREME · RILASCIA!':'RUSH '+Math.round(player.charge*100)+'% · A '+Math.round(PHY.BREAK_CHARGE*100)+'% DIVENTA MAX · RILASCIA PER SCATTARE'):
