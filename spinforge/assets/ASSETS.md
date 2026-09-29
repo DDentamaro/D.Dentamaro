@@ -52,8 +52,11 @@ Per aggiungere un pezzo: una voce in `PARTS` con `sym`, `side`, `mod`,
 | 9 | `concepts/bit_ball.png` | Punta BALL | `adc4fd51-2b9a-44ee-9c8f-aed14267d94d` |
 | 10 | `concepts/bit_sharp.png` | Punta SHARP | `7232fc9a-1053-41bc-9658-634e2397b983` |
 
-I file PNG non sono ancora nel repo: il CDN di Higgsfield
-(`d8j0ntlcm91z4.cloudfront.net`) è bloccato dalla policy di rete dell'ambiente.
+Il CDN di Higgsfield (`d8j0ntlcm91z4.cloudfront.net`) è bloccato dalla policy di
+rete dell'ambiente: nel repo ci sono solo le immagini caricate a mano in chat
+(concept di RAPTOR, ORBIT, BASTION, CYCLONE, 3 DENTI BASSO, 5 DENTI,
+6 RINFORZATO, SHARP, BALL, vista esplosa; stadi cemento, giardino zen, tempio,
+neon; UI garage e HUD). Le altre restano nel progetto Higgsfield.
 
 ## Pezzi → fattori (proposta)
 
@@ -100,7 +103,16 @@ Bozzetti dei pezzi nuovi, stesso stile toon dei precedenti:
 | 11 | Blocco 3 DENTI BASSO | `14f9618d-8f27-4195-9631-3a2f8fce234a` |
 | 12 | Punta RUBBER | `23ad8d1e-eb51-41e2-ae78-db130d92b4b0` |
 
-## Fase 2 (in attesa di approvazione): conversione 3D
+## Scelte dell'utente (fase 1b)
+
+Stadi: **cemento**, **giardino zen**, **tempio**, **neon** (in `stadi/`).
+UI di riferimento: **garage** e **HUD** (in `ui/`).
+
+## Fase 2: conversione 3D
+
+| Pezzo | Modello | Crediti | Job Higgsfield | File |
+|---|---|---|---|---|
+| Lama RAPTOR (test) | Tripo H3.1 image→3D, texture PBR, 20k facce | 9 | `490de015-2695-4096-8965-10c8a4e7aa1a` | `models/blade_raptor.glb` (da scaricare) |
 
 Il roster ha 14 pezzi (5 lame, 4 blocchi, 5 punte). Tripo H3.1 image → 3D
 costa 9 crediti a pezzo (126 in tutto); Tripo text → 3D 5 crediti (70).
