@@ -10,6 +10,27 @@ Un top = **LAMA** + **BLOCCO** (ratchet) + **PUNTA** (bit). Ogni pezzo sposta i
 sei fattori del top base (vedi `../DESIGN.md`). Le combinazioni danno i Blade
 personalizzati; la CPU usa gli stessi pezzi ricolorati in Godot.
 
+## Roster pixel art (in gioco)
+
+Dai bozzetti approvati sono nati i pezzi **pixel art procedurali** in
+`index.html` (sezione `PEZZI IN PIXEL ART`): ogni pezzo è una funzione di forma
+polare rasterizzata in isometria con contorno, luce e ombra, 12 fotogrammi di
+rotazione e colori modificabili. Nessun file immagine, nessun credito.
+
+| Lame | Blocchi | Punte |
+|---|---|---|
+| RAPTOR (attacco) | 5 DENTI (3 denti di burst) | FLAT (aderenza 1.40) |
+| ORBIT (equilibrio) | 6 RINFORZATO (4 denti) | BALL (1.00) |
+| BASTION (difesa) | INGRANAGGIO d'oro (2 denti) | SHARP (0.55, stabile) |
+| | | BULLET (1.20) |
+
+Preset: RAPTOR FLARE, RAPTOR STRIKE, ORBIT VEIL, ORBIT EDGE, BASTION WALL,
+BASTION CORE. Il garage salva nome, pezzi e colori; i Blade creati entrano nel
+roster (salvati nel browser) e la CPU può pescarli.
+
+Per aggiungere un pezzo: una voce in `PARTS` con `sym`, `side`, `mod`,
+`colors` e `shape(r,a)` (o `profile` per le punte).
+
 ## Bozzetti (fase 1, 0.25 crediti l'uno)
 
 | # | File (destinazione) | Pezzo | Job Higgsfield |
