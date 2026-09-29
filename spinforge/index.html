@@ -41,7 +41,8 @@
   .bar.foe i{background:linear-gradient(90deg,#5b3d66,#c9a3d6)}
   .pips{display:flex;gap:3px;align-items:center;font-size:8px;color:var(--muted)}
   .pips i{width:10px;height:6px;border:1px solid #ccded977;background:#1a2226}
-  .pips i.on{background:var(--rust);border-color:#ffd1c2}
+  .pips i{background:linear-gradient(90deg,var(--rust) var(--f,0%),#1a2226 var(--f,0%))}
+  .pips i.on{border-color:#ffd1c2}
   #mine{left:max(16px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom))}
   #foe{left:50%;transform:translateX(-50%);top:max(86px,calc(env(safe-area-inset-top) + 86px));width:min(200px,44vw)}
   #foe .meter-head b{color:var(--violet)}
@@ -170,13 +171,14 @@
         <table class="pts">
           <tr><td>SPIN FINISH</td><td>+1</td><td>l'avversario smette di girare</td></tr>
           <tr><td>BURST FINISH</td><td>+2</td><td>il blocco dell'avversario scatta tutti i denti (pallini BURST) e il top si smonta</td></tr>
-          <tr><td>XTREME FINISH</td><td>+3</td><td>burst inflitto con un RUSH carico almeno al 70% o mentre sei agganciato al solco</td></tr>
+          <tr><td>XTREME FINISH</td><td>+3</td><td>burst inflitto con un RUSH MAX (carica ≥80%) o mentre sei agganciato al solco</td></tr>
           <tr><td>DECISIONE</td><td>+1</td><td>a 90s vince chi ha più spin (serve almeno 3% di scarto)</td></tr>
           <tr><td>DOPPIO KO</td><td>0</td><td>entrambi fuori insieme: chi è esploso perde, altrimenti pareggio</td></tr>
         </table>
         <h2>COME TOGLIERE SPIN ALL'AVVERSARIO</h2>
         <p><b>Colpisci con più carica cinetica</b>: in ogni urto chi arriva più veloce verso il contatto (½mv², moltiplicata dal RUSH) è l'attaccante e toglie fino a 4 volte lo spin che perde. Farsi colpire da fermi è il modo peggiore di subire.</p>
-        <p><b>RUSH carico</b>: più carica = più danno, più click verso il burst, e sopra l'85% <b>sfonda la guardia</b>.</p>
+        <p><b>RUSH</b>: tieni premuto RUSH/spazio → attorno al top si riempie un anello di carica (costa un po' di spin). Mentre carichi, la freccia mostra dove scatterai: dove stai spingendo, oppure dritto verso l'avversario se non spingi. Rilascia per scattare. Più carica = più velocità = più danno. Dalla tacca bianca (80%) il rush è <b>MAX</b>: anello dorato, sfonda la guardia e il burst che provoca vale <b>XTREME (+3)</b>. Serve rincorsa: a contatto non accumula velocità.</p>
+        <p><b>BURST (il blocco)</b>: ogni top ha un blocco a denti (le caselle BLOCCO sotto la barra spin). Ogni colpo forte riempie una parte del dente, in modo proporzionale alla sua forza (numeri arancioni BLOCCO +%). Quando un dente si riempie senti CLICK; quando sono pieni tutti il top <b>esplode</b>: BURST FINISH +2. Con poco spin il blocco cede molto prima; la guardia dimezza il danno al blocco. I colpi leggeri non lo toccano.</p>
         <p><b>Sbilancialo</b>: ogni colpo inclina il suo asse; un top inclinato consuma spin da solo e con poco spin traballa sempre di più.</p>
         <p><b>Negagli il solco</b>: colpire chi sta ricaricando sul solco lo sgancia e gli surriscalda la punta.</p>
         <p><b>Spin steal</b>: con rotazione opposta, ogni contatto sposta spin da chi ne ha di più a chi ne ha di meno.</p>
@@ -209,9 +211,13 @@
     G:1.3,STEEP:1.2,          // pendenza della conca
     RIM:1.4,                  // velocità del bordo a spin 100 (unità mondo/s)
     MAX_LEAN:.75,             // inclinazione massima comandabile
-    DRIVE:3.2,                // spinta della punta inclinata
-    LEAN_RATE:6,              // reattività dell'asse (prima 3.2: ora più dinamico)
-    PRECESS:.3,               // anticipo di precessione in radianti (prima .5)
+    VMAX:1.5,                 // velocità massima a inclinazione piena e spin 100
+    RESP:7,                   // reattività: quanto in fretta la velocità insegue l'inclinazione
+    AMAX:8,                   // accelerazione massima che la punta può trasmettere
+    COAST:.3,                 // presa residua senza input: la trottola scivola invece di inchiodare
+    STAGGER:.18,              // secondi di sbandamento per unità d'impulso subito (il rinculo si vede)
+    LEAN_RATE:16,             // reattività dell'asse (prima 6)
+    PRECESS:.12,              // anticipo di precessione in radianti (prima .3)
     DRAIN_BASE:.9,            // consumo a riposo (%/s) del top base: ~110s senza combattere
     STALL_SPEED:.12,STALL_TIME:3,STALL_MULT:1.5,   // ristagno: sotto .12 di velocità per 3s il consumo base aumenta del 150%
     RUSH_COST:1.2,            // spin speso da un rush: RUSH_COST·(1+2.5·carica)
@@ -230,8 +236,9 @@
     GUARD_TIME:.45,           // durata della guardia
     GUARD_CD:1.2,             // ricarica della guardia
     PARRY_WIN:.2,             // finestra della parata perfetta dall'inizio della guardia
-    BREAK_CHARGE:.85,         // carica minima del rush per sfondare una guardia
-    BURST:2.6,                // soglia d'impulso per far scattare un dente del blocco
+    BREAK_CHARGE:.8,          // carica MAX: sfonda la guardia e può dare XTREME FINISH
+    CHARGE_TIME:.7,           // secondi per caricare il rush al 100%
+    BURST:2.2,                // soglia d'impulso per far scattare un dente del blocco
     TAP:.18,                  // un tocco più breve di così attiva la guardia
     ROUND_TIME:90,
     WIN_POINTS:4
@@ -318,10 +325,10 @@
       guard:0,guardT:9,gcd:0,rushPow:0,xtreme:false,
       stats:{dealt:0,taken:0,stolen:0,grind:0,parry:0,rush:0},
       loss:{base:0,move:0,tilt:0,charge:0,rush:0,guard:0,impact:0,rim:0,stall:0},
-      ai:{profile:profile||'balanced',hold:0,mood:0,rolled:false,gd:.3}};
+      ai:{profile:profile||'balanced',back:0,hold:0,mood:0,rolled:false,gd:.3}};
   }
   // applica nuovi fattori a un top in gioco senza azzerarne lo stato
-  function refit(t,f){t.f={...f};const d=derive(t.f,t.isPlayer);t.blade=d.blade;t.tip=d.tip;t.clicks=Math.min(t.clicks,t.blade.lock-1)}
+  function refit(t,f){t.f={...f};const d=derive(t.f,t.isPlayer);t.blade=d.blade;t.tip=d.tip;t.bdmg=Math.min(t.bdmg||0,t.blade.lock-.01);t.clicks=Math.floor(t.bdmg)}
   const mass=t=>t.blade.mass;
   const rimSpeed=t=>t.dir*PHY.RIM*Math.max(0,t.spin)/100;
   const kinetic=t=>.5*mass(t)*(t.vx*t.vx+t.vz*t.vz);
@@ -345,7 +352,7 @@
     let ux=0,uz=0,wantRush=false;
     const prof=b.ai.profile;
     if(prof==='dummy'){if(b.charging)b.charging=false;return{x:cx*.8,z:cz*.8}}
-    let mode=prof==='aggressive'?'attack':prof==='defensive'?'defense':(b.spin>=p.spin+8?'attack':'stamina');
+    let mode=prof==='aggressive'?'attack':prof==='defensive'?'defense':(b.spin>=p.spin-2?'attack':'stamina');
     if(p.dead)mode='stamina';
     if(prof==='balanced'&&!p.dead&&b.spin<p.spin-6&&b.heat<.5&&dist>.3)mode='rail';
     if(b.heat>=PHY.HEAT_MAX-.1&&mode==='rail')mode='stamina';
@@ -356,7 +363,13 @@
     }
     // il rush rende solo con rincorsa: serve distanza per accumulare carica cinetica
     const pSpeed=Math.hypot(p.vx,p.vz);
-    if(mode==='attack'){ux=tx/tl;uz=tz/tl;wantRush=dist<.7&&dist>.32}
+    if(mode==='attack'){
+      // colpisci e allontanati: dopo un contatto si stacca per riprendere la rincorsa
+      if(dist<.2&&b.rush<=0)b.ai.back=.45;
+      if(b.ai.back>0){b.ai.back-=1/120;const sx=-dx/dist,sz=-dz/dist;ux=sx*.8-sz*.6*b.dir;uz=sz*.8+sx*.6*b.dir}
+      else{ux=tx/tl;uz=tz/tl}
+      wantRush=b.ai.back<=0&&dist<.75&&dist>.3;
+    }
     else if(mode==='defense'){
       // orbita stretta attorno al centro (niente ristagno), pronta a parare e contrattaccare
       const r=Math.hypot(b.x,b.z)||1e-3,tgx=-b.z/r*b.dir,tgz=b.x/r*b.dir;
@@ -391,11 +404,15 @@
     emit(t.x,t.z,'#a1e3c6',8);return true;
   }
 
+  // direzione del rush: dove stai spingendo, altrimenti dritto verso l'avversario
+  function aimOf(t,aim){
+    aim=aim||(t.isPlayer?playerInput():{x:0,z:0});let ax=aim.x,az=aim.z,l=Math.hypot(ax,az);
+    if(l<.1){const o=t===player?enemy:player;ax=o.x-t.x;az=o.z-t.z;l=Math.hypot(ax,az)||1}
+    return{x:ax/l,z:az/l};
+  }
   function releaseRush(t,aim){
     if(!t.charging)return;t.charging=false;
-    let ax=aim.x,az=aim.z,l=Math.hypot(ax,az);
-    if(l<.1){const o=t===player?enemy:player;ax=o.x-t.x;az=o.z-t.z;l=Math.hypot(ax,az)||1}
-    ax/=l;az/=l;
+    const am=aimOf(t,aim),ax=am.x,az=am.z;
     // la carica converte energia di rotazione in energia cinetica
     const c=t.charge,imp=(.8+1.9*c)*(.6+.4*t.tip.grip);t.rushPow=c;t.stats.rush++;
     t.vx+=ax*imp;t.vz+=az*imp;t.rush=.35;t.cooldown=t.isPlayer?.7:1.3;t.spin-=PHY.RUSH_COST*(1+2.5*c);t.loss.rush+=PHY.RUSH_COST*(1+2.5*c);t.charge=0;
@@ -418,7 +435,7 @@
     if(t.dead){t.deadT+=dt;t.vx*=Math.exp(-4*dt);t.vz*=Math.exp(-4*dt);t.x+=t.vx*dt;t.z+=t.vz*dt;return}
     const sf=Math.max(0,t.spin)/100,d=t.dir;
     let ux=input.x,uz=input.z;
-    if(t.charging){t.charge=Math.min(1,t.charge+dt/.8);t.spin-=dt*3*t.charge;t.loss.charge+=dt*3*t.charge;ux*=.3;uz*=.3}
+    if(t.charging){const was=t.charge;t.charge=Math.min(1,t.charge+dt/PHY.CHARGE_TIME);if(t.isPlayer&&was<PHY.BREAK_CHARGE&&t.charge>=PHY.BREAK_CHARGE)showNotice('RUSH MAX!');t.spin-=dt*3*t.charge;t.loss.charge+=dt*3*t.charge;ux*=.3;uz*=.3}
     if(t.guard>0){ux=0;uz=0}
 
     // 1. inclinazione obiettivo = input ruotato di -90° nel verso di spin
@@ -434,11 +451,20 @@
     t.ex=t.lx+Math.cos(t.prec)*wob;t.ez=t.lz+Math.sin(t.prec)*wob;
 
     // 3. forze
-    const drive=PHY.DRIVE*t.tip.grip*t.tip.accel*t.tip.steer*Math.sqrt(sf)/PHY.MAX_LEAN;
-    const fx=-d*t.ez*drive,fz=d*t.ex*drive;            // punta che rotola: inclinazione ruotata di +90°
+    // la punta rotola perpendicolarmente all'inclinazione: da qui la velocità desiderata
+    const gN=t.tip.grip/.6,vmax=PHY.VMAX*Math.sqrt(sf)*(.75+.25*gN)*t.tip.steer/PHY.MAX_LEAN;
+    let vdx=-d*t.ez*vmax,vdz=d*t.ex*vmax;
+    // controllo: la velocità insegue quella desiderata; durante rinculo e rush la presa è quasi nulla
+    const hasInput=Math.hypot(ux,uz)>.05;
+    let K=PHY.RESP*Math.sqrt(gN)*t.tip.accel*(hasInput?1:PHY.COAST);
+    if(t.guard>0){vdx=vdz=0;K=PHY.RESP*2}
+    if(t.stagger>0)K*=.12;if(t.rush>0)K*=.05;
+    let cax=(vdx-t.vx)*K,caz=(vdz-t.vz)*K;const cam=Math.hypot(cax,caz),amax=PHY.AMAX*gN*t.tip.accel;
+    if(cam>amax){cax*=amax/cam;caz*=amax/cam}
+    t.stagger=Math.max(0,(t.stagger||0)-dt);
     const r2=t.x*t.x+t.z*t.z,slope=PHY.G*(1+PHY.STEEP*r2);
-    const fric=t.tip.fric*(t.charging?2.4:1)*(t.rush>0?.35:1)*(t.guard>0?3:1);
-    t.vx+=(fx-slope*t.x-fric*t.vx)*dt;t.vz+=(fz-slope*t.z-fric*t.vz)*dt;
+    const fric=t.tip.fric*.35*(t.charging?3:1)*(t.rush>0?.35:1);
+    t.vx+=(cax-slope*t.x-fric*t.vx)*dt;t.vz+=(caz-slope*t.z-fric*t.vz)*dt;
     t.x+=t.vx*dt;t.z+=t.vz*dt;
 
     // stamina: attrito della punta + velocità + asse inclinato
@@ -562,6 +588,8 @@
     // colpire chi sta ricaricando sul solco lo sgancia e surriscalda la punta
     for(const [V,sh] of [[A,shB],[B,shA]])if(V.grinding&&Jn>.5&&sh>.4){V.heat=PHY.HEAT_MAX;V.grinding=false;if(V.isPlayer)showNotice('RAIL BLOCCATO!');else if(!V.isPlayer&&(A.isPlayer||B.isPlayer))showNotice('RICARICA NEGATA!')}
 
+    A.stagger=Math.max(A.stagger||0,Math.min(.5,Jn*PHY.STAGGER*gA*(1.2-shA)));
+    B.stagger=Math.max(B.stagger||0,Math.min(.5,Jn*PHY.STAGGER*gB*(1.2-shB)));
     A.flash=B.flash=.9;pairCD=.2;
     const cx=(A.x+B.x)/2,cz=(A.z+B.z)/2;
     emit(cx,cz,parried?'#fff2c8':sameSpin?'#ffd08a':'#a1e3c6',Math.min(30,6+Jn*10));
@@ -584,21 +612,28 @@
     for(const t of[A,B])if(!t.dead&&t.spin<=0){t.spin=0;finish(t,'spin')}
   }
 
-  /* Burst: il blocco (ratchet) scatta di un dente quando l'impulso supera
-     la soglia; con poco spin la soglia crolla. */
-  function burstCheck(t,Jn,by){
+  /* Burst: il blocco ha N denti. Ogni colpo che supera metà della soglia
+     riempie una parte di dente (niente casualità): più forte il colpo, più
+     riempie. La soglia scende con lo spin: un top stanco si smonta prima.
+     Quando tutti i denti sono pieni il top esplode (BURST FINISH). */
+  function burstCheck(t,J,by){
     if(t.dead)return;
     const thr=PHY.BURST*t.blade.burst*(.35+.65*t.spin/100);
-    if(Jn<thr)return;
-    if(Math.random()>.35+(Jn-thr)*.5)return;
-    t.clicks++;
-    if(t.clicks>=t.blade.lock){
-      // XTREME: burst inflitto durante un rush molto carico o mentre si è agganciati al solco
-      t.xtreme=!!by&&((by.rush>0&&by.rushPow>=.7)||by.grinding);
+    const add=Math.max(0,J-.5*thr)/thr*.5;
+    if(add<=0)return;
+    const before=t.clicks;
+    t.bdmg=(t.bdmg||0)+add;t.clicks=Math.floor(t.bdmg);
+    if(t.bdmg>=t.blade.lock){
+      // XTREME: burst inflitto con un rush MAX o mentre si è agganciati al solco
+      t.xtreme=!!by&&((by.rush>0&&by.rushPow>=PHY.BREAK_CHARGE)||by.grinding);
       finish(t,'burst');return}
-    addFloat(t,'CLICK','#ff8564');
-    if(t.isPlayer)showNotice('CLICK! '+(t.blade.lock-t.clicks)+' AL BURST');
-    else if(by&&by.isPlayer)showNotice('CLICK CPU! '+(t.blade.lock-t.clicks)+' AL BURST');
+    if(add>=.06)addFloat(t,'BLOCCO +'+Math.round(add*100)+'%','#ffb38a');
+    if(t.clicks>before){
+      addFloat(t,'CLICK!','#ff8564');
+      const left=t.blade.lock-t.clicks;
+      if(t.isPlayer)showNotice('DENTE SALTATO · '+left+(left>1?' DENTI':' DENTE')+' AL BURST');
+      else if(by&&by.isPlayer)showNotice('DENTE CPU SALTATO · '+left+' AL BURST');
+    }
   }
 
   function finish(t,how){
@@ -629,10 +664,10 @@
       '<span>SCONTRO</span><b>'+(player.dir===enemy.dir?'SPIN CLASH':'SPIN STEAL')+'</b>';
   }
   function buildPips(){
-    const mk=(el,n)=>{el.innerHTML='BURST ';for(let i=0;i<n;i++)el.appendChild(document.createElement('i'))};
+    const mk=(el,n)=>{el.innerHTML='BLOCCO ';for(let i=0;i<n;i++)el.appendChild(document.createElement('i'))};
     mk(ui.myPips,player.blade.lock);mk(ui.foePips,enemy.blade.lock);
   }
-  function resetTop(t,x,z){t.loss={base:0,move:0,tilt:0,charge:0,rush:0,guard:0,impact:0,rim:0,stall:0};t.still=0;Object.assign(t,{rate:0,prevSpin:100,x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,dead:null,deadT:0,flash:0,heat:0,grinding:false,guard:0,guardT:9,gcd:0,rushPow:0,xtreme:false})}
+  function resetTop(t,x,z){t.loss={base:0,move:0,tilt:0,charge:0,rush:0,guard:0,impact:0,rim:0,stall:0};t.still=0;Object.assign(t,{rate:0,prevSpin:100,x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,bdmg:0,stagger:0,dead:null,deadT:0,flash:0,heat:0,grinding:false,guard:0,guardT:9,gcd:0,rushPow:0,xtreme:false})}
   function startLaunch(){
     state='launch';roundEnd=null;particles.length=debris.length=trails.length=floats.length=0;
     resetTop(player,-.62,.3);resetTop(enemy,.62,-.3);
@@ -803,7 +838,16 @@
     // ali di movimento: sfocatura quando gira forte
     if(sf>.35&&!t.dead){ctx.globalAlpha=.12*sf;ctx.strokeStyle=c[2];ctx.lineWidth=1;ellipsePath(bx,by-3*s,22*s,11*s);ctx.stroke();ctx.globalAlpha=1}
     if(t.guard>0){const fresh=t.guardT<=PHY.PARRY_WIN;ctx.globalAlpha=.5+.4*Math.sin(elapsed*40);ctx.strokeStyle=fresh?'#fff2c8':'#a1e3c6';ctx.lineWidth=fresh?2:1.4;ellipsePath(bx,by-3*s,26*s,13*s);ctx.stroke();ctx.globalAlpha=1}
-    if(t.charging){ctx.globalAlpha=.3+.5*t.charge;ctx.strokeStyle='#8fc2e0';ctx.lineWidth=1+t.charge*2;ellipsePath(x,y,(18+t.charge*10)*s,(7+t.charge*4)*s);ctx.stroke();ctx.globalAlpha=1}
+    if(t.charging){
+      const mx=t.charge>=PHY.BREAK_CHARGE,col=mx?'#ffd08a':'#8fc2e0';
+      // anello che si riempie come un orologio; la tacca segna la soglia MAX
+      ctx.strokeStyle='#0008';ctx.lineWidth=2;ellipsePath(x,y+2*s,24*s,9*s);ctx.stroke();
+      ctx.strokeStyle=col;ctx.lineWidth=mx?2.5:2;ctx.beginPath();ctx.ellipse(x,y+2*s,24*s,9*s,0,-Math.PI/2,-Math.PI/2+TAU*t.charge);ctx.stroke();
+      const ta=-Math.PI/2+TAU*PHY.BREAK_CHARGE;pxRect(x+Math.cos(ta)*24*s-1,y+2*s+Math.sin(ta)*9*s-1,2,2,'#fff');
+      if(t.isPlayer){const a=aimOf(t),L=.12+.3*t.charge,p1=project(t.x+a.x*L,t.z+a.z*L);
+        ctx.globalAlpha=.9;ctx.setLineDash([2,2]);ctx.strokeStyle=col;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(p1.x,p1.y);ctx.stroke();ctx.setLineDash([]);
+        polygon([[p1.x+a.x*4,p1.y+a.z*2],[p1.x-a.z*3,p1.y+a.x*1.5],[p1.x+a.z*3,p1.y-a.x*1.5]],col,null);ctx.globalAlpha=1}
+    }
     if(t.isPlayer&&!t.dead){ctx.globalAlpha=.14+.1*Math.sin(elapsed*10);ctx.strokeStyle='#ff8564';ctx.lineWidth=1;ellipsePath(x,y+2*s,24*s,8*s);ctx.stroke();ctx.globalAlpha=1}
     if(t.flash>0){ctx.globalAlpha=t.flash*.8;ctx.strokeStyle='#fff8da';ctx.lineWidth=2;ellipsePath(bx,by-3*s,24*s,12*s);ctx.stroke();ctx.globalAlpha=1}
   }
@@ -855,18 +899,18 @@
     ui.railBar.style.width=(cool*100).toFixed(1)+'%';ui.railBar.parentElement.classList.toggle('hot',over);
     ui.railText.textContent=player.grinding?'GRIND +SPIN':over?'RAFFREDDA…':'PRONTO';
     ui.foeBar.style.width=Math.max(0,enemy.spin).toFixed(1)+'%';ui.foeSpin.textContent=Math.ceil(Math.max(0,enemy.spin))+'%';
-    [...ui.myPips.querySelectorAll('i')].forEach((e,i)=>e.classList.toggle('on',i<player.clicks));
-    [...ui.foePips.querySelectorAll('i')].forEach((e,i)=>e.classList.toggle('on',i<enemy.clicks));
+    const pip=(el,t)=>[...el.querySelectorAll('i')].forEach((e,i)=>{const f=cl((t.bdmg||0)-i,0,1);e.style.setProperty('--f',(f*100).toFixed(0)+'%');e.classList.toggle('on',f>=1)});
+    pip(ui.myPips,player);pip(ui.foePips,enemy);
     ui.score.textContent=points[0]+' – '+points[1];ui.round.textContent=round;ui.timer.textContent=Math.ceil(roundTime);
     if(state==='launch')ui.needle.style.left=(launch.needle*98)+'%';
     const launching=state==='launch'&&launch.power===null;
-    const lbl=launching?'LANCIA':player.charging?'RILASCIA':player.guard>0?'GUARDIA':(player.cooldown>0?player.cooldown.toFixed(1):'RUSH')+'<small>TAP '+(player.gcd>0?player.gcd.toFixed(1):'GUARD')+'</small>';
+    const lbl=launching?'LANCIA':player.charging?(player.charge>=PHY.BREAK_CHARGE?'MAX!':Math.round(player.charge*100)+'%')+'<small>RILASCIA</small>':player.guard>0?'GUARDIA':(player.cooldown>0?player.cooldown.toFixed(1):'RUSH')+'<small>TAP '+(player.gcd>0?player.gcd.toFixed(1):'GUARD')+'</small>';
     if(ui.act.dataset.l!==lbl){ui.act.innerHTML=lbl;ui.act.dataset.l=lbl}
     ui.act.disabled=!(launching||(state==='battle'&&!player.dead&&!roundEnd));
     ui.act.classList.toggle('on',player.charging||launching);
     ui.goal.textContent=launching?'PREPARA IL LANCIO · TIENI UNA DIREZIONE PER ANGOLARLO':
       roundEnd?roundEnd.text:
-      player.charging?'CARICA CINETICA '+Math.round(player.charge*100)+'% · RILASCIA PER SCATTARE':
+      player.charging?(player.charge>=PHY.BREAK_CHARGE?'RUSH MAX · SFONDA LA GUARDIA · PUÒ DARE XTREME · RILASCIA!':'RUSH '+Math.round(player.charge*100)+'% · A '+Math.round(PHY.BREAK_CHARGE*100)+'% DIVENTA MAX · RILASCIA PER SCATTARE'):
       player.guard>0?'GUARDIA ATTIVA'+(player.guardT<=PHY.PARRY_WIN?' · FINESTRA PARATA':''):
       player.spin<25?'SPIN BASSO! VAI SUL SOLCO AZZURRO O EVITA I COLPI':
       'PRIMO A '+PHY.WIN_POINTS+' · SPIN +1 · BURST +2 · XTREME +3 · L = LAB';
@@ -894,7 +938,7 @@
      LAB: cursori sui fattori e sui parametri globali + telemetria
      ============================================================ */
   const TUNE=[
-    ['DRIVE','spinta punta',1,5,.1],['LEAN_RATE','reattività asse',2,12,.5],['PRECESS','precessione',0,.8,.05],
+    ['VMAX','velocità massima',.6,3,.1],['RESP','reattività velocità',1,20,.5],['AMAX','accelerazione max',2,20,.5],['COAST','presa senza input',0,1,.05],['STAGGER','durata rinculo',0,.5,.02],['LEAN_RATE','reattività asse',2,30,1],['PRECESS','precessione',0,.8,.02],
     ['DRAIN_BASE','consumo base %/s',.4,3,.1],['IMPACT','danno per impulso',.2,2,.05],['CLASH','spin clash',0,1,.05],
     ['BURST','soglia burst',.8,4,.1],['ABSORB','assorbimento attaccante',0,1,.05],['STALL_MULT','penalità ristagno',0,3,.1],['MOVE_COST','costo movimento',0,.6,.05],['RUSH_COST','costo rush',0,4,.1],['RAIL_GAIN','ricarica solco',0,20,1],['STEAL_XFER','spin steal',0,.4,.02]
   ];
