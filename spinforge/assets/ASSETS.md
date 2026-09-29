@@ -73,11 +73,38 @@ I file PNG non sono ancora nel repo: il CDN di Higgsfield
 Sopra le parti, un **budget di punti** (±0.5 totali, ogni fattore 0.6–1.4)
 permette di rifinire.
 
+## UI e stadi (fase 1b, pixel art 16:9, 0.25 crediti l'una)
+
+| # | Destinazione | Contenuto | Job Higgsfield |
+|---|---|---|---|
+| 0 | `ui/title.png` | Schermata iniziale: logo SPINFORGE, menu GIOCA / GARAGE / TORNEO / OPZIONI | `c9c6517b-9bb4-4997-82c9-a99b7137bfe9` |
+| 1 | `ui/garage.png` | Garage: vista esplosa, carte LAMA/BLOCCO/PUNTA, colori, 6 fattori | `4bdb2441-3e5e-41e5-8a2e-1335df6c3464` |
+| 2 | `ui/hud.png` | HUD di battaglia: spin, carica, blocco, punteggio, RUSH | `e6631f7d-331c-4f29-91e3-20c8c151bf1e` |
+| 3 | `ui/xtreme_finish.png` | Schermata di vittoria XTREME FINISH con pezzi che volano | `43a8bff2-3619-40da-b8c4-473dd67f3ba0` |
+| 4 | `stadi/cemento.png` | Stadio classico: conca di cemento al tramonto, solco ciano | `99569f8c-c155-4b69-a0d2-79567fa9cf06` |
+| 5 | `stadi/vulcano.png` | Roccia vulcanica con crepe di lava, solco di magma | `3615b4cc-4b98-4795-8e78-5b9e8d7c82aa` |
+| 6 | `stadi/ghiaccio.png` | Ghiaccio levigato, solco bianco, aurora | `05726d8e-8a06-4a76-b7c8-b6e9d74f88b1` |
+| 7 | `stadi/neon.png` | Pannelli metallici con griglia neon, skyline cyberpunk | `a43426bd-ff25-40b4-a1c9-2290b68f10e0` |
+| 8 | `stadi/tempio.png` | Arenaria di un tempio nel deserto, solco dorato | `fb8ceca1-b75d-4b9d-904f-bcdc0415e1c7` |
+| 9 | `stadi/giardino_zen.png` | Pietra muschiosa, ghiaia rastrellata, solco di giada | `ae23f446-bb87-43b1-804a-7fcb5982b51d` |
+
+Ogni stadio può diventare una variante di gameplay (idee): ghiaccio = attrito
+delle punte ridotto; vulcano = consumo più alto ma solco più generoso; neon =
+solco doppio; tempio = conca più ripida; giardino zen = conca più piatta.
+
+Bozzetti dei pezzi nuovi, stesso stile toon dei precedenti:
+
+| # | Pezzo | Job Higgsfield |
+|---|---|---|
+| 10 | Lama CYCLONE | `1396c614-4426-40dc-a930-1f226b03a068` |
+| 11 | Blocco 3 DENTI BASSO | `14f9618d-8f27-4195-9631-3a2f8fce234a` |
+| 12 | Punta RUBBER | `23ad8d1e-eb51-41e2-ae78-db130d92b4b0` |
+
 ## Fase 2 (in attesa di approvazione): conversione 3D
 
-Tripo H3.1 image → 3D, 9 crediti a pezzo. Tutti e 10 i pezzi costerebbero
-90 crediti (disponibili ~49): proposta di partire da un set giocabile
-(1–2 lame, 1 blocco, 2 punte) e ampliare dopo.
+Il roster ha 14 pezzi (5 lame, 4 blocchi, 5 punte). Tripo H3.1 image → 3D
+costa 9 crediti a pezzo (126 in tutto); Tripo text → 3D 5 crediti (70).
+Crediti disponibili dopo la fase 1b: 45.68.
 
 ## Cosa NON si genera con l'IA
 
