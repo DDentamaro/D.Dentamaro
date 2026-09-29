@@ -81,8 +81,28 @@
   .pts td:nth-child(2){color:var(--rust);font-weight:bold}
   #result section{text-align:center;max-width:380px}
   #result p{white-space:pre-wrap;font-size:12px;line-height:1.7;text-align:left;display:inline-block}
+  #labBtn{position:absolute;z-index:6;right:max(16px,env(safe-area-inset-right));top:max(128px,calc(env(safe-area-inset-top) + 128px));padding:6px 10px;border:1px solid #8fe0ff88;background:#0b1a1fdd;color:#8fe0ff;font:bold 10px "Courier New",monospace;letter-spacing:.12em}
+  #lab{position:absolute;z-index:8;top:0;right:0;bottom:0;width:min(380px,100vw);overflow:auto;padding:12px;background:#0b1518f2;border-left:2px solid #8fe0ff66;font-size:10px;box-shadow:-6px 0 20px #000a}
+  #lab header{display:flex;justify-content:space-between;align-items:center;gap:6px;position:sticky;top:-12px;background:#0b1518;padding:4px 0 8px;flex-wrap:wrap}
+  #lab header b{color:#8fe0ff;letter-spacing:.12em}
+  #lab button,#lab select{font:bold 9px "Courier New",monospace;background:#122429;color:var(--ink);border:1px solid #8fe0ff55;padding:5px 7px;margin-left:3px}
+  #lab h3{font-size:10px;color:var(--gold);margin:12px 0 4px;letter-spacing:.1em;display:flex;justify-content:space-between}
+  #lab table{width:100%;border-collapse:collapse;font-size:9px}#lab th{color:var(--muted);font-weight:normal;text-align:right}#lab td{text-align:right;padding:2px}#lab td:first-child{text-align:left;color:var(--gold)}
+  #lab p{color:#c8d4cf;line-height:1.5;margin:6px 0}
+  .sl{display:grid;grid-template-columns:92px 1fr 38px;align-items:center;gap:6px;margin:3px 0}
+  .sl span{color:var(--ink)}.sl output{text-align:right;color:#8fe0ff}.sl small{grid-column:1/-1;color:var(--muted);font-size:8px;margin-top:-3px}
+  .sl input{width:100%;accent-color:#8fe0ff}
+  .chk{font-size:9px;color:var(--ink);font-weight:normal}
+  #lab footer{margin-top:12px;display:flex;gap:4px}
+  #labJson{width:100%;margin-top:8px;background:#061015;color:#c8d4cf;border:1px solid #8fe0ff44;font:9px monospace}
+  .factors{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px}
+  .fc{padding:6px;border:1px solid #b4d4cf33;background:#0f1a1c;font-size:10px}
+  .fc b{color:var(--gold);display:block}.fc span{float:right;color:#8fe0ff;margin-top:-12px}
+  .fc i{display:block;height:4px;margin:4px 0;background:linear-gradient(90deg,#8fe0ff var(--v),#1a2226 var(--v))}
+  .fc small{color:var(--muted);font-size:9px;line-height:1.4}
+  .note{font-size:10px!important}
   @media(max-width:720px){
-    .build{display:none}.hint{font-size:7px;white-space:normal;width:92vw;line-height:1.5}
+    .build{display:none}#labBtn{top:auto;bottom:max(140px,calc(env(safe-area-inset-bottom) + 140px))}.hint{font-size:7px;white-space:normal;width:92vw;line-height:1.5}
     #mine{bottom:max(40px,calc(env(safe-area-inset-bottom) + 40px));width:52vw}
     .match b{font-size:15px}.brand small{display:none}.brand-mark{height:24px}
   }
@@ -116,6 +136,17 @@
   <div class="hud hint"><em>TRASCINA / WASD</em> INCLINA · <em>TIENI</em> CARICA RUSH · <em>TAP</em> GUARDIA · <em>SOLCO AZZURRO</em> RICARICA</div>
   <button id="act" aria-label="Azione">RUSH</button>
   <div id="notice"></div>
+  <button id="labBtn" aria-label="Apri il laboratorio">LAB</button>
+  <aside id="lab" hidden aria-label="Laboratorio di bilanciamento">
+    <header><b>LAB · BILANCIAMENTO</b><span><button id="labPause">PAUSA</button><button id="labReset">RIAVVIA ROUND</button><button id="labClose">✕</button></span></header>
+    <div id="labTele"></div>
+    <h3>FATTORI · TU</h3><div id="labYou"></div>
+    <h3>FATTORI · CPU <label class="chk"><input type="checkbox" id="labMirror"> specchio</label></h3><div id="labCpu"></div>
+    <h3>STILE CPU</h3><select id="labProfile"></select>
+    <h3>PARAMETRI GLOBALI</h3><div id="labPhy"></div>
+    <footer><button id="labDefaults">VALORI BASE</button><button id="labExport">ESPORTA CONFIG</button></footer>
+    <textarea id="labJson" hidden rows="8" readonly></textarea>
+  </aside>
 
   <section id="launchPanel" hidden>
     <strong>3 · 2 · 1 · LANCIO!</strong>
@@ -125,21 +156,22 @@
 
   <div id="setup" class="overlay" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
     <section>
-      <h1 id="setupTitle">ASSEMBLA IL TUO TOP</h1>
+      <h1 id="setupTitle">SPINFORGE · TOP BASE</h1>
       <p>Nessun bordo: lo stadio è una conca senza sponde, la pendenza riporta sempre al centro. Vince la partita chi arriva per primo a <b>4 punti</b>.</p>
+      <h2>IL TOP (UGUALE PER TE E LA CPU)</h2>
+      <div id="factorCard" class="factors"></div>
+      <p class="note">Tutti i fattori valgono 1.00 sul top base. Nel <b>LAB</b> (tasto L o pulsante in alto) puoi spostarli dal vivo e vedere l'effetto.</p>
       <h2>ROTAZIONE</h2>
       <div class="choices" data-group="dir"></div>
-      <h2>LAMA (BLADE)</h2>
-      <div class="choices" data-group="blade"></div>
-      <h2>PUNTA (BIT)</h2>
-      <div class="choices" data-group="tip"></div>
+      <h2>STILE DELLA CPU</h2>
+      <div class="choices" data-group="profile"></div>
       <div class="rules">
         <h2>COME SI VINCE UN ROUND</h2>
         <table class="pts">
           <tr><td>SPIN FINISH</td><td>+1</td><td>l'avversario smette di girare</td></tr>
           <tr><td>BURST FINISH</td><td>+2</td><td>il blocco dell'avversario scatta tutti i denti (pallini BURST) e il top si smonta</td></tr>
           <tr><td>XTREME FINISH</td><td>+3</td><td>burst inflitto con un RUSH carico almeno al 70% o mentre sei agganciato al solco</td></tr>
-          <tr><td>DECISIONE</td><td>+1</td><td>a 60s vince chi ha più spin (serve almeno 3% di scarto)</td></tr>
+          <tr><td>DECISIONE</td><td>+1</td><td>a 90s vince chi ha più spin (serve almeno 3% di scarto)</td></tr>
           <tr><td>DOPPIO KO</td><td>0</td><td>entrambi fuori insieme: chi è esploso perde, altrimenti pareggio</td></tr>
         </table>
         <h2>COME TOGLIERE SPIN ALL'AVVERSARIO</h2>
@@ -176,43 +208,82 @@
   const PHY={
     G:1.3,STEEP:1.2,          // pendenza della conca
     RIM:1.4,                  // velocità del bordo a spin 100 (unità mondo/s)
-    MAX_LEAN:.6,              // inclinazione massima comandabile
-    DRIVE:2.3,                // spinta della punta inclinata
-    SPIN_XFER:.06,            // quanto l'attrito tra le lame modifica lo spin
+    MAX_LEAN:.75,             // inclinazione massima comandabile
+    DRIVE:3.2,                // spinta della punta inclinata
+    LEAN_RATE:6,              // reattività dell'asse (prima 3.2: ora più dinamico)
+    PRECESS:.3,               // anticipo di precessione in radianti (prima .5)
+    DRAIN_BASE:.9,            // consumo a riposo (%/s) del top base: ~110s senza combattere
+    STALL_SPEED:.12,STALL_TIME:3,STALL_MULT:1.5,   // ristagno: sotto .12 di velocità per 3s il consumo base aumenta del 150%
+    RUSH_COST:1.2,            // spin speso da un rush: RUSH_COST·(1+2.5·carica)
+    ABSORB:.35,               // quota dello spin tolto che l'attaccante recupera (scambio favorevole)
+    MOVE_COST:.15,            // consumo extra per unità di velocità (muoversi deve convenire)
+    TILT_COST:.6,             // consumo extra per asse inclinato
+    SPIN_XFER:.015,           // quanto l'attrito tra le lame modifica lo spin
     CLASH:.35,                // conversione slittamento tangenziale -> rinculo normale
     TILT_KICK:.32,            // quanto un impatto sbilancia l'asse
-    STEAL_XFER:.16,           // scambio di spin tra bordi in verso opposto (spin steal)
+    STEAL_XFER:.08,           // scambio di spin tra bordi in verso opposto (spin steal)
     RAIL_R:.55,RAIL_W:.09,    // solco Xtreme: anello inciso nella conca (non è un bordo)
     RAIL_MIN:.35,             // velocità tangenziale minima per agganciare l'ingranaggio
     RAIL_GAIN:7,              // spin recuperato al secondo a pieno aggancio (punta FLAT)
     HEAT_MAX:2.5,             // secondi di grind prima del surriscaldamento
-    IMPACT:.75,               // spin tolto per unità d'impulso (scalato dalla quota di carica cinetica)
+    IMPACT:.45,               // spin tolto per unità d'impulso (scalato dalla quota di carica cinetica)
     GUARD_TIME:.45,           // durata della guardia
     GUARD_CD:1.2,             // ricarica della guardia
     PARRY_WIN:.2,             // finestra della parata perfetta dall'inizio della guardia
     BREAK_CHARGE:.85,         // carica minima del rush per sfondare una guardia
-    BURST:2.0,                // soglia d'impulso per far scattare un dente del blocco
+    BURST:2.6,                // soglia d'impulso per far scattare un dente del blocco
     TAP:.18,                  // un tocco più breve di così attiva la guardia
-    ROUND_TIME:60,
+    ROUND_TIME:90,
     WIN_POINTS:4
   };
 
-  /* Parti: la lama decide massa, geometria d'impatto e resistenza al burst,
-     la punta decide aderenza, attrito e consumo di stamina. */
-  const BLADES={
-    attack :{id:'attack', name:'RAPTOR', type:'ATTACCO',    mass:1.00,R:.082,smash:1.00,e:.85,mu:.45,k:.45,lock:3,burst:1.00,drain:1.15,shape:[3,.42],colors:['#b95843','#ff8564','#ffd2a0'],desc:'Lame a uncino: grande rinculo inflitto, ma lo subisce anche.'},
-    defense:{id:'defense',name:'BASTION',type:'DIFESA',     mass:1.35,R:.078,smash:.35, e:.50,mu:.30,k:.55,lock:4,burst:1.25,drain:1.00,shape:[8,.9], colors:['#476a70','#72a2a4','#b8d5cf'],desc:'Pesante e tondo: assorbe gli urti, difficile da far burstare.'},
-    stamina:{id:'stamina',name:'HALO',   type:'RESISTENZA', mass:1.10,R:.086,smash:.25, e:.60,mu:.25,k:.80,lock:3,burst:.80, drain:.70, shape:[12,.88],colors:['#6b663f','#aaa05b','#e0d29a'],desc:'Peso sul bordo: gira a lungo e ruba spin in verso opposto.'},
-    balance:{id:'balance',name:'ORBIT',  type:'EQUILIBRIO', mass:1.15,R:.080,smash:.60, e:.70,mu:.38,k:.60,lock:3,burst:1.10,drain:.90, shape:[5,.62],colors:['#6b4a75','#a177aa','#dbc7df'],desc:'Via di mezzo: nessun punto debole, nessun picco.'}
-  };
-  const TIPS={
-    flat :{id:'flat', name:'FLAT', grip:1.00,fric:2.2,drain:1.15,stab:.80,desc:'Tanta aderenza: veloce e reattiva, consuma molto.'},
-    ball :{id:'ball', name:'BALL', grip:.60, fric:1.4,drain:1.00,stab:1.0,desc:'Rotola bene: bilanciata tra controllo e durata.'},
-    sharp:{id:'sharp',name:'SHARP',grip:.30, fric:.75,drain:.60, stab:1.2,desc:'Attrito minimo: resta al centro e dura, ma scivola dopo un colpo.'}
-  };
+  /* ============================================================
+     IL TOP DI RIFERIMENTO
+     Un solo top, sei fattori. Sul top base valgono tutti 1.0.
+     Ogni fattore ha un vantaggio e un costo; derive() li traduce nei
+     parametri fisici letti dal motore (t.blade / t.tip).
+     Le future parti e il budget di punti sposteranno solo questi fattori.
+     ============================================================ */
+  const FACTORS=[
+    {id:'mass', name:'MASSA',        pro:'meno rinculo e danno subito',          con:'accelera più lentamente'},
+    {id:'rim',  name:'INERZIA',      pro:'consuma meno, resiste allo steal',     con:"cambia inclinazione più lentamente"},
+    {id:'aggro',name:'AGGRESSIVITÀ', pro:'toglie più spin, più click al blocco', con:'più rinculo e più consumo'},
+    {id:'lock', name:'BLOCCO',       pro:'più denti prima del burst',            con:'lama meno aggressiva'},
+    {id:'grip', name:'ADERENZA',     pro:'accelera, sterza e ricarica meglio',   con:'consuma molto di più'},
+    {id:'stab', name:'STABILITÀ',    pro:'asse dritto, traballa meno',           con:'sterza meno'}
+  ];
+  const BASE=Object.freeze({mass:1,rim:1,aggro:1,lock:1,grip:1,stab:1});
+  const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function derive(f,isPlayer){
+    const aggro=f.aggro*(1.15-.15*f.lock);                  // il blocco rubato alla lama
+    const blade={
+      name:isPlayer?'SPINFORGE':'SPINFORGE CPU',
+      mass:1.1*f.mass,R:.082,
+      smash:.6*aggro,e:.58+.12*aggro,mu:.38*(.7+.3*aggro),
+      k:.6*f.rim,
+      lock:Math.round(cl(3*f.lock,2,6)),burst:1.1,
+      drain:(.85+.15*aggro)/Math.pow(f.rim,.6),
+      shape:aggro>1.15?[3,.45]:aggro<.85?[8,.9]:[5,.62],
+      colors:isPlayer?['#b95843','#ff8564','#ffd2a0']:['#6b4a75','#a177aa','#dbc7df']
+    };
+    const tip={
+      name:'BIT',grip:.6*f.grip,fric:1.3*Math.pow(f.grip,.8),
+      drain:.6+.4*f.grip,stab:f.stab,
+      accel:1/Math.pow(f.mass,.7),                           // costo della massa
+      turn:1/Math.pow(f.rim,.7),                             // costo dell'inerzia
+      steer:1.2-.2*f.stab                                    // costo della stabilità
+    };
+    return{blade,tip};
+  }
   const DIRS={right:{id:'right',name:'DESTRA',v:1,desc:'Orario. Contro un destro = SPIN CLASH.'},left:{id:'left',name:'SINISTRA',v:-1,desc:'Antiorario. Contro un destro = SPIN STEAL.'}};
-
-  const choice={dir:'right',blade:'attack',tip:'flat'};
+  const PROFILES={
+    balanced:{id:'balanced',name:'EQUILIBRATA',desc:'Attacca se ha più spin, altrimenti ricarica e aspetta.',guard:.4},
+    aggressive:{id:'aggressive',name:'AGGRESSIVA',desc:'Insegue e carica il rush appena può.',guard:.15},
+    defensive:{id:'defensive',name:'DIFENSIVA',desc:'Presidia il centro e para spesso.',guard:.7},
+    dummy:{id:'dummy',name:'MANICHINO',desc:'Resta al centro senza reagire: per provare i colpi.',guard:0}
+  };
+  // configurazione della partita (modificabile dal LAB)
+  const cfg={you:{...BASE},cpu:{...BASE},mirror:true,dir:'right',cpuDir:'right',profile:'balanced'};
 
   /* ============================================================
      PROIEZIONE ISOMETRICA DELLA CONCA
@@ -225,7 +296,7 @@
   const keys=new Set(),pointer={active:false,id:null,x:0,y:0,ox:0,oy:0};
   const particles=[],debris=[],trails=[];
   let player=null,enemy=null,state='setup',elapsed=0,roundTime=PHY.ROUND_TIME,round=1,points=[0,0];
-  let launch=null,roundEnd=null,actHeld=false,pressT=-9;
+  let launch=null,roundEnd=null,actHeld=false,pressT=-9,paused=false;
   const floats=[];
 
   const ui={spinBar:$('#spinBar'),spinText:$('#spinText'),kinBar:$('#kinBar'),railBar:$('#railBar'),railText:$('#railText'),kinText:$('#kinText'),myPips:$('#myPips'),
@@ -235,9 +306,9 @@
   /* ============================================================
      TOP
      ============================================================ */
-  function makeTop(build,isPlayer){
-    const blade=BLADES[build.blade],tip=TIPS[build.tip];
-    return{isPlayer,build,blade,tip,dir:DIRS[build.dir].v,name:isPlayer?'TU':blade.name,
+  function makeTop(f,dir,isPlayer,profile){
+    const {blade,tip}=derive(f,isPlayer);
+    return{isPlayer,f:{...f},blade,tip,dir:DIRS[dir].v,name:isPlayer?'TU':'CPU',rate:0,prevSpin:100,
       x:0,z:0,vx:0,vz:0,spin:100,angle:Math.random()*TAU,
       lx:0,lz:0,          // inclinazione dell'asse (vettore)
       ex:0,ez:0,          // inclinazione effettiva (con nutazione)
@@ -246,8 +317,11 @@
       clicks:0,dead:null,deadT:0,flash:0,heat:0,grinding:false,
       guard:0,guardT:9,gcd:0,rushPow:0,xtreme:false,
       stats:{dealt:0,taken:0,stolen:0,grind:0,parry:0,rush:0},
-      ai:{hold:0,mood:0,rolled:false,gd:.3}};
+      loss:{base:0,move:0,tilt:0,charge:0,rush:0,guard:0,impact:0,rim:0,stall:0},
+      ai:{profile:profile||'balanced',hold:0,mood:0,rolled:false,gd:.3}};
   }
+  // applica nuovi fattori a un top in gioco senza azzerarne lo stato
+  function refit(t,f){t.f={...f};const d=derive(t.f,t.isPlayer);t.blade=d.blade;t.tip=d.tip;t.clicks=Math.min(t.clicks,t.blade.lock-1)}
   const mass=t=>t.blade.mass;
   const rimSpeed=t=>t.dir*PHY.RIM*Math.max(0,t.spin)/100;
   const kinetic=t=>.5*mass(t)*(t.vx*t.vx+t.vz*t.vz);
@@ -264,23 +338,31 @@
     const wx=ax/AR.sx,wz=az/AR.sy,l=Math.hypot(wx,wz)||1;return{x:wx/l*m,z:wz/l*m};
   }
 
-  /* IA: ogni tipo di lama ha un piano diverso */
+  /* IA: stessi pezzi, stili di gioco diversi */
   function enemyInput(b,p){
     const dx=p.x-b.x,dz=p.z-b.z,dist=Math.hypot(dx,dz)||1,cx=-b.x,cz=-b.z,cr=Math.hypot(cx,cz);
     const lead=.35;const tx=p.x+p.vx*lead-b.x,tz=p.z+p.vz*lead-b.z,tl=Math.hypot(tx,tz)||1;
     let ux=0,uz=0,wantRush=false;
-    let mode=b.blade.id;
-    if(mode==='balance')mode=b.spin>=p.spin+8?'attack':'stamina';
+    const prof=b.ai.profile;
+    if(prof==='dummy'){if(b.charging)b.charging=false;return{x:cx*.8,z:cz*.8}}
+    let mode=prof==='aggressive'?'attack':prof==='defensive'?'defense':(b.spin>=p.spin+8?'attack':'stamina');
     if(p.dead)mode='stamina';
-    if(b.blade.id==='balance'&&!p.dead&&b.spin<p.spin-6&&b.heat<.5&&dist>.3)mode='rail';
+    if(prof==='balanced'&&!p.dead&&b.spin<p.spin-6&&b.heat<.5&&dist>.3)mode='rail';
     if(b.heat>=PHY.HEAT_MAX-.1&&mode==='rail')mode='stamina';
     if(mode==='rail'){
       // punta un punto più avanti sul solco, nel proprio verso di rotazione
       const a=Math.atan2(b.z,b.x)+b.dir*.6;ux=Math.cos(a)*PHY.RAIL_R-b.x;uz=Math.sin(a)*PHY.RAIL_R-b.z;
       const l=Math.hypot(ux,uz)||1;ux/=l;uz/=l;return{x:ux,z:uz};
     }
-    if(mode==='attack'){ux=tx/tl;uz=tz/tl;wantRush=dist<.6&&dist>.2}
-    else if(mode==='defense'){ux=cx*1.6;uz=cz*1.6;if(dist<.4){ux+=dx/dist*.5;uz+=dz/dist*.5}wantRush=dist<.3&&Math.random()<.3}
+    // il rush rende solo con rincorsa: serve distanza per accumulare carica cinetica
+    const pSpeed=Math.hypot(p.vx,p.vz);
+    if(mode==='attack'){ux=tx/tl;uz=tz/tl;wantRush=dist<.7&&dist>.32}
+    else if(mode==='defense'){
+      // orbita stretta attorno al centro (niente ristagno), pronta a parare e contrattaccare
+      const r=Math.hypot(b.x,b.z)||1e-3,tgx=-b.z/r*b.dir,tgz=b.x/r*b.dir;
+      ux=tgx*.45+(b.x/r)*(.28-r)*2.5;uz=tgz*.45+(b.z/r)*(.28-r)*2.5;
+      wantRush=dist>.3&&dist<.6&&pSpeed<.35;
+    }
     else{ux=cx*1.2;uz=cz*1.2;if(dist<.3){ux-=dx/dist*.6;uz-=dz/dist*.6}if(cr<.12){ux*=.2;uz*=.2}}
     const m=Math.hypot(ux,uz);if(m>1){ux/=m;uz/=m}
     // guardia: tenta di parare quando l'avversario arriva veloce
@@ -288,9 +370,11 @@
     if(dist>.45)b.ai.rolled=false;
     if(!b.ai.rolled&&incoming>.7&&dist<b.ai.gd&&b.gcd<=0&&!p.dead){
       b.ai.rolled=true;b.ai.gd=.2+Math.random()*.2;
-      const chance={defense:.7,stamina:.45,balance:.4,attack:.15}[b.blade.id];
+      const chance=PROFILES[prof].guard;
       if(Math.random()<chance&&startGuard(b))return{x:0,z:0};
     }
+    // contrattacco subito dopo una parata perfetta
+    if(b.ai.counter>0){b.ai.counter-=1/120;if(!b.charging&&b.cooldown<=0){b.charging=true;b.charge=0;b.ai.hold=.35}}
     // gestione carica
     if(b.charging){b.ai.hold-=1/120;if(b.ai.hold<=0)releaseRush(b,{x:tx/tl,z:tz/tl})}
     else if(wantRush&&b.cooldown<=0&&b.spin>15&&Math.random()<.006){b.charging=true;b.charge=0;b.ai.hold=.25+Math.random()*.55}
@@ -303,7 +387,7 @@
      Un rush carico oltre BREAK_CHARGE sfonda una guardia non perfetta. */
   function startGuard(t){
     if(t.dead||t.gcd>0||t.spin<4)return false;
-    t.charging=false;t.charge=0;t.guard=PHY.GUARD_TIME;t.guardT=0;t.gcd=PHY.GUARD_CD;t.spin-=1.5;
+    t.charging=false;t.charge=0;t.guard=PHY.GUARD_TIME;t.guardT=0;t.gcd=PHY.GUARD_CD;t.spin-=1.5;t.loss.guard+=1.5;
     emit(t.x,t.z,'#a1e3c6',8);return true;
   }
 
@@ -314,7 +398,7 @@
     ax/=l;az/=l;
     // la carica converte energia di rotazione in energia cinetica
     const c=t.charge,imp=(.8+1.9*c)*(.6+.4*t.tip.grip);t.rushPow=c;t.stats.rush++;
-    t.vx+=ax*imp;t.vz+=az*imp;t.rush=.35;t.cooldown=t.isPlayer?.7:1.3;t.spin-=1.5+4*c;t.charge=0;
+    t.vx+=ax*imp;t.vz+=az*imp;t.rush=.35;t.cooldown=t.isPlayer?.7:1.3;t.spin-=PHY.RUSH_COST*(1+2.5*c);t.loss.rush+=PHY.RUSH_COST*(1+2.5*c);t.charge=0;
     // la spinta inclina l'asse all'indietro (reazione giroscopica)
     t.lx-=ax*.25;t.lz-=az*.25;
     emit(t.x,t.z,t.isPlayer?'#ff8564':'#c9a3d6',10+c*14);
@@ -334,13 +418,13 @@
     if(t.dead){t.deadT+=dt;t.vx*=Math.exp(-4*dt);t.vz*=Math.exp(-4*dt);t.x+=t.vx*dt;t.z+=t.vz*dt;return}
     const sf=Math.max(0,t.spin)/100,d=t.dir;
     let ux=input.x,uz=input.z;
-    if(t.charging){t.charge=Math.min(1,t.charge+dt/.8);t.spin-=dt*3*t.charge;ux*=.3;uz*=.3}
+    if(t.charging){t.charge=Math.min(1,t.charge+dt/.8);t.spin-=dt*3*t.charge;t.loss.charge+=dt*3*t.charge;ux*=.3;uz*=.3}
     if(t.guard>0){ux=0;uz=0}
 
     // 1. inclinazione obiettivo = input ruotato di -90° nel verso di spin
     const Lx=d*uz*PHY.MAX_LEAN,Lz=-d*ux*PHY.MAX_LEAN;
     // 2. giroscopio: più spin = cambi d'asse più lenti; la correzione precede di ~30°
-    const rate=3.2*t.tip.stab/(.35+.9*sf)*(t.guard>0?3:1),pa=d*.5,cs=Math.cos(pa),sn=Math.sin(pa);
+    const rate=PHY.LEAN_RATE*t.tip.turn/(.35+.9*sf)*(t.guard>0?3:1),pa=d*PHY.PRECESS,cs=Math.cos(pa),sn=Math.sin(pa);
     const ddx=Lx-t.lx,ddz=Lz-t.lz,k=Math.min(1,rate*dt);
     t.lx+=(ddx*cs-ddz*sn)*k;t.lz+=(ddx*sn+ddz*cs)*k;
     const lm=Math.hypot(t.lx,t.lz),lmax=PHY.MAX_LEAN*1.5;if(lm>lmax){t.lx*=lmax/lm;t.lz*=lmax/lm}
@@ -350,7 +434,7 @@
     t.ex=t.lx+Math.cos(t.prec)*wob;t.ez=t.lz+Math.sin(t.prec)*wob;
 
     // 3. forze
-    const drive=PHY.DRIVE*t.tip.grip*Math.sqrt(sf)/PHY.MAX_LEAN;
+    const drive=PHY.DRIVE*t.tip.grip*t.tip.accel*t.tip.steer*Math.sqrt(sf)/PHY.MAX_LEAN;
     const fx=-d*t.ez*drive,fz=d*t.ex*drive;            // punta che rotola: inclinazione ruotata di +90°
     const r2=t.x*t.x+t.z*t.z,slope=PHY.G*(1+PHY.STEEP*r2);
     const fric=t.tip.fric*(t.charging?2.4:1)*(t.rush>0?.35:1)*(t.guard>0?3:1);
@@ -359,7 +443,11 @@
 
     // stamina: attrito della punta + velocità + asse inclinato
     const sp=Math.hypot(t.vx,t.vz),tilt=t.ex*t.ex+t.ez*t.ez;
-    t.spin-=dt*(1.8*t.tip.drain*t.blade.drain+sp*.35*t.tip.drain+tilt*1.4);
+    const lb=dt*PHY.DRAIN_BASE*t.tip.drain*t.blade.drain,lmv=dt*sp*PHY.MOVE_COST*t.tip.drain,lt=dt*tilt*PHY.TILT_COST;
+    // ristagno: chi resta quasi fermo troppo a lungo scava la punta e consuma di più
+    t.still=sp<PHY.STALL_SPEED?(t.still||0)+dt:0;
+    const ls=t.still>PHY.STALL_TIME?lb*PHY.STALL_MULT:0;
+    t.spin-=lb+lmv+lt+ls;t.loss.base+=lb;t.loss.move+=lmv;t.loss.tilt+=lt;t.loss.stall+=ls;
     t.angle+=dt*d*(3+t.spin*.32);
     grind(t,dt);
     if(t.spin<=0){t.spin=0;finish(t,'spin')}
@@ -394,7 +482,7 @@
      Impulso tangenziale = attrito tra i bordi: devia i top e
                            scambia spin (steal se versi opposti)
      ============================================================ */
-  let pairCD=0;
+  let pairCD=0,lastHit=null;
   function collide(A,B,dt){
     pairCD=Math.max(0,pairCD-dt);
     if(A.dead==='burst'||B.dead==='burst')return;
@@ -431,6 +519,7 @@
     if(!A.dead)A.spin=Math.min(100,Math.max(0,nwA*A.dir)/PHY.RIM*100);
     if(!B.dead)B.spin=Math.min(100,Math.max(0,nwB*B.dir)/PHY.RIM*100);
     const dA=A.spin-sA,dB=B.spin-sB;
+    if(dA<0)A.loss.rim-=dA;if(dB<0)B.loss.rim-=dB;
     if(!sameSpin){if(dA>0)A.stats.stolen+=dA;if(dB>0)B.stats.stolen+=dB}
     const stolen=A.isPlayer?dA:dB;
 
@@ -452,10 +541,16 @@
     // spin tolto dall'impatto: dipende dalla quota di carica cinetica e dalla lama avversaria
     let lossA=Jn*PHY.IMPACT*(.4+1.6*shB)*(.6+.6*B.blade.smash)/mA*gA;
     let lossB=Jn*PHY.IMPACT*(.4+1.6*shA)*(.6+.6*A.blade.smash)/mB*gB;
+    if(parried&&!parried.isPlayer)parried.ai.counter=.6;
     if(parried===B){lossA*=2;A.vx-=nx*.7;A.vz-=nz*.7;A.lx-=nx*.5;A.lz-=nz*.5;B.stats.parry++}
     if(parried===A){lossB*=2;B.vx+=nx*.7;B.vz+=nz*.7;B.lx+=nx*.5;B.lz+=nz*.5;A.stats.parry++}
-    if(!A.dead){A.spin-=lossA;A.stats.taken+=lossA;B.stats.dealt+=lossA}
-    if(!B.dead){B.spin-=lossB;B.stats.taken+=lossB;A.stats.dealt+=lossB}
+    lastHit={t:elapsed,Jn,Jlin,Jspin,shA,lossA,lossB,dA,dB,parried:!!parried,broke:!!broke,A,B};
+    if(!A.dead){A.spin-=lossA;A.stats.taken+=lossA;B.stats.dealt+=lossA;A.loss.impact+=lossA}
+    if(!B.dead){B.spin-=lossB;B.stats.taken+=lossB;A.stats.dealt+=lossB;B.loss.impact+=lossB}
+    // scambio favorevole: l'attaccante assorbe parte dell'energia del colpo
+    const gainA=PHY.ABSORB*lossB*Math.max(0,shA-.5)*2,gainB=PHY.ABSORB*lossA*Math.max(0,shB-.5)*2;
+    if(!A.dead&&gainA>0){A.spin=Math.min(100,A.spin+gainA);A.stats.absorbed=(A.stats.absorbed||0)+gainA}
+    if(!B.dead&&gainB>0){B.spin=Math.min(100,B.spin+gainB);B.stats.absorbed=(B.stats.absorbed||0)+gainB}
     if(lossA>=.6)addFloat(A,'-'+lossA.toFixed(1),A.isPlayer?'#ff8564':'#fff1cf');
     if(lossB>=.6)addFloat(B,'-'+lossB.toFixed(1),B.isPlayer?'#ff8564':'#fff1cf');
     if(!sameSpin){if(dA>=.4)addFloat(A,'+'+dA.toFixed(1),'#a1e3c6');if(dB>=.4)addFloat(B,'+'+dB.toFixed(1),'#a1e3c6')}
@@ -467,7 +562,7 @@
     // colpire chi sta ricaricando sul solco lo sgancia e surriscalda la punta
     for(const [V,sh] of [[A,shB],[B,shA]])if(V.grinding&&Jn>.5&&sh>.4){V.heat=PHY.HEAT_MAX;V.grinding=false;if(V.isPlayer)showNotice('RAIL BLOCCATO!');else if(!V.isPlayer&&(A.isPlayer||B.isPlayer))showNotice('RICARICA NEGATA!')}
 
-    A.flash=B.flash=.9;pairCD=.12;
+    A.flash=B.flash=.9;pairCD=.2;
     const cx=(A.x+B.x)/2,cz=(A.z+B.z)/2;
     emit(cx,cz,parried?'#fff2c8':sameSpin?'#ffd08a':'#a1e3c6',Math.min(30,6+Jn*10));
     if(A.isPlayer||B.isPlayer)camera.shake=Math.min(4,1+Jn*1.4);
@@ -483,7 +578,7 @@
     }
     // il blocco subisce la coppia trasmessa dalla lama avversaria, pesata dalla carica cinetica
     // se uno esplode, il colpo si scarica su di lui: niente doppio burst sullo stesso urto
-    const jA=Jn*(.5+.7*B.blade.smash)*(.6+.8*shB)*bA,jB=Jn*(.5+.7*A.blade.smash)*(.6+.8*shA)*bB;
+    const jA=Jn*(.5+.7*B.blade.smash)*(.35+1.3*shB)*bA,jB=Jn*(.5+.7*A.blade.smash)*(.35+1.3*shA)*bB;
     const order=jA>=jB?[[A,jA,B],[B,jB,A]]:[[B,jB,A],[A,jA,B]];
     burstCheck(...order[0]);if(order[0][0].dead!=='burst')burstCheck(...order[1]);
     for(const t of[A,B])if(!t.dead&&t.spin<=0){t.spin=0;finish(t,'spin')}
@@ -520,24 +615,24 @@
      FLUSSO DEL MATCH
      ============================================================ */
   function newMatch(){
-    const bladeIds=Object.keys(BLADES),tipIds=Object.keys(TIPS);
-    const eb=bladeIds[Math.floor(Math.random()*bladeIds.length)];
-    const et=eb==='attack'?'flat':eb==='stamina'?'sharp':tipIds[Math.floor(Math.random()*tipIds.length)];
-    const ed=Math.random()<.7?'right':'left';
-    player=makeTop({...choice},true);enemy=makeTop({dir:ed,blade:eb,tip:et},false);
+    player=makeTop(cfg.you,cfg.dir,true);
+    enemy=makeTop(cfg.mirror?cfg.you:cfg.cpu,cfg.cpuDir,false,cfg.profile);
     points=[0,0];round=1;floats.length=0;
-    ui.foeName.textContent=enemy.blade.name+' '+enemy.tip.name+' '+(enemy.dir>0?'↻':'↺');
+    ui.foeName.textContent='CPU · '+PROFILES[cfg.profile].name+' '+(enemy.dir>0?'↻':'↺');
+    updateBuildPanel();buildPips();startLaunch();
+  }
+  function updateBuildPanel(){
+    const same=FACTORS.every(k=>player.f[k.id]===enemy.f[k.id]);
     $('#buildPanel').innerHTML=
-      '<span>TU</span><b>'+player.blade.name+'/'+player.tip.name+' '+(player.dir>0?'DX':'SX')+'</b>'+
-      '<span>CPU</span><b>'+enemy.blade.name+'/'+enemy.tip.name+' '+(enemy.dir>0?'DX':'SX')+'</b>'+
+      '<span>TOP</span><b>'+(same?'SPECCHIO':'MODIFICATO')+'</b>'+
+      '<span>CPU</span><b>'+PROFILES[enemy.ai.profile].name+'</b>'+
       '<span>SCONTRO</span><b>'+(player.dir===enemy.dir?'SPIN CLASH':'SPIN STEAL')+'</b>';
-    buildPips();startLaunch();
   }
   function buildPips(){
     const mk=(el,n)=>{el.innerHTML='BURST ';for(let i=0;i<n;i++)el.appendChild(document.createElement('i'))};
     mk(ui.myPips,player.blade.lock);mk(ui.foePips,enemy.blade.lock);
   }
-  function resetTop(t,x,z){Object.assign(t,{x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,dead:null,deadT:0,flash:0,heat:0,grinding:false,guard:0,guardT:9,gcd:0,rushPow:0,xtreme:false})}
+  function resetTop(t,x,z){t.loss={base:0,move:0,tilt:0,charge:0,rush:0,guard:0,impact:0,rim:0,stall:0};t.still=0;Object.assign(t,{rate:0,prevSpin:100,x,z,vx:0,vz:0,spin:100,lx:0,lz:0,ex:0,ez:0,charge:0,charging:false,cooldown:0,rush:0,clicks:0,dead:null,deadT:0,flash:0,heat:0,grinding:false,guard:0,guardT:9,gcd:0,rushPow:0,xtreme:false})}
   function startLaunch(){
     state='launch';roundEnd=null;particles.length=debris.length=trails.length=floats.length=0;
     resetTop(player,-.62,.3);resetTop(enemy,.62,-.3);
@@ -547,7 +642,7 @@
   function doLaunch(power){
     launch.power=power;$('#launchPanel').hidden=true;
     const shoot=(t,p,sx)=>{
-      t.spin=70+30*p;
+      t.spin=70+30*p;t.prevSpin=t.spin;
       // lancio: il top entra scivolando lungo la conca nel verso di rotazione
       const inp=t.isPlayer?playerInput():{x:0,z:0};
       t.vx=(-t.z*t.dir*1.2+inp.x*.8)*(.5+.6*p);t.vz=(t.x*t.dir*.6+inp.z*.8)*(.5+.6*p);
@@ -614,6 +709,7 @@
      UPDATE
      ============================================================ */
   function update(dt){
+    if(paused)return;
     elapsed+=dt;
     if(state==='launch'){launch.t+=dt;launch.needle=(1-Math.cos(launch.t*Math.PI*1.6))*.5;}
     if(state==='battle'){
@@ -622,6 +718,7 @@
       const ei=enemy.dead||roundEnd?{x:0,z:0}:enemyInput(enemy,player);
       stepTop(player,pi,dt);stepTop(enemy,ei,dt);
       collide(player,enemy,dt);
+      for(const t of[player,enemy]){const r=(t.prevSpin-t.spin)/dt;t.rate+=(r-t.rate)*Math.min(1,dt*1.2);t.prevSpin=t.spin}
       if(!roundEnd&&(player.dead||enemy.dead)){
         // piccola finestra: se anche l'altro cade subito è pareggio
         if(!roundEnd&&(player.deadT>.25||enemy.deadT>.25||(player.dead&&enemy.dead)))endRound();
@@ -691,7 +788,7 @@
     const c=t.blade.colors,[n,alt]=t.blade.shape;
     ctx.globalAlpha=.38;ctx.fillStyle='#020708';ellipsePath(x+2*s,y+7*s,18*s,5*s);ctx.fill();ctx.globalAlpha=1;
     // punta (bit)
-    const tipW=t.tip.id==='flat'?4:t.tip.id==='ball'?3:1.5;
+    const tipW=cl(1+t.tip.grip*3.3,1.2,4.5);
     polygon([[x-4*s+ox*.4,y+2*s+oy*.4],[x+4*s+ox*.4,y+2*s+oy*.4],[x+tipW*s,y+10*s],[x-tipW*s,y+10*s]],t.isPlayer?'#8e5a3c':'#454c49','#0b1112');
     // ratchet
     polygon(ringPoints(bx,by+s,14*s,8,q,.84),t.isPlayer?'#773e34':'#394746','#101517');
@@ -750,6 +847,7 @@
   function showNotice(text){if(elapsed<noticeLock&&!/FINISH|ROUND|GO|PERFETTO|ESPLOSO|FERMATO|DECISIONE|PAREGGIO/.test(text))return;ui.notice.textContent=text;ui.notice.classList.remove('show');void ui.notice.offsetWidth;ui.notice.classList.add('show');noticeLock=elapsed+.5}
   function syncHUD(){
     if(!player)return;
+    if(!$('#lab').hidden)syncLab();
     ui.spinBar.style.width=Math.max(0,player.spin).toFixed(1)+'%';ui.spinText.textContent=Math.ceil(Math.max(0,player.spin))+'%';
     const ke=kinetic(player)+(player.charging?player.charge*1.2:0);
     ui.kinBar.style.width=Math.min(100,ke/2.4*100).toFixed(1)+'%';ui.kinText.textContent=ke.toFixed(2)+'J · ROT '+rotEnergy(player).toFixed(2);
@@ -771,25 +869,83 @@
       player.charging?'CARICA CINETICA '+Math.round(player.charge*100)+'% · RILASCIA PER SCATTARE':
       player.guard>0?'GUARDIA ATTIVA'+(player.guardT<=PHY.PARRY_WIN?' · FINESTRA PARATA':''):
       player.spin<25?'SPIN BASSO! VAI SUL SOLCO AZZURRO O EVITA I COLPI':
-      'PRIMO A '+PHY.WIN_POINTS+' · SPIN +1 · BURST +2 · XTREME +3';
+      'PRIMO A '+PHY.WIN_POINTS+' · SPIN +1 · BURST +2 · XTREME +3 · L = LAB';
   }
 
   /* ============================================================
      SETUP UI
      ============================================================ */
   function buildSetup(){
-    const groups={dir:DIRS,blade:BLADES,tip:TIPS};
-    for(const [g,list] of Object.entries(groups)){
+    const groups={dir:[DIRS,'dir'],profile:[PROFILES,'profile']};
+    for(const [g,[list,key]] of Object.entries(groups)){
       const box=document.querySelector('.choices[data-group="'+g+'"]');box.innerHTML='';
       for(const item of Object.values(list)){
         const b=document.createElement('button');b.type='button';
-        b.innerHTML='<b>'+item.name+(item.type?' · '+item.type:'')+'</b><small>'+item.desc+'</small>';
-        b.classList.toggle('sel',choice[g]===item.id);
-        b.addEventListener('click',()=>{choice[g]=item.id;box.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+        b.innerHTML='<b>'+item.name+'</b><small>'+item.desc+'</small>';
+        b.classList.toggle('sel',cfg[key]===item.id);
+        b.addEventListener('click',()=>{cfg[key]=item.id;if(key==='dir'&&cfg.mirror)cfg.cpuDir=item.id;box.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
         box.appendChild(b);
       }
     }
+    $('#factorCard').innerHTML=FACTORS.map(k=>'<div class="fc"><b>'+k.name+'</b><i style="--v:'+(cfg.you[k.id]/1.5*100)+'%"></i><span>'+cfg.you[k.id].toFixed(2)+'</span><small>+ '+k.pro+'<br>− '+k.con+'</small></div>').join('');
   }
+
+  /* ============================================================
+     LAB: cursori sui fattori e sui parametri globali + telemetria
+     ============================================================ */
+  const TUNE=[
+    ['DRIVE','spinta punta',1,5,.1],['LEAN_RATE','reattività asse',2,12,.5],['PRECESS','precessione',0,.8,.05],
+    ['DRAIN_BASE','consumo base %/s',.4,3,.1],['IMPACT','danno per impulso',.2,2,.05],['CLASH','spin clash',0,1,.05],
+    ['BURST','soglia burst',.8,4,.1],['ABSORB','assorbimento attaccante',0,1,.05],['STALL_MULT','penalità ristagno',0,3,.1],['MOVE_COST','costo movimento',0,.6,.05],['RUSH_COST','costo rush',0,4,.1],['RAIL_GAIN','ricarica solco',0,20,1],['STEAL_XFER','spin steal',0,.4,.02]
+  ];
+  const labDefaults={...PHY};
+  function slider(label,val,min,max,step,on,hint){
+    const w=document.createElement('label');w.className='sl';
+    w.innerHTML='<span>'+label+'</span><input type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+val+'"><output>'+(+val).toFixed(2)+'</output>'+(hint?'<small>'+hint+'</small>':'');
+    const inp=w.querySelector('input'),out=w.querySelector('output');
+    inp.addEventListener('input',()=>{out.textContent=(+inp.value).toFixed(2);on(+inp.value)});
+    return w;
+  }
+  function applyFactors(){
+    if(cfg.mirror)cfg.cpu={...cfg.you};
+    if(player){refit(player,cfg.you);refit(enemy,cfg.cpu);buildPips();updateBuildPanel()}
+  }
+  function buildLab(){
+    const fy=$('#labYou'),fc=$('#labCpu'),g=$('#labPhy');fy.innerHTML=fc.innerHTML=g.innerHTML='';
+    for(const k of FACTORS){
+      fy.appendChild(slider(k.name,cfg.you[k.id],.5,1.5,.05,v=>{cfg.you[k.id]=v;applyFactors();if(cfg.mirror)buildLab()},'+ '+k.pro+' · − '+k.con));
+      const s=slider(k.name,cfg.cpu[k.id],.5,1.5,.05,v=>{cfg.cpu[k.id]=v;applyFactors()});s.querySelector('input').disabled=cfg.mirror;fc.appendChild(s);
+    }
+    for(const [key,label,min,max,step] of TUNE)g.appendChild(slider(key,PHY[key],min,max,step,v=>{PHY[key]=v},label));
+    $('#labMirror').checked=cfg.mirror;
+    const ps=$('#labProfile');ps.innerHTML=Object.values(PROFILES).map(p=>'<option value="'+p.id+'"'+(p.id===cfg.profile?' selected':'')+'>'+p.name+'</option>').join('');
+  }
+  function syncLab(){
+    const f=v=>v.toFixed(2);
+    const row=(t)=>'<tr><td>'+t.name+'</td><td>'+Math.max(0,t.spin).toFixed(1)+'%</td><td>'+f(t.rate)+'%/s</td><td>'+(t.rate>.05?Math.round(Math.max(0,t.spin)/t.rate)+'s':'∞')+'</td><td>'+f(Math.hypot(t.vx,t.vz))+'</td><td>'+t.clicks+'/'+t.blade.lock+'</td><td>'+Math.round(t.stats.dealt)+'</td></tr>';
+    let h='<table><tr><th></th><th>SPIN</th><th>CONSUMO</th><th>RESTA</th><th>VEL</th><th>BURST</th><th>INFLITTO</th></tr>'+row(player)+row(enemy)+'</table>';
+    if(lastHit){const L=lastHit,pA=L.A.isPlayer;const my=pA?L.lossA:L.lossB,its=pA?L.lossB:L.lossA,sh=pA?L.shA:1-L.shA;
+      h+='<p>ULTIMO URTO '+(elapsed-L.t).toFixed(1)+'s fa · impulso '+f(L.Jn)+' (rimbalzo '+f(L.Jlin)+' + clash '+f(L.Jspin)+') · tua quota cinetica '+Math.round(sh*100)+'% · tu −'+f(my)+' / CPU −'+f(its)+(L.parried?' · PARATA':'')+(L.broke?' · GUARD BREAK':'')+'</p>'}
+    const LB=[['base','base'],['move','moto'],['tilt','inclin.'],['stall','ristagno'],['charge','carica'],['rush','rush'],['guard','guardia'],['impact','colpi'],['rim','bordi']];
+    h+='<table><tr><th>PERSO PER</th>'+LB.map(x=>'<th>'+x[1]+'</th>').join('')+'</tr>'+[player,enemy].map(t=>'<tr><td>'+t.name+'</td>'+LB.map(x=>'<td>'+t.loss[x[0]].toFixed(1)+'</td>').join('')+'</tr>').join('')+'</table>';
+    if(player.still>PHY.STALL_TIME)h+='<p style="color:#ff8564">RISTAGNO: sei fermo da '+player.still.toFixed(1)+'s, consumo base +'+Math.round(PHY.STALL_MULT*100)+'%</p>';
+    $('#labTele').innerHTML=h;
+  }
+  function toggleLab(open){
+    const el=$('#lab');el.hidden=open===undefined?!el.hidden:!open;if(!el.hidden)buildLab();
+  }
+  $('#labBtn').addEventListener('click',()=>toggleLab());
+  $('#labClose').addEventListener('click',()=>toggleLab(false));
+  $('#labMirror').addEventListener('change',e=>{cfg.mirror=e.target.checked;if(cfg.mirror)cfg.cpuDir=cfg.dir;applyFactors();buildLab()});
+  $('#labProfile').addEventListener('change',e=>{cfg.profile=e.target.value;if(enemy){enemy.ai.profile=cfg.profile;ui.foeName.textContent='CPU · '+PROFILES[cfg.profile].name+' '+(enemy.dir>0?'↻':'↺');updateBuildPanel()}});
+  $('#labPause').addEventListener('click',()=>{paused=!paused;$('#labPause').textContent=paused?'RIPRENDI':'PAUSA'});
+  $('#labReset').addEventListener('click',()=>{if(player){paused=false;$('#labPause').textContent='PAUSA';startLaunch()}});
+  $('#labDefaults').addEventListener('click',()=>{Object.assign(PHY,labDefaults);cfg.you={...BASE};cfg.cpu={...BASE};applyFactors();buildLab()});
+  $('#labExport').addEventListener('click',()=>{
+    const out={fattori_tu:cfg.you,fattori_cpu:cfg.cpu,specchio:cfg.mirror,parametri:Object.fromEntries(TUNE.map(([k])=>[k,PHY[k]]))};
+    const ta=$('#labJson');ta.hidden=false;ta.value=JSON.stringify(out,null,1);ta.select();try{navigator.clipboard&&navigator.clipboard.writeText(ta.value).catch(()=>{})}catch(e){}
+  });
+
   $('#start').addEventListener('click',()=>{$('#setup').hidden=true;canvas.focus();newMatch()});
   $('#restart').addEventListener('click',()=>{$('#result').hidden=true;$('#setup').hidden=false;state='setup';player=enemy=null;buildSetup()});
 
@@ -804,7 +960,7 @@
   canvas.addEventListener('pointermove',e=>{if(pointer.active&&e.pointerId===pointer.id)mapPointer(e)});
   function release(e){if(e.pointerId===pointer.id){pointer.active=false;pointer.id=null}}
   canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('lostpointercapture',release);
-  addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(state==='setup'||state==='over')return;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();keys.add(k);if(k===' '&&!e.repeat)actDown()});
+  addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(state==='setup'||state==='over')return;if(e.target.closest&&e.target.closest('#lab'))return;if(k==='l'&&!e.repeat){toggleLab();return}if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();keys.add(k);if(k===' '&&!e.repeat)actDown()});
   addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(k===' ')actUp()});
   addEventListener('blur',()=>{keys.clear();pointer.active=false;pointer.id=null;if(actHeld)actUp()});
   ui.act.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();ui.act.setPointerCapture(e.pointerId);actDown()});
