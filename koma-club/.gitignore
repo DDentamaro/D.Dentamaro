@@ -1,0 +1,7 @@
+out/
+inbox/*
+!inbox/.gitkeep
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.venv/

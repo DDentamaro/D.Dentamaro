@@ -1,0 +1,53 @@
+week_start: 2026-11-02
+posts:
+  - date: 2026-11-02
+    rubrica: Panel muto
+    formato: singolo
+    images: [verticale.jpg]
+    opera: Vagabond
+    autore: Takehiko Inoue
+    volume: 27
+    capitolo: 242
+    testo: >
+      Settanta avversari, nessuna parola. Inoue lascia che sia il corpo
+      di Musashi a raccontare cosa resta dopo una battaglia così.
+    domanda: Qual è il panel senza dialoghi che vi è rimasto in testa?
+    hashtags: [vagabond, takehikoinoue, musashi, mangapanel, mangaart, seinen]
+
+  - date: 2026-11-03
+    rubrica: Tema
+    formato: carosello
+    images:
+      - orizzontale.jpg
+      - {file: quadrata.jpg, mode: crop, focus: [0.5, 0.3]}
+      - ruotata.jpg
+    opera: Vinland Saga
+    autore: Makoto Yukimura
+    volume: 8
+    titolo: La pioggia nei manga
+    testo: |
+      Tre tavole, tre modi di disegnare la pioggia.
+      Scorrete fino all'ultima.
+    domanda: Quale vi bagna di più?
+    hashtags: [vinlandsaga, makotoyukimura, mangapanel, pioggia]
+
+  - date: 2026-11-05
+    rubrica: Dettaglio
+    formato: singolo
+    images: [piccola.png]
+    opera: Dorohedoro
+    autore: Q Hayashida
+    volume: 3
+    testo: Guardate le mani.
+    hashtags: [dorohedoro, qhayashida, mangadetails]
+
+  - date: 2026-11-07
+    rubrica: Duello
+    formato: carosello
+    images: [orizzontale.jpg, verticale.jpg]
+    titolo: "Un uomo contro tutti: Miura o Inoue?"
+    crediti:
+      - {opera: Berserk, autore: Kentaro Miura, volume: null}
+      - {opera: Vagabond, autore: Takehiko Inoue, volume: 26}
+    testo: Votate nei commenti, Guts o Musashi?
+    hashtags: [berserk, vagabond, guts, musashi, mangapanel]

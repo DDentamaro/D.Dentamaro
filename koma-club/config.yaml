@@ -1,0 +1,9 @@
+# Impostazioni di Koma Club. Tutte le chiavi sono facoltative.
+handle: "@koma.club"        # firma in basso a destra su ogni slide
+background: "#F4F1EA"       # sfondo della modalità fit
+mode: fit                   # fit (predefinita) | crop; si può cambiare per singola immagine nel calendario
+# font: assets/fonts/Inter-Medium.otf   # font della firma (OFL)
+paths:
+  inbox: inbox
+  out: out
+  calendar: calendar
